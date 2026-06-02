@@ -1,0 +1,23 @@
+# Compiled Java class files
+**/target/
+**/*.class
+
+# Log files
+*.log
+**/logs/
+
+# Node/React dependencies and builds
+**/node_modules/
+**/build/
+**/dist/
+.eslintcache
+
+# IDE and system specific files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store

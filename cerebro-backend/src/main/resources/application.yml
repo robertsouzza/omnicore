@@ -1,0 +1,37 @@
+server:
+  port: 8080
+  tomcat:
+    threads:
+      max: 200 # Limite do Tomcat, mas que rodará leve com Virtual Threads
+
+spring:
+  application:
+    name: cerebro-backend
+
+  # Ativa os Virtual Threads nativos do Java 21 no Spring Boot 3.5+
+  threads:
+    virtual:
+      enabled: true
+
+  # Configuração de Conexão com o Banco do Docker
+  datasource:
+    url: jdbc:postgresql://localhost:5432/omnicore_management
+    username: admin
+    password: omnicore_secret_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: OmniCore-HikariCP
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      connection-timeout: 20000
+
+  # Configuração do Hibernate / JPA
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update # Cria e atualiza as tabelas automaticamente baseado nas nossas Entities
+    show-sql: true # Mostra os SQLs gerados no terminal (ótimo para desenvolvimento)
+    properties:
+      hibernate:
+        format_sql: true # Deixa o SQL do terminal indentado e legível

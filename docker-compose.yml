@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  omnicore-db:
+    image: postgres:16-alpine
+    container_name: omnicore-postgres-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: omnicore_secret_pass
+      POSTGRES_DB: omnicore_management
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_omnicore_data:/var/lib/postgresql/data
+    networks:
+      - omnicore-network
+    restart: always
+
+volumes:
+  postgres_omnicore_data:
+    driver: local
+
+networks:
+  omnicore-network:
+    driver: bridge
