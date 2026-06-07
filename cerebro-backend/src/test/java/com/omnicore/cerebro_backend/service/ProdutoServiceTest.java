@@ -12,10 +12,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("null")
 public class ProdutoServiceTest {
 
     @Mock
@@ -98,6 +100,29 @@ public class ProdutoServiceTest {
         assertNotNull(resultado);
         verify(produtoRepository, times(1)).findAll(pageable);
         verify(produtoRepository, never()).findByAtivo(anyBoolean(), any());
+    }
+
+    @Test
+    @DisplayName("Deve lançar exceção ao tentar inativar um produto que já está inativo")
+    void deveLancarExcecaoQuandoProdutoJaEstiverInativo() {
+        // Arrange
+        Long idExistente = 1L;
+        Produto produtoInativoMock = Produto.builder()
+                .id(idExistente)
+                .nome("Pepsi-Cola")
+                .ativo(false) // Simulando produto que já veio inativo do banco
+                .build();
+
+        when(produtoRepository.findById(idExistente)).thenReturn(Optional.of(produtoInativoMock));
+
+        // Act & Assert
+        BusinessException excecao = assertThrows(BusinessException.class, () -> {
+            produtoService.inativar(idExistente);
+        });
+
+        assertEquals("O produto 'Pepsi-Cola' já se encontra inativo no sistema.", excecao.getMessage());
+        verify(produtoRepository, times(1)).findById(idExistente);
+        verify(produtoRepository, never()).save(any(Produto.class)); // Garante que não forçou update
     }
 
 }

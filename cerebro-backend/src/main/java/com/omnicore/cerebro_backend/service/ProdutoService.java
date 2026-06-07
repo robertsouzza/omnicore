@@ -52,19 +52,14 @@ public class ProdutoService {
     @Transactional
     public void inativar(Long id) {
         Produto produto = buscarPorId(id);
+        // Blindagem: Se já estiver inativo, avisa o usuário de forma clara
+        if (!produto.getAtivo()) {
+            throw new BusinessException("O produto '" + produto.getNome() + "' já se encontra inativo no sistema.");
+        }
         produto.setAtivo(false); // Aqui acontece a mágica da Inativação Lógica!
         produtoRepository.save(produto);
     }
 
-    /* 
-    @Transactional(readOnly = true)
-    public Page<Produto> listarTodos(Pageable pageable) {
-        if (pageable == null) {
-            throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
-        }
-            return produtoRepository.findAll(pageable);
-    }
-    */
     @Transactional(readOnly = true)
     public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos) {
         if (pageable == null) {

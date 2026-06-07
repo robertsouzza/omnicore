@@ -26,15 +26,14 @@ spring:
       idle-timeout: 30000
       connection-timeout: 20000
 
-  # Configuração do Hibernate / JPA
+# Configuração do Hibernate / JPA
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update # Cria e atualiza as tabelas automaticamente baseado nas nossas Entities
     show-sql: true # Mostra os SQLs gerados no terminal (ótimo para desenvolvimento)
     properties:
-      hibernate:
-        format_sql: true # Deixa o SQL do terminal indentado e legível
+      "[hibernate.format_sql]": true # Deixa o SQL do terminal indentado e legível
 
 # Configuração do Swagger / OpenAPI
 springdoc:
@@ -43,7 +42,4 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: alpha # Organiza os endpoints por ordem alfabética
-  # Novas linhas adicionadas abaixo para converter o Pageable em parâmetros simples de URL:
-  default-page-parameter-name: page
-  default-page-size-parameter-name: size
-  default-sort-parameter-name: sort
+ 

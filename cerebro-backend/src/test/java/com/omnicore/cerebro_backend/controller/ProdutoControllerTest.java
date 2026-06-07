@@ -4,8 +4,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.omnicore.cerebro_backend.service.ProdutoService;
@@ -18,12 +18,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProdutoController.class)
+@SuppressWarnings("null")
 public class ProdutoControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private ProdutoService produtoService;
 
     @Test
@@ -43,19 +44,17 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve retornar status 200 OK e carregar parâmetros de paginação e filtro")
     void deveRetornar200AoListarProdutos() throws Exception {
-        // Arrange
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20, org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.ASC, "nome"));
-        
-        when(produtoService.listarTodos(any(org.springframework.data.domain.Pageable.class), eq(false)))
-                .thenReturn(org.springframework.data.domain.Page.empty());
+    // Arrange (Removeu a variável pageable que não era usada)
+    when(produtoService.listarTodos(any(org.springframework.data.domain.Pageable.class), eq(false)))
+            .thenReturn(org.springframework.data.domain.Page.empty());
 
-        // Act & Assert
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/produtos")
-                .param("page", "0")
-                .param("size", "20")
-                .param("sort", "nome,ASC")
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()); // Valida o retorno 200 OK
-    }
+    // Act & Assert
+    mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/produtos")
+            .param("page", "0")
+            .param("size", "20")
+            .param("sort", "nome,ASC")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk());
+}
 
 }
