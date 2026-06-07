@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.omnicore.cerebro_backend.dto.ProdutoRequestDTO;
@@ -51,6 +52,7 @@ public class ProdutoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
+    /*
     @GetMapping
     @Operation(
         summary = "Listar produtos de forma paginada", 
@@ -61,6 +63,20 @@ public class ProdutoController {
             Page<Produto> produtosPaginados = produtoService.listarTodos(pageable);
             return ResponseEntity.ok(produtosPaginados);
         }
+    */
+
+    @GetMapping
+    @Operation(
+        summary = "Listar produtos de forma paginada", 
+        description = "Retorna o catálogo de produtos fatiado por páginas para garantir a performance e eficiência de memória do ecossistema."
+    )
+    public ResponseEntity<Page<Produto>> listar(
+        @ParameterObject 
+        @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable,         
+        @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos) {
+        Page<Produto> produtosPaginados = produtoService.listarTodos(pageable, incluirInativos);
+        return ResponseEntity.ok(produtosPaginados);
+    }   
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar produto por ID", description = "Retorna os detalhes de um produto específico com base no identificador único.")

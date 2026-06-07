@@ -56,6 +56,7 @@ public class ProdutoService {
         produtoRepository.save(produto);
     }
 
+    /* 
     @Transactional(readOnly = true)
     public Page<Produto> listarTodos(Pageable pageable) {
         if (pageable == null) {
@@ -63,7 +64,17 @@ public class ProdutoService {
         }
             return produtoRepository.findAll(pageable);
     }
-
+    */
+    @Transactional(readOnly = true)
+    public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos) {
+        if (pageable == null) {
+            throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
+        }
+        if (incluirInativos) {
+            return produtoRepository.findAll(pageable); // Traz tudo (Ativos e Inativos)
+        }
+        return produtoRepository.findByAtivo(true, pageable); // Traw apenas os Ativos (Padrão)
+    }
 
     @Transactional(readOnly = true)
     public Produto buscarPorId(Long id) {

@@ -64,4 +64,40 @@ public class ProdutoServiceTest {
         verify(produtoRepository, never()).save(any(Produto.class));
     }
 
+    @Test
+    @DisplayName("Deve listar apenas produtos ativos por padrão")
+    void deveListarApenasProdutosAtivos() {
+        // Arrange
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        org.springframework.data.domain.Page<Produto> paginaMock = new org.springframework.data.domain.PageImpl<>(java.util.List.of(new Produto()));
+        
+        when(produtoRepository.findByAtivo(true, pageable)).thenReturn(paginaMock);
+
+        // Act
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false);
+
+        // Assert
+        assertNotNull(resultado);
+        verify(produtoRepository, times(1)).findByAtivo(true, pageable);
+        verify(produtoRepository, never()).findAll(pageable);
+    }
+
+    @Test
+    @DisplayName("Deve listar todos os produtos incluindo inativos quando solicitado")
+    void deveListarTodosOsProdutosIncluindoInativos() {
+        // Arrange
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        org.springframework.data.domain.Page<Produto> paginaMock = new org.springframework.data.domain.PageImpl<>(java.util.List.of(new Produto()));
+        
+        when(produtoRepository.findAll(pageable)).thenReturn(paginaMock);
+
+        // Act
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, true);
+
+        // Assert
+        assertNotNull(resultado);
+        verify(produtoRepository, times(1)).findAll(pageable);
+        verify(produtoRepository, never()).findByAtivo(anyBoolean(), any());
+    }
+
 }
