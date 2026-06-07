@@ -29,6 +29,33 @@ public class ProdutoService {
         return produtoRepository.save(produto);
     }
 
+    @Transactional
+    public Produto atualizar(Long id, Produto dadosAtualizados){
+        
+        Produto produtoExistente = buscarPorId(id);
+
+        // Atualiza os campos permitidos (mantendo o ID original e a data de criação)
+        produtoExistente.setCodigoBarras(dadosAtualizados.getCodigoBarras());
+        produtoExistente.setNome(dadosAtualizados.getNome());
+        produtoExistente.setDescricao(dadosAtualizados.getDescricao());
+        produtoExistente.setPrecoVenda(dadosAtualizados.getPrecoVenda());
+        produtoExistente.setCategoria(dadosAtualizados.getCategoria());
+        produtoExistente.setUrlImagem(dadosAtualizados.getUrlImagem());
+        produtoExistente.setTipoProduto(dadosAtualizados.getTipoProduto());
+        produtoExistente.setIndicadorTamanho(dadosAtualizados.getIndicadorTamanho());
+
+        // O Hibernate fará o update automaticamente ao fechar a transação devido ao estado Managed do objeto
+        return produtoRepository.save(produtoExistente);
+
+    }
+
+    @Transactional
+    public void inativar(Long id) {
+        Produto produto = buscarPorId(id);
+        produto.setAtivo(false); // Aqui acontece a mágica da Inativação Lógica!
+        produtoRepository.save(produto);
+    }
+
     @Transactional(readOnly = true)
     public Page<Produto> listarTodos(Pageable pageable) {
         if (pageable == null) {

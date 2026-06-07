@@ -69,6 +69,10 @@ public class Produto {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean ativo = true;
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
