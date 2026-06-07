@@ -1,0 +1,8 @@
+package com.omnicore.cerebro_backend.exception;
+
+public class BusinessException extends RuntimeException {
+    public BusinessException(String message) {
+        super(message);
+    }
+
+}
