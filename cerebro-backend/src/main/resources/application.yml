@@ -36,10 +36,14 @@ spring:
       hibernate:
         format_sql: true # Deixa o SQL do terminal indentado e legível
 
-  # Configuração do Swagger / OpenAPI
+# Configuração do Swagger / OpenAPI
 springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: alpha # Organiza os endpoints por ordem alfabética
+  # Novas linhas adicionadas abaixo para converter o Pageable em parâmetros simples de URL:
+  default-page-parameter-name: page
+  default-page-size-parameter-name: size
+  default-sort-parameter-name: sort

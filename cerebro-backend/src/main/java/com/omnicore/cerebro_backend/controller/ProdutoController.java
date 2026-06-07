@@ -1,5 +1,6 @@
 package com.omnicore.cerebro_backend.controller;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -47,7 +48,7 @@ public class ProdutoController {
         Produto salvo = produtoService.salvar(produto);
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
-
+    /*
     @GetMapping
     @Operation(
         summary = "Listar produtos de forma paginada", 
@@ -57,6 +58,17 @@ public class ProdutoController {
         @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
           Page<Produto> produtosPaginados = produtoService.listarTodos(pageable);
           return ResponseEntity.ok(produtosPaginados);
+        }
+    */
+    @GetMapping
+    @Operation(
+        summary = "Listar produtos de forma paginada", 
+            description = "Retorna o catálogo de produtos fatiado por páginas para garantir a performance e eficiência de memória do ecossistema."
+    )
+    public ResponseEntity<Page<Produto>> listar(
+        @ParameterObject @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
+            Page<Produto> produtosPaginados = produtoService.listarTodos(pageable);
+            return ResponseEntity.ok(produtosPaginados);
         }
 
     @GetMapping("/{id}")
