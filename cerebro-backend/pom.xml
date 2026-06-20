@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.14</version>
+		<version>3.5.15</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.omnicore</groupId>
@@ -90,6 +90,7 @@
 							<goal>compile</goal>
 						</goals>
 						<configuration>
+						    <parameters>true</parameters>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>
@@ -105,6 +106,7 @@
 							<goal>testCompile</goal>
 						</goals>
 						<configuration>
+						    <parameters>true</parameters>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>

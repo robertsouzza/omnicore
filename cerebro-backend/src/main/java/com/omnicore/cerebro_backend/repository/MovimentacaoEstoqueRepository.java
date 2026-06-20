@@ -5,11 +5,9 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 
-@Repository
 public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, Long> {
 
     // Busca todo o histórico de movimentações de um produto específico
