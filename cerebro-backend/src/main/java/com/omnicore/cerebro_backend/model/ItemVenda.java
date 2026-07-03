@@ -2,6 +2,8 @@ package com.omnicore.cerebro_backend.model;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +26,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class ItemVenda {
 
@@ -33,6 +36,7 @@ public class ItemVenda {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "venda_id", nullable = false)
+    @Getter(AccessLevel.NONE)
     private Venda venda;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -43,9 +47,13 @@ public class ItemVenda {
     private Integer quantidade;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precoUnitario; // Preço aplicado no momento da venda (imutável)
+    private BigDecimal precoUnitario;
 
     @Column(precision = 10, scale = 2)
-    private BigDecimal desconto; // Desconto permitido por item (RF12)
+    private BigDecimal desconto;
 
+    @JsonIgnore
+    public Venda getVenda() {
+        return venda;
+    }
 }
