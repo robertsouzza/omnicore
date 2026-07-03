@@ -61,7 +61,11 @@ public class VendaService {
 
             // REGRA DE NEGÓCIO: Se a venda for debitar o estoque imediatamente, valida o saldo
             if (dto.status() == StatusVenda.PAGA || dto.status() == StatusVenda.CONCLUIDA) {
-                Integer saldoAtual = movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(produto.getId());
+                Integer saldoConsultado = movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(produto.getId());
+                
+                // 🌟 Junta a consulta com a segurança contra o null
+                int saldoAtual = (saldoConsultado != null) ? saldoConsultado : 0;
+                
                 if (saldoAtual < itemDto.quantidade()) {
                     throw new BusinessException("Saldo insuficiente em estoque para o produto '" + produto.getNome() 
                             + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + itemDto.quantidade());
