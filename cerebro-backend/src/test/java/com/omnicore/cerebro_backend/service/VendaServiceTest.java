@@ -18,11 +18,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -108,12 +110,12 @@ public class VendaServiceTest {
         LocalDateTime fim = LocalDateTime.of(2026, 7, 31, 23, 59);
         Page<Venda> paginaMock = new PageImpl<>(List.of(new Venda()));
 
-        when(vendaRepository.findByFiltros(StatusVenda.PAGA, 20L, inicio, fim, pageable)).thenReturn(paginaMock);
+        when(vendaRepository.findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable))).thenReturn(paginaMock);
 
         Page<Venda> resultado = vendaService.listar(pageable, StatusVenda.PAGA, 20L, inicio, fim);
 
         assertEquals(1, resultado.getTotalElements());
-        verify(vendaRepository).findByFiltros(StatusVenda.PAGA, 20L, inicio, fim, pageable);
+        verify(vendaRepository).findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable));
     }
 
     @Test

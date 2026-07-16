@@ -2,9 +2,13 @@ package com.omnicore.cerebro_backend.service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +24,8 @@ import com.omnicore.cerebro_backend.model.Venda;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import com.omnicore.cerebro_backend.repository.VendaRepository;
+
+import jakarta.persistence.criteria.Predicate;
 
 @Service
 public class VendaService {
@@ -102,7 +108,29 @@ public class VendaService {
         if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
             throw new BusinessException("A data inicial não pode ser posterior à data final.");
         }
-        return vendaRepository.findByFiltros(status, clienteId, dataInicio, dataFim, pageable);
+        return vendaRepository.findAll(montarFiltros(status, clienteId, dataInicio, dataFim), pageable);
+    }
+
+    private Specification<Venda> montarFiltros(StatusVenda status, Long clienteId,
+                                               LocalDateTime dataInicio, LocalDateTime dataFim) {
+        return (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (status != null) {
+                predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+            if (clienteId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("clienteId"), clienteId));
+            }
+            if (dataInicio != null) {
+                predicates.add(criteriaBuilder.greaterThanOrEqualTo(root.get("dataHora"), dataInicio));
+            }
+            if (dataFim != null) {
+                predicates.add(criteriaBuilder.lessThanOrEqualTo(root.get("dataHora"), dataFim));
+            }
+
+            return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
+        };
     }
 
     @Transactional(readOnly = true)
@@ -141,27 +169,39 @@ public class VendaService {
 
     private void registrarSaidaPorVenda(Venda venda) {
         for (ItemVenda item : venda.getItens()) {
-            movimentacaoEstoqueRepository.save(MovimentacaoEstoque.builder()
-                    .produto(item.getProduto())
-                    .tipo(TipoMovimentacaoEstoque.SAIDA)
-                    .quantidade(item.getQuantidade())
-                    .dataHora(LocalDateTime.now())
-                    .justificativa("Saída por venda automatizada. Pedido #" + venda.getId())
-                    .vendaId(venda.getId())
-                    .build());
+            salvarMovimentacao(
+                    item.getProduto(),
+                    TipoMovimentacaoEstoque.SAIDA,
+                    item.getQuantidade(),
+                    "Saída por venda automatizada. Pedido #" + venda.getId(),
+                    venda.getId());
         }
     }
 
     private void registrarEntradaPorEstorno(Venda venda) {
         for (ItemVenda item : venda.getItens()) {
-            movimentacaoEstoqueRepository.save(MovimentacaoEstoque.builder()
-                    .produto(item.getProduto())
-                    .tipo(TipoMovimentacaoEstoque.ENTRADA)
-                    .quantidade(item.getQuantidade())
-                    .dataHora(LocalDateTime.now())
-                    .justificativa("Estorno por cancelamento da venda #" + venda.getId())
-                    .vendaId(venda.getId())
-                    .build());
+            salvarMovimentacao(
+                    item.getProduto(),
+                    TipoMovimentacaoEstoque.ENTRADA,
+                    item.getQuantidade(),
+                    "Estorno por cancelamento da venda #" + venda.getId(),
+                    venda.getId());
         }
+    }
+
+    private void salvarMovimentacao(Produto produto, TipoMovimentacaoEstoque tipo, Integer quantidade,
+                                    String justificativa, Long vendaId) {
+        MovimentacaoEstoque movimentacao = Objects.requireNonNull(
+                MovimentacaoEstoque.builder()
+                        .produto(produto)
+                        .tipo(tipo)
+                        .quantidade(quantidade)
+                        .dataHora(LocalDateTime.now())
+                        .justificativa(justificativa)
+                        .vendaId(vendaId)
+                        .build(),
+                "Falha ao montar movimentação de estoque.");
+
+        movimentacaoEstoqueRepository.save(movimentacao);
     }
 }
