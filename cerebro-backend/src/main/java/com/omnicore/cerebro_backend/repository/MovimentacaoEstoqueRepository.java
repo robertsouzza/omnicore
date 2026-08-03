@@ -2,6 +2,8 @@ package com.omnicore.cerebro_backend.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,8 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
 
     // Busca todo o histórico de movimentações de um produto específico
     List<MovimentacaoEstoque> findByProdutoIdOrderByDataHoraDesc(Long produtoId);
+
+    Page<MovimentacaoEstoque> findByProduto_IdOrderByDataHoraDesc(Long produtoId, Pageable pageable);
 
     /**
      * RF04 / RF19: O "Cérebro" do cálculo de estoque em tempo real.
