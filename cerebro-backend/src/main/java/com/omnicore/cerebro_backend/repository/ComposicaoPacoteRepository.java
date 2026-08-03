@@ -9,6 +9,7 @@ import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 
 public interface ComposicaoPacoteRepository extends JpaRepository<ComposicaoPacote, Long> {
 
-    // Busca todas as composições/componentes de um pacote mãe específico através do seu ID
-    List<ComposicaoPacote> findByPacoteId(Long pacoteId);
+    List<ComposicaoPacote> findByPacote_Id(Long pacoteId);
+
+    boolean existsByPacote_IdAndProdutoFilho_Id(Long pacoteId, Long produtoFilhoId);
 }

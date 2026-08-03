@@ -16,11 +16,14 @@ import com.omnicore.cerebro_backend.dto.ItemVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
+import com.omnicore.cerebro_backend.enums.TipoProduto;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.ItemVenda;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.model.Venda;
+import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import com.omnicore.cerebro_backend.repository.VendaRepository;
@@ -33,13 +36,16 @@ public class VendaService {
     private final VendaRepository vendaRepository;
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+    private final ComposicaoPacoteRepository composicaoPacoteRepository;
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoRepository produtoRepository,
-                        MovimentacaoEstoqueRepository movimentacaoEstoqueRepository) {
+                        MovimentacaoEstoqueRepository movimentacaoEstoqueRepository,
+                        ComposicaoPacoteRepository composicaoPacoteRepository) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
+        this.composicaoPacoteRepository = composicaoPacoteRepository;
     }
 
     @SuppressWarnings("null")
@@ -64,12 +70,7 @@ public class VendaService {
                     .orElseThrow(() -> new BusinessException("Produto com ID " + itemDto.produtoId() + " não encontrado."));
 
             if (deveDebitarEstoque(dto.status())) {
-                int saldoAtual = obterSaldoAtual(produto.getId());
-
-                if (saldoAtual < itemDto.quantidade()) {
-                    throw new BusinessException("Saldo insuficiente em estoque para o produto '" + produto.getNome()
-                            + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + itemDto.quantidade());
-                }
+                validarEstoqueDisponivel(produto, itemDto.quantidade());
             }
 
             BigDecimal desconto = itemDto.desconto() != null ? itemDto.desconto() : BigDecimal.ZERO;
@@ -151,7 +152,7 @@ public class VendaService {
         }
 
         if (deveDebitarEstoque(venda.getStatus())) {
-            registrarEntradaPorEstorno(venda);
+            estornarMovimentacoesDaVenda(venda);
         }
 
         venda.setStatus(StatusVenda.CANCELADA);
@@ -169,24 +170,94 @@ public class VendaService {
 
     private void registrarSaidaPorVenda(Venda venda) {
         for (ItemVenda item : venda.getItens()) {
-            salvarMovimentacao(
-                    item.getProduto(),
+            registrarMovimentacoesPorItem(
+                    item,
                     TipoMovimentacaoEstoque.SAIDA,
-                    item.getQuantidade(),
                     "Saída por venda automatizada. Pedido #" + venda.getId(),
                     venda.getId());
         }
     }
 
-    private void registrarEntradaPorEstorno(Venda venda) {
-        for (ItemVenda item : venda.getItens()) {
+    private void estornarMovimentacoesDaVenda(Venda venda) {
+        List<MovimentacaoEstoque> saidas = movimentacaoEstoqueRepository.findByVendaIdAndTipo(
+                venda.getId(), TipoMovimentacaoEstoque.SAIDA);
+
+        for (MovimentacaoEstoque saida : saidas) {
             salvarMovimentacao(
-                    item.getProduto(),
+                    saida.getProduto(),
                     TipoMovimentacaoEstoque.ENTRADA,
-                    item.getQuantidade(),
+                    saida.getQuantidade(),
                     "Estorno por cancelamento da venda #" + venda.getId(),
                     venda.getId());
         }
+    }
+
+    private void validarEstoqueDisponivel(Produto produto, int quantidadeVendida) {
+        if (produto.getTipoProduto() == TipoProduto.PACOTE) {
+            validarEstoqueDoPacote(produto, quantidadeVendida);
+            return;
+        }
+
+        validarSaldoProduto(produto, quantidadeVendida);
+    }
+
+    private void validarEstoqueDoPacote(Produto pacote, int quantidadeVendida) {
+        List<ComposicaoPacote> componentes = listarComponentesDoPacote(pacote);
+
+        for (ComposicaoPacote componente : componentes) {
+            int quantidadeNecessaria = calcularQuantidadeComponente(componente.getQuantidade(), quantidadeVendida);
+            validarSaldoProduto(componente.getProdutoFilho(), quantidadeNecessaria);
+        }
+    }
+
+    private void registrarMovimentacoesPorItem(ItemVenda item, TipoMovimentacaoEstoque tipo,
+                                               String justificativaBase, Long vendaId) {
+        Produto produto = item.getProduto();
+
+        if (produto.getTipoProduto() == TipoProduto.PACOTE) {
+            List<ComposicaoPacote> componentes = listarComponentesDoPacote(produto);
+
+            for (ComposicaoPacote componente : componentes) {
+                int quantidade = calcularQuantidadeComponente(componente.getQuantidade(), item.getQuantidade());
+                String justificativa = justificativaBase + " — componente '" + componente.getProdutoFilho().getNome()
+                        + "' do pacote '" + produto.getNome() + "'";
+                salvarMovimentacao(componente.getProdutoFilho(), tipo, quantidade, justificativa, vendaId);
+            }
+            return;
+        }
+
+        salvarMovimentacao(produto, tipo, item.getQuantidade(), justificativaBase, vendaId);
+    }
+
+    private List<ComposicaoPacote> listarComponentesDoPacote(Produto pacote) {
+        List<ComposicaoPacote> componentes = composicaoPacoteRepository.findByPacote_Id(pacote.getId());
+
+        if (componentes.isEmpty()) {
+            throw new BusinessException("O pacote '" + pacote.getNome() + "' não possui composição cadastrada.");
+        }
+
+        return componentes;
+    }
+
+    private void validarSaldoProduto(Produto produto, int quantidadeNecessaria) {
+        int saldoAtual = obterSaldoAtual(produto.getId());
+
+        if (saldoAtual < quantidadeNecessaria) {
+            throw new BusinessException("Saldo insuficiente em estoque para o produto '" + produto.getNome()
+                    + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + quantidadeNecessaria);
+        }
+    }
+
+    private int calcularQuantidadeComponente(BigDecimal quantidadePorUnidade, int quantidadeVendida) {
+        BigDecimal total = quantidadePorUnidade.multiply(BigDecimal.valueOf(quantidadeVendida));
+
+        if (total.remainder(BigDecimal.ONE).compareTo(BigDecimal.ZERO) != 0) {
+            throw new BusinessException(
+                    "A quantidade calculada para o componente do pacote deve ser um número inteiro. Valor obtido: "
+                            + total);
+        }
+
+        return total.intValueExact();
     }
 
     private void salvarMovimentacao(Produto produto, TipoMovimentacaoEstoque tipo, Integer quantidade,

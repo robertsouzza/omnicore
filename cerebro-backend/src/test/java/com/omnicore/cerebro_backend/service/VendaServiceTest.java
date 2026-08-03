@@ -4,11 +4,14 @@ import com.omnicore.cerebro_backend.dto.ItemVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
+import com.omnicore.cerebro_backend.enums.TipoProduto;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.ItemVenda;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.model.Venda;
+import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import com.omnicore.cerebro_backend.repository.VendaRepository;
@@ -48,19 +51,24 @@ public class VendaServiceTest {
     @Mock
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+    @Mock
+    private ComposicaoPacoteRepository composicaoPacoteRepository;
+
     private VendaService vendaService;
 
     private Produto produtoMock;
 
     @BeforeEach
     void setUp() {
-        vendaService = new VendaService(vendaRepository, produtoRepository, movimentacaoEstoqueRepository);
+        vendaService = new VendaService(vendaRepository, produtoRepository, movimentacaoEstoqueRepository,
+                composicaoPacoteRepository);
 
         produtoMock = new Produto();
         produtoMock.setId(1L);
         produtoMock.setNome("Refrigerante Pepsi-Cola Lata 350ml");
         produtoMock.setPrecoVenda(new BigDecimal("5.00"));
         produtoMock.setAtivo(true);
+        produtoMock.setTipoProduto(TipoProduto.UNITARIO);
     }
 
     @Test
@@ -156,6 +164,12 @@ public class VendaServiceTest {
 
         when(vendaRepository.findById(1L)).thenReturn(Optional.of(venda));
         when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(movimentacaoEstoqueRepository.findByVendaIdAndTipo(1L, TipoMovimentacaoEstoque.SAIDA))
+                .thenReturn(List.of(MovimentacaoEstoque.builder()
+                        .produto(produtoMock)
+                        .tipo(TipoMovimentacaoEstoque.SAIDA)
+                        .quantidade(2)
+                        .build()));
 
         Venda cancelada = vendaService.cancelar(1L);
 
@@ -192,6 +206,71 @@ public class VendaServiceTest {
         when(vendaRepository.findById(3L)).thenReturn(Optional.of(venda));
 
         assertThrows(BusinessException.class, () -> vendaService.cancelar(3L));
+        verify(vendaRepository, never()).save(any(Venda.class));
+    }
+
+    @Test
+    @DisplayName("Deve baixar estoque dos produtos filhos ao vender um pacote")
+    void deveBaixarEstoqueDosFilhosAoVenderPacote() {
+        Produto pacote = new Produto();
+        pacote.setId(2L);
+        pacote.setNome("Kit Limpeza");
+        pacote.setTipoProduto(TipoProduto.PACOTE);
+
+        Produto filhoA = new Produto();
+        filhoA.setId(10L);
+        filhoA.setNome("Desinfetante");
+        filhoA.setTipoProduto(TipoProduto.UNITARIO);
+
+        Produto filhoB = new Produto();
+        filhoB.setId(11L);
+        filhoB.setNome("Sabão em pó");
+        filhoB.setTipoProduto(TipoProduto.UNITARIO);
+
+        ComposicaoPacote compA = ComposicaoPacote.builder()
+                .produtoFilho(filhoA)
+                .quantidade(new BigDecimal("1"))
+                .build();
+        ComposicaoPacote compB = ComposicaoPacote.builder()
+                .produtoFilho(filhoB)
+                .quantidade(new BigDecimal("2"))
+                .build();
+
+        ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(2L, 1, new BigDecimal("29.90"), BigDecimal.ZERO);
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+
+        when(produtoRepository.findById(2L)).thenReturn(Optional.of(pacote));
+        when(composicaoPacoteRepository.findByPacote_Id(2L)).thenReturn(List.of(compA, compB));
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(10L)).thenReturn(5);
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(11L)).thenReturn(5);
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> {
+            Venda venda = invocation.getArgument(0);
+            venda.setId(100L);
+            return venda;
+        });
+
+        vendaService.criarVenda(vendaDto);
+
+        verify(movimentacaoEstoqueRepository, times(2)).save(any(MovimentacaoEstoque.class));
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar venda de pacote sem composição cadastrada")
+    void deveRejeitarVendaDePacoteSemComposicao() {
+        Produto pacote = new Produto();
+        pacote.setId(2L);
+        pacote.setNome("Kit vazio");
+        pacote.setTipoProduto(TipoProduto.PACOTE);
+
+        ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(2L, 1, new BigDecimal("29.90"), BigDecimal.ZERO);
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+
+        when(produtoRepository.findById(2L)).thenReturn(Optional.of(pacote));
+        when(composicaoPacoteRepository.findByPacote_Id(2L)).thenReturn(List.of());
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto));
+
+        assertTrue(exception.getMessage().contains("não possui composição cadastrada"));
         verify(vendaRepository, never()).save(any(Venda.class));
     }
 }

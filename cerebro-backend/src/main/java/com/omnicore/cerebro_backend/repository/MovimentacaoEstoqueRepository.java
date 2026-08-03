@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 
 public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, Long> {
@@ -27,5 +28,7 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
        WHERE m.produto.id = :produtoId
        """)
     Integer getSaldoEstoquePorProdutoId(@Param("produtoId") Long produtoId);
+
+    List<MovimentacaoEstoque> findByVendaIdAndTipo(Long vendaId, TipoMovimentacaoEstoque tipo);
 
 }
