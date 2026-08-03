@@ -1,6 +1,7 @@
 package com.omnicore.cerebro_backend.service;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 
 @Service
+@SuppressWarnings("null")
 public class ComposicaoPacoteService {
 
     private final ComposicaoPacoteRepository composicaoPacoteRepository;
@@ -57,7 +59,9 @@ public class ComposicaoPacoteService {
                 .quantidade(dto.quantidade())
                 .build();
 
-        return composicaoPacoteRepository.save(composicao);
+        return Objects.requireNonNull(
+                composicaoPacoteRepository.save(composicao),
+                "Falha ao persistir composição do pacote.");
     }
 
     @Transactional
