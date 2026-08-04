@@ -54,6 +54,12 @@ public class VendaServiceTest {
     @Mock
     private ComposicaoPacoteRepository composicaoPacoteRepository;
 
+    @Mock
+    private ClienteService clienteService;
+
+    @Mock
+    private ColaboradorService colaboradorService;
+
     private VendaService vendaService;
 
     private Produto produtoMock;
@@ -61,7 +67,7 @@ public class VendaServiceTest {
     @BeforeEach
     void setUp() {
         vendaService = new VendaService(vendaRepository, produtoRepository, movimentacaoEstoqueRepository,
-                composicaoPacoteRepository);
+                composicaoPacoteRepository, clienteService, colaboradorService);
 
         produtoMock = new Produto();
         produtoMock.setId(1L);
@@ -210,22 +216,40 @@ public class VendaServiceTest {
     }
 
     @Test
+    @DisplayName("Deve rejeitar venda de produto inativo")
+    void deveRejeitarVendaDeProdutoInativo() {
+        produtoMock.setAtivo(false);
+        ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 1, new BigDecimal("5.00"), BigDecimal.ZERO);
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+
+        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto));
+
+        assertTrue(exception.getMessage().contains("inativo"));
+        verify(vendaRepository, never()).save(any(Venda.class));
+    }
+
+    @Test
     @DisplayName("Deve baixar estoque dos produtos filhos ao vender um pacote")
     void deveBaixarEstoqueDosFilhosAoVenderPacote() {
         Produto pacote = new Produto();
         pacote.setId(2L);
         pacote.setNome("Kit Limpeza");
         pacote.setTipoProduto(TipoProduto.PACOTE);
+        pacote.setAtivo(true);
 
         Produto filhoA = new Produto();
         filhoA.setId(10L);
         filhoA.setNome("Desinfetante");
         filhoA.setTipoProduto(TipoProduto.UNITARIO);
+        filhoA.setAtivo(true);
 
         Produto filhoB = new Produto();
         filhoB.setId(11L);
         filhoB.setNome("Sabão em pó");
         filhoB.setTipoProduto(TipoProduto.UNITARIO);
+        filhoB.setAtivo(true);
 
         ComposicaoPacote compA = ComposicaoPacote.builder()
                 .produtoFilho(filhoA)
@@ -261,6 +285,7 @@ public class VendaServiceTest {
         pacote.setId(2L);
         pacote.setNome("Kit vazio");
         pacote.setTipoProduto(TipoProduto.PACOTE);
+        pacote.setAtivo(true);
 
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(2L, 1, new BigDecimal("29.90"), BigDecimal.ZERO);
         VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));

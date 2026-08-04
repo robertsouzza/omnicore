@@ -30,6 +30,7 @@ import com.omnicore.cerebro_backend.repository.VendaRepository;
 
 import jakarta.persistence.criteria.Predicate;
 
+@SuppressWarnings("null")
 @Service
 public class VendaService {
 
@@ -37,20 +38,28 @@ public class VendaService {
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final ComposicaoPacoteRepository composicaoPacoteRepository;
+    private final ClienteService clienteService;
+    private final ColaboradorService colaboradorService;
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoRepository produtoRepository,
                         MovimentacaoEstoqueRepository movimentacaoEstoqueRepository,
-                        ComposicaoPacoteRepository composicaoPacoteRepository) {
+                        ComposicaoPacoteRepository composicaoPacoteRepository,
+                        ClienteService clienteService,
+                        ColaboradorService colaboradorService) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
         this.composicaoPacoteRepository = composicaoPacoteRepository;
+        this.clienteService = clienteService;
+        this.colaboradorService = colaboradorService;
     }
 
-    @SuppressWarnings("null")
     @Transactional
     public Venda criarVenda(VendaRequestDTO dto) {
+        colaboradorService.validarColaboradorAtivoParaVenda(dto.vendedorId());
+        clienteService.validarClienteAtivoParaVenda(dto.clienteId());
+
         Venda venda = Venda.builder()
                 .dataHora(LocalDateTime.now())
                 .status(dto.status())
@@ -67,7 +76,10 @@ public class VendaService {
                 throw new BusinessException("O ID do produto não pode ser nulo.");
             }
             Produto produto = produtoRepository.findById(itemDto.produtoId())
-                    .orElseThrow(() -> new BusinessException("Produto com ID " + itemDto.produtoId() + " não encontrado."));
+                    .orElseThrow(() -> new BusinessException(
+                            "Produto com ID " + itemDto.produtoId() + " não encontrado."));
+
+            validarProdutoAtivo(produto);
 
             if (deveDebitarEstoque(dto.status())) {
                 validarEstoqueDisponivel(produto, itemDto.quantidade());
@@ -201,6 +213,23 @@ public class VendaService {
         validarSaldoProduto(produto, quantidadeVendida);
     }
 
+    private void validarProdutoAtivo(Produto produto) {
+        if (Boolean.FALSE.equals(produto.getAtivo())) {
+            throw new BusinessException(
+                    "O produto '" + produto.getNome() + "' está inativo e não pode ser vendido.");
+        }
+    }
+
+    private void validarSaldoProduto(Produto produto, int quantidadeNecessaria) {
+        validarProdutoAtivo(produto);
+        int saldoAtual = obterSaldoAtual(produto.getId());
+        if (saldoAtual < quantidadeNecessaria) {
+            throw new BusinessException(
+                    "Saldo insuficiente em estoque para o produto '" + produto.getNome()
+                            + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + quantidadeNecessaria);
+        }
+    }
+
     private void validarEstoqueDoPacote(Produto pacote, int quantidadeVendida) {
         List<ComposicaoPacote> componentes = listarComponentesDoPacote(pacote);
 
@@ -237,15 +266,6 @@ public class VendaService {
         }
 
         return componentes;
-    }
-
-    private void validarSaldoProduto(Produto produto, int quantidadeNecessaria) {
-        int saldoAtual = obterSaldoAtual(produto.getId());
-
-        if (saldoAtual < quantidadeNecessaria) {
-            throw new BusinessException("Saldo insuficiente em estoque para o produto '" + produto.getNome()
-                    + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + quantidadeNecessaria);
-        }
     }
 
     private int calcularQuantidadeComponente(BigDecimal quantidadePorUnidade, int quantidadeVendida) {
