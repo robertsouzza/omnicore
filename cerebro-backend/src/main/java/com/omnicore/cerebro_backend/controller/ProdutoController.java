@@ -52,19 +52,6 @@ public class ProdutoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    /*
-    @GetMapping
-    @Operation(
-        summary = "Listar produtos de forma paginada", 
-            description = "Retorna o catálogo de produtos fatiado por páginas para garantir a performance e eficiência de memória do ecossistema."
-    )
-    public ResponseEntity<Page<Produto>> listar(
-        @ParameterObject @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable) {
-            Page<Produto> produtosPaginados = produtoService.listarTodos(pageable);
-            return ResponseEntity.ok(produtosPaginados);
-        }
-    */
-
     @GetMapping
     @Operation(
         summary = "Listar produtos de forma paginada", 

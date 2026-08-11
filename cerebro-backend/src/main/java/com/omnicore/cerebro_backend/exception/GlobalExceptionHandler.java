@@ -6,25 +6,43 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
-@ControllerAdvice // Indica ao Spring que esta classe interceptará exceções de todos os Controllers
+@ControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Object> handleBusinessException(BusinessException ex, WebRequest request) {
-        // Monta uma estrutura de resposta limpa e profissional para o cliente
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("timestamp", LocalDateTime.now());
-        body.put("status", HttpStatus.BAD_REQUEST.value());
-        body.put("error", "Regra de Negócio Violada");
-        body.put("message", ex.getMessage()); // Carrega a sua mensagem customizada do Service
-        body.put("path", request.getDescription(false).replace("uri=", ""));
-
-        // Devolve o status 400 Bad Request de forma limpa, sumindo com o erro 500 do console
+        Map<String, Object> body = corpoBase(HttpStatus.BAD_REQUEST, "Regra de Negócio Violada", request);
+        body.put("message", ex.getMessage());
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationException(MethodArgumentNotValidException ex, WebRequest request) {
+        Map<String, String> campos = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(erro ->
+                campos.put(erro.getField(), erro.getDefaultMessage()));
+
+        Map<String, Object> body = corpoBase(HttpStatus.BAD_REQUEST, "Erro de Validação", request);
+        body.put("message", "Um ou mais campos estão inválidos.");
+        body.put("fields", campos);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    private Map<String, Object> corpoBase(HttpStatus status, String error, WebRequest request) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", status.value());
+        body.put("error", error);
+        body.put("path", extrairPath(request));
+        return body;
+    }
+
+    private String extrairPath(WebRequest request) {
+        return request.getDescription(false).replace("uri=", "");
+    }
 }

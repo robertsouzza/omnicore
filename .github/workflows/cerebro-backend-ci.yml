@@ -1,0 +1,50 @@
+name: Cerebro Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cerebro-backend/**'
+      - '.github/workflows/cerebro-backend-ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'cerebro-backend/**'
+      - '.github/workflows/cerebro-backend-ci.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cerebro-backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: omnicore_management
+          POSTGRES_USER: admin
+          POSTGRES_PASSWORD: omnicore_secret_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+          cache-dependency-path: cerebro-backend/pom.xml
+
+      - name: Run tests
+        run: ./mvnw -B test

@@ -95,7 +95,10 @@ public class ProdutoControllerTest {
         mockMvc.perform(post("/api/produtos")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadInvalido))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Erro de Validação"))
+                .andExpect(jsonPath("$.fields.nome").exists())
+                .andExpect(jsonPath("$.fields.precoVenda").exists());
     }
 
     @Test
@@ -198,7 +201,9 @@ public class ProdutoControllerTest {
         mockMvc.perform(put("/api/produtos/{id}", 1L)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadInvalido))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Erro de Validação"))
+                .andExpect(jsonPath("$.fields.codigoBarras").exists());
     }
 
     @Test
