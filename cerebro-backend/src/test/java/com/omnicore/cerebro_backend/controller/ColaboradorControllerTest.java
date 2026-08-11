@@ -11,9 +11,11 @@ import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -22,7 +24,8 @@ import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.Colaborador;
 import com.omnicore.cerebro_backend.service.ColaboradorService;
 
-@WebMvcTest(ColaboradorController.class)
+@WebMvcTest(controllers = ColaboradorController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
+@ActiveProfiles("test")
 @Import(GlobalExceptionHandler.class)
 @SuppressWarnings("null")
 class ColaboradorControllerTest {

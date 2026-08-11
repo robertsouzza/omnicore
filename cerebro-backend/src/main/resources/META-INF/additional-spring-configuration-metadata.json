@@ -1,0 +1,15 @@
+{
+  "properties": [
+    {
+      "name": "omnicore.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Chave secreta HMAC para assinatura dos tokens JWT."
+    },
+    {
+      "name": "omnicore.jwt.expiration-hours",
+      "type": "java.lang.Long",
+      "description": "Tempo de expiração do token JWT em horas.",
+      "defaultValue": 24
+    }
+  ]
+}

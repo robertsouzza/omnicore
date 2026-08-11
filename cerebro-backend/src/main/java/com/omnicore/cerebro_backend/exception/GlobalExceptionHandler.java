@@ -14,6 +14,13 @@ import org.springframework.web.context.request.WebRequest;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(AuthenticationFailedException.class)
+    public ResponseEntity<Object> handleAuthenticationFailed(AuthenticationFailedException ex, WebRequest request) {
+        Map<String, Object> body = corpoBase(HttpStatus.UNAUTHORIZED, "Credenciais Inválidas", request);
+        body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<Object> handleBusinessException(BusinessException ex, WebRequest request) {
         Map<String, Object> body = corpoBase(HttpStatus.BAD_REQUEST, "Regra de Negócio Violada", request);

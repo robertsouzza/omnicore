@@ -42,4 +42,8 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
     operationsSorter: alpha # Organiza os endpoints por ordem alfabética
- 
+
+omnicore:
+  jwt:
+    secret: ${JWT_SECRET:omnicore-dev-secret-key-com-minimo-32-caracteres}
+    expiration-hours: ${JWT_EXPIRATION_HOURS:24}
