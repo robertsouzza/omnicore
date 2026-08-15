@@ -32,7 +32,7 @@
 │   └── rules/
 │       └── omnicore-projeto.mdc  ← regra alwaysApply do Agent
 ├── cerebro-backend/              ← API Spring Boot (backend core pronto)
-├── frontend-app/                 ← React (próximo passo — Opção A)
+├── frontend-app/                 ← React (Sessão 6 ✅ — login + produtos)
 ├── docker-compose.yml            ← Postgres (NÃO commitar alterações locais sem pedir)
 ├── CONTEXTO-OMNICORE.md          ← atalho na raiz → aponta para .cursor/
 └── omnicore.code-workspace
@@ -57,16 +57,35 @@
 | 4 | Cliente & Colaborador: CRUD, CPF, BCrypt, integração Venda | ✅ | `7072a9c` |
 | 5 | CI GitHub Actions + GlobalExceptionHandler @Valid | ✅ | `58eabac` |
 | Auth | JWT login, Spring Security, Swagger Authorize | ✅ testado Swagger | `434b7f3` |
-| 6+ | Frontend React (`frontend-app/`) | ⬜ **próximo** | — |
+| 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
+| **7** | **Frontend: cadastro/edição/inativação de produtos** | ⬜ **próximo** | — |
+| 8 | Frontend: composição de pacotes (kits) | ⬜ | — |
+| 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ | — |
+| 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
+| 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
+| 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
+| 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
+| 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
+
+### Detalhe das próximas sessões (frontend)
+
+| Sessão | Escopo | APIs já prontas |
+|--------|--------|-------------------|
+| **7** | Form novo/editar produto; botão inativar; enums tipo/tamanho; feedback de validação `@Valid` | `POST/GET/PUT/DELETE /api/produtos` |
+| **8** | Aba “Composição” em produto PACOTE; adicionar/remover filhos | `/api/produtos/{id}/composicao` |
+| **9** | CRUD clientes; busca por CPF na venda | `/api/clientes`, `/api/clientes/cpf/{cpf}` |
+| **10** | Saldo, movimentação manual, histórico paginado por produto | `/api/estoque/*` |
+| **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
+| **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
 
 ### Fases PDF Gemini (progresso)
 
 ```
 Fase 1 – Infra & base          ~95% ✅
-Fase 2 – Cadastro & Estoque    ~90% ✅
-Fase 3 – Vendas & Regras       ~65% 🔄
-Fase 4–5 – React               0%  ⬜
-Fase 6 – Fiscal/deploy         ~15% (CI ok; NFC-e/pagamentos pendentes)
+Fase 2 – Cadastro & Estoque    ~90% ✅ (backend); frontend ~10%
+Fase 3 – Vendas & Regras       ~65% 🔄 (backend ok; falta UI)
+Fase 4–5 – React               ~15% 🔄 (Sessão 6 feita)
+Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 ```
 
 ### Backend avançado (PDF — pendente)
@@ -118,8 +137,12 @@ cd ~/omnicore/cerebro-backend
 # Swagger
 http://localhost:8080/swagger-ui.html
 
-# Testes
-./mvnw test   # ~76 testes passando
+# Frontend (Vite — porta 5173)
+cd ~/omnicore/frontend-app
+npm run dev
+
+# Build frontend
+npm run build
 ```
 
 ### application.yml (DB)
@@ -142,13 +165,13 @@ http://localhost:8080/swagger-ui.html
 
 ## Próximo passo acordado
 
-**Opção A — Frontend React** em `frontend-app/`:
+**Sessão 7 — Cadastro/edição de produtos** em `frontend-app/`:
 
-1. Scaffold (Vite + React + TypeScript)
-2. Tela login → `POST /api/auth/login`
-3. Guardar JWT (localStorage)
-4. Listagem produtos → `GET /api/produtos` com Bearer token
-5. CORS no backend se necessário
+1. Formulário criar produto → `POST /api/produtos`
+2. Editar existente → `GET /api/produtos/{id}` + `PUT`
+3. Inativar → `DELETE /api/produtos/{id}` (soft delete)
+4. Campos: código de barras, nome, descrição, preço, categoria, tipo, tamanho
+5. Tratar erros de validação do `GlobalExceptionHandler` (campos inválidos)
 
 ---
 
@@ -169,10 +192,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Opção A — setup React em frontend-app/ com login JWT.
+Próximo: Sessão 7 — cadastro/edição de produtos no frontend.
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 15/ago/2026 — git em `a7cb6a9`; config Agent em `~/omnicore/.cursor/`.*
+*Última atualização: 15/ago/2026 — git em `3d7caab`; Sessão 6 (frontend login + produtos) concluída.*
