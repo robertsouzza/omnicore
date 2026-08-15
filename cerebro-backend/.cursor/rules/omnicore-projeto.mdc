@@ -1,0 +1,27 @@
+---
+description: Contexto persistente do projeto OmniCore (cronograma, decisões, stack)
+alwaysApply: true
+---
+
+# OmniCore — memória do projeto
+
+Antes de implementar, leia se necessário: `../CONTEXTO-OMNICORE.md` (ou `@CONTEXTO-OMNICORE.md` na raiz do monorepo).
+
+## Essencial
+
+- Monorepo: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
+- Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
+- Próximo foco: **Frontend React** — login JWT + consumo da API
+- Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
+- Não commitar `docker-compose.yml` sem pedido explícito
+- Commits/push só quando Roberto pedir
+- Workspace Cursor: preferir `cerebro-backend` para manter histórico do Agent; frontend em `../frontend-app/`
+
+## Auth (dev)
+
+- Login: `POST /api/auth/login` — email `carlos.vendedor@omnicore.local`, senha `senha123`
+- Swagger: http://localhost:8080/swagger-ui.html — Authorize com Bearer token
+
+## Git (main)
+
+Último commit relevante: `434b7f3` — feat autenticação JWT
