@@ -1,0 +1,8 @@
+{
+    "folders": [
+      { "path": "cerebro-backend", "name": "Backend (Spring)" },
+      { "path": "frontend-app", "name": "Frontend (React)" },
+      { "path": ".", "name": "OmniCore Root" }
+    ],
+    "settings": {}
+  }
