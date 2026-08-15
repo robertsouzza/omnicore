@@ -5,17 +5,17 @@ alwaysApply: true
 
 # OmniCore — memória do projeto
 
-Antes de implementar, leia se necessário: `../CONTEXTO-OMNICORE.md` (ou `@CONTEXTO-OMNICORE.md` na raiz do monorepo).
+Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@.cursor/CONTEXTO-OMNICORE.md`).
 
 ## Essencial
 
-- Monorepo: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
+- Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
 - Próximo foco: **Frontend React** — login JWT + consumo da API
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
-- Workspace Cursor: preferir `cerebro-backend` para manter histórico do Agent; frontend em `../frontend-app/`
+- Config Cursor/Agent na raiz: `~/omnicore/.cursor/` (rules + contexto)
 
 ## Auth (dev)
 
@@ -24,4 +24,4 @@ Antes de implementar, leia se necessário: `../CONTEXTO-OMNICORE.md` (ou `@CONTE
 
 ## Git (main)
 
-Último commit relevante: `434b7f3` — feat autenticação JWT
+Último commit relevante: `a7cb6a9` — chore gitignore Claude + reorganização `.cursor/`
