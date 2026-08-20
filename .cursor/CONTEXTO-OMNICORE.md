@@ -58,8 +58,8 @@
 | 5 | CI GitHub Actions + GlobalExceptionHandler @Valid | ✅ | `58eabac` |
 | Auth | JWT login, Spring Security, Swagger Authorize | ✅ testado Swagger | `434b7f3` |
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
-| **7** | **Frontend: cadastro/edição/inativação de produtos** | ⬜ **próximo** | — |
-| 8 | Frontend: composição de pacotes (kits) | ⬜ | — |
+| **7** | **Frontend: cadastro/edição/inativação de produtos** | ✅ implementado | — |
+| 8 | Frontend: composição de pacotes (kits) | ⬜ **próximo** | — |
 | 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ | — |
 | 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
@@ -160,18 +160,18 @@ npm run build
 - Assistente chama Roberto de Roberto; ele chama o agente de **Logan**
 - Frontend em `frontend-app/` (monorepo, não copiar backend para dentro)
 - Config Agent/Claude na **raiz** `~/omnicore/.cursor/` (não dentro de `cerebro-backend/`)
+- **Produto inativo:** exclusão lógica sem reativação (decisão de negócio — não implementar endpoint/UI de reativar por enquanto)
 
 ---
 
 ## Próximo passo acordado
 
-**Sessão 7 — Cadastro/edição de produtos** em `frontend-app/`:
+**Sessão 8 — Composição de pacotes (kits)** em `frontend-app/`:
 
-1. Formulário criar produto → `POST /api/produtos`
-2. Editar existente → `GET /api/produtos/{id}` + `PUT`
-3. Inativar → `DELETE /api/produtos/{id}` (soft delete)
-4. Campos: código de barras, nome, descrição, preço, categoria, tipo, tamanho
-5. Tratar erros de validação do `GlobalExceptionHandler` (campos inválidos)
+1. Aba “Composição” em produto tipo PACOTE
+2. Listar filhos → `GET /api/produtos/{id}/composicao`
+3. Adicionar item → `POST`
+4. Remover item → `DELETE /{composicaoId}`
 
 ---
 

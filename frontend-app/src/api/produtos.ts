@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { Page, Produto } from '../types/produto'
+import type { Page, Produto, ProdutoRequest } from '../types/produto'
 
 export interface ListarProdutosParams {
   page?: number
@@ -19,4 +19,32 @@ export function listarProdutos(
   }
 
   return apiFetch<Page<Produto>>(`/api/produtos?${search}`, {}, token)
+}
+
+export function buscarProduto(token: string, id: number): Promise<Produto> {
+  return apiFetch<Produto>(`/api/produtos/${id}`, {}, token)
+}
+
+export function criarProduto(token: string, dados: ProdutoRequest): Promise<Produto> {
+  return apiFetch<Produto>(
+    '/api/produtos',
+    { method: 'POST', body: JSON.stringify(dados) },
+    token,
+  )
+}
+
+export function atualizarProduto(
+  token: string,
+  id: number,
+  dados: ProdutoRequest,
+): Promise<Produto> {
+  return apiFetch<Produto>(
+    `/api/produtos/${id}`,
+    { method: 'PUT', body: JSON.stringify(dados) },
+    token,
+  )
+}
+
+export function inativarProduto(token: string, id: number): Promise<void> {
+  return apiFetch<void>(`/api/produtos/${id}`, { method: 'DELETE' }, token)
 }

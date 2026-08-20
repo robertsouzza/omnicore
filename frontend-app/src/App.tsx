@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
+import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutosPage } from './pages/ProdutosPage'
 
 export default function App() {
@@ -15,6 +16,8 @@ export default function App() {
             <Route element={<Layout />}>
               <Route index element={<Navigate to="/produtos" replace />} />
               <Route path="/produtos" element={<ProdutosPage />} />
+              <Route path="/produtos/novo" element={<ProdutoFormPage />} />
+              <Route path="/produtos/:id/editar" element={<ProdutoFormPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/produtos" replace />} />
