@@ -32,7 +32,7 @@
 │   └── rules/
 │       └── omnicore-projeto.mdc  ← regra alwaysApply do Agent
 ├── cerebro-backend/              ← API Spring Boot (backend core pronto)
-├── frontend-app/                 ← React (Sessão 6 ✅ — login + produtos)
+├── frontend-app/                 ← React (Sessões 6–9 ✅ — login, produtos, kits, clientes)
 ├── docker-compose.yml            ← Postgres (NÃO commitar alterações locais sem pedir)
 ├── CONTEXTO-OMNICORE.md          ← atalho na raiz → aponta para .cursor/
 └── omnicore.code-workspace
@@ -60,9 +60,9 @@
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
-| **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2` |
-| 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ **próximo** | — |
-| 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
+| **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
+| **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
+| **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ **próximo** | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
@@ -72,20 +72,24 @@
 
 | Sessão | Escopo | APIs já prontas |
 |--------|--------|-------------------|
-| **7** | Form novo/editar produto; botão inativar; enums tipo/tamanho; feedback de validação `@Valid` | `POST/GET/PUT/DELETE /api/produtos` |
-| **8** | Aba “Composição” em produto PACOTE; adicionar/remover filhos | `/api/produtos/{id}/composicao` |
-| **9** | CRUD clientes; busca por CPF na venda | `/api/clientes`, `/api/clientes/cpf/{cpf}` |
+| ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
 | **10** | Saldo, movimentação manual, histórico paginado por produto | `/api/estoque/*` |
 | **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
+
+### Sessão 9 — entregue (`7490a01`)
+
+**Backend:** endereço estruturado (cep, logradouro, numero, bairro, cidade, estado); `codigoPais` ISO (BR); validação celular com libphonenumber; `GET /api/cep/{cep}` (ViaCEP).
+
+**Frontend:** listagem paginada + busca CPF; form cadastro/edição; máscaras CPF/CEP; combo países + celular dinâmico (libphonenumber-js); rotas `/clientes/*`.
 
 ### Fases PDF Gemini (progresso)
 
 ```
 Fase 1 – Infra & base          ~95% ✅
-Fase 2 – Cadastro & Estoque    ~90% ✅ (backend); frontend ~10%
+Fase 2 – Cadastro & Estoque    ~90% ✅ (backend); frontend ~35% 🔄
 Fase 3 – Vendas & Regras       ~65% 🔄 (backend ok; falta UI)
-Fase 4–5 – React               ~15% 🔄 (Sessão 6 feita)
+Fase 4–5 – React               ~40% 🔄 (Sessões 6–9 feitas)
 Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 ```
 
@@ -118,9 +122,11 @@ Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 
 ### Cliente de teste
 
-| id | nome | email | cpf |
-|----|------|-------|-----|
-| 1 | Maria Silva Teste | maria.teste@omnicore.local | 12345678909 |
+| id | nome | email | cpf | codigoPais | celular |
+|----|------|-------|-----|------------|---------|
+| 1 | Maria Silva Teste | maria.teste@omnicore.local | 12345678909 | BR (legado `55` ok) | 11999998888 |
+
+> Endereço estruturado: preencher via form (CEP + ViaCEP) — coluna legada `endereco_entrega_padrao` pode existir no banco.
 
 ---
 
@@ -167,11 +173,11 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 9 — Clientes (CRUD)** em `frontend-app/`:
+**Sessão 10 — Estoque (frontend)** em `frontend-app/`:
 
-1. Listagem paginada → `GET /api/clientes`
-2. Busca por CPF → `GET /api/clientes/cpf/{cpf}`
-3. Cadastro/edição/inativação
+1. Consultar saldo por produto → `/api/estoque/*`
+2. Entrada/saída manual de estoque
+3. Histórico paginado por produto
 
 ---
 
@@ -192,10 +198,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 7 — cadastro/edição de produtos no frontend.
+Próximo: Sessão 10 — estoque no frontend.
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 15/ago/2026 — git em `3d7caab`; Sessão 6 (frontend login + produtos) concluída.*
+*Última atualização: 22/ago/2026 — git em `7490a01`; Sessão 9 (clientes + CEP + telefone) concluída.*

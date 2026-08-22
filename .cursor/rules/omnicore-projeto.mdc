@@ -11,7 +11,7 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
-- Próximo foco: **Frontend React** — login JWT + consumo da API
+- Próximo foco: **Sessão 10 — Estoque** no frontend
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
@@ -24,4 +24,4 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 ## Git (main)
 
-Último commit relevante: `a7cb6a9` — chore gitignore Claude + reorganização `.cursor/`
+Último commit relevante: `7490a01` — Sessão 9 clientes (CRUD, CEP, telefone internacional)
