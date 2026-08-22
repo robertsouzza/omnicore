@@ -17,15 +17,13 @@ export function Layout() {
             Produtos
           </Link>
         </nav>
-        <div className={styles.user}>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>{session?.nome}</span>
-            <span className={styles.userPerfil}>{session?.perfil}</span>
-          </div>
-          <button type="button" className={styles.logoutBtn} onClick={logout}>
-            Sair
-          </button>
+        <div className={styles.userInfo}>
+          <span className={styles.userName}>{session?.nome}</span>
+          <span className={styles.userPerfil}>{session?.perfil}</span>
         </div>
+        <button type="button" className={styles.logoutBtn} onClick={logout}>
+          Sair
+        </button>
       </header>
       <main className={styles.main}>
         <Outlet />

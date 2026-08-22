@@ -58,8 +58,9 @@
 | 5 | CI GitHub Actions + GlobalExceptionHandler @Valid | ✅ | `58eabac` |
 | Auth | JWT login, Spring Security, Swagger Authorize | ✅ testado Swagger | `434b7f3` |
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
-| **7** | **Frontend: cadastro/edição/inativação de produtos** | ✅ implementado | — |
-| 8 | Frontend: composição de pacotes (kits) | ⬜ **próximo** | — |
+| 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
+| 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ implementado | — |
+| **8** | **Frontend: composição de pacotes (kits)** | ⬜ **próximo** | — |
 | 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ | — |
 | 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |

@@ -1,3 +1,5 @@
+@import './styles/breakpoints.css';
+
 *,
 *::before,
 *::after {
@@ -15,6 +17,7 @@ body {
   min-height: 100vh;
   color: #1e293b;
   background: #f4f6f8;
+  overflow-x: hidden;
 }
 
 #root {

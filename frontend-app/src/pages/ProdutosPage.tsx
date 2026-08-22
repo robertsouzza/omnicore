@@ -11,6 +11,41 @@ function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+interface ProdutoActionsProps {
+  produto: Produto
+  actionId: number | null
+  onInativar: (produto: Produto) => void
+  className?: string
+}
+
+function ProdutoActions({ produto, actionId, onInativar, className }: ProdutoActionsProps) {
+  return (
+    <div className={className ?? styles.rowActions}>
+      <Link to={`/produtos/${produto.id}/editar`} className={styles.linkBtn}>
+        Editar
+      </Link>
+      {produto.ativo && (
+        <button
+          type="button"
+          className={styles.dangerBtn}
+          disabled={actionId === produto.id}
+          onClick={() => onInativar(produto)}
+        >
+          {actionId === produto.id ? 'Inativando…' : 'Inativar'}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function StatusBadge({ ativo }: { ativo: boolean }) {
+  return (
+    <span className={ativo ? styles.badgeActive : styles.badgeInactive}>
+      {ativo ? 'Ativo' : 'Inativo'}
+    </span>
+  )
+}
+
 export function ProdutosPage() {
   const { session, logout } = useAuth()
   const [page, setPage] = useState<Page<Produto> | null>(null)
@@ -116,60 +151,87 @@ export function ProdutosPage() {
           {page.empty ? (
             <p className={styles.status}>Nenhum produto encontrado.</p>
           ) : (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Código</th>
-                    <th>Nome</th>
-                    <th>Categoria</th>
-                    <th>Tipo</th>
-                    <th>Preço</th>
-                    {incluirInativos && <th>Status</th>}
-                    <th>Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {page.content.map((produto) => (
-                    <tr key={produto.id} className={!produto.ativo ? styles.inactiveRow : undefined}>
-                      <td className={styles.mono}>{produto.codigoBarras}</td>
-                      <td>{produto.nome}</td>
-                      <td>{produto.categoria}</td>
-                      <td>{produto.tipoProduto}</td>
-                      <td className={styles.preco}>{formatPreco(produto.precoVenda)}</td>
-                      {incluirInativos && (
-                        <td>
-                          <span
-                            className={
-                              produto.ativo ? styles.badgeActive : styles.badgeInactive
-                            }
-                          >
-                            {produto.ativo ? 'Ativo' : 'Inativo'}
-                          </span>
-                        </td>
-                      )}
-                      <td>
-                        <div className={styles.rowActions}>
-                          <Link to={`/produtos/${produto.id}/editar`} className={styles.linkBtn}>
-                            Editar
-                          </Link>
-                          {produto.ativo && (
-                            <button
-                              type="button"
-                              className={styles.dangerBtn}
-                              disabled={actionId === produto.id}
-                              onClick={() => void handleInativar(produto)}
-                            >
-                              {actionId === produto.id ? 'Inativando…' : 'Inativar'}
-                            </button>
-                          )}
-                        </div>
-                      </td>
+            <>
+              <div className={styles.cardList}>
+                {page.content.map((produto) => (
+                  <article
+                    key={produto.id}
+                    className={`${styles.card}${!produto.ativo ? ` ${styles.cardInactive}` : ''}`}
+                  >
+                    <div className={styles.cardTop}>
+                      <h2 className={styles.cardTitle}>{produto.nome}</h2>
+                      {incluirInativos && <StatusBadge ativo={produto.ativo} />}
+                    </div>
+                    <dl className={styles.cardMeta}>
+                      <div>
+                        <dt>Código</dt>
+                        <dd className={styles.mono}>{produto.codigoBarras}</dd>
+                      </div>
+                      <div>
+                        <dt>Preço</dt>
+                        <dd className={styles.cardPreco}>{formatPreco(produto.precoVenda)}</dd>
+                      </div>
+                      <div>
+                        <dt>Categoria</dt>
+                        <dd>{produto.categoria}</dd>
+                      </div>
+                      <div>
+                        <dt>Tipo</dt>
+                        <dd>{produto.tipoProduto}</dd>
+                      </div>
+                    </dl>
+                    <ProdutoActions
+                      produto={produto}
+                      actionId={actionId}
+                      onInativar={(p) => void handleInativar(p)}
+                      className={styles.cardActions}
+                    />
+                  </article>
+                ))}
+              </div>
+
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Código</th>
+                      <th>Nome</th>
+                      <th>Categoria</th>
+                      <th>Tipo</th>
+                      <th>Preço</th>
+                      {incluirInativos && <th>Status</th>}
+                      <th>Ações</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {page.content.map((produto) => (
+                      <tr
+                        key={produto.id}
+                        className={!produto.ativo ? styles.inactiveRow : undefined}
+                      >
+                        <td className={styles.mono}>{produto.codigoBarras}</td>
+                        <td>{produto.nome}</td>
+                        <td>{produto.categoria}</td>
+                        <td>{produto.tipoProduto}</td>
+                        <td className={styles.preco}>{formatPreco(produto.precoVenda)}</td>
+                        {incluirInativos && (
+                          <td>
+                            <StatusBadge ativo={produto.ativo} />
+                          </td>
+                        )}
+                        <td>
+                          <ProdutoActions
+                            produto={produto}
+                            actionId={actionId}
+                            onInativar={(p) => void handleInativar(p)}
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {page.totalPages > 1 && (
