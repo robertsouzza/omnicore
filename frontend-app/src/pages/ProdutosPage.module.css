@@ -261,6 +261,19 @@
   text-decoration: underline;
 }
 
+.kitLink {
+  display: inline-flex;
+  align-items: center;
+  color: #0f766e;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.kitLink:hover {
+  text-decoration: underline;
+}
+
 .dangerBtn {
   padding: 0.25rem 0.625rem;
   border: 1px solid #fecaca;

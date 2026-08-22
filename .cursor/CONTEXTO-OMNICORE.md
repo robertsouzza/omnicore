@@ -59,9 +59,9 @@
 | Auth | JWT login, Spring Security, Swagger Authorize | ✅ testado Swagger | `434b7f3` |
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
-| 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ implementado | — |
-| **8** | **Frontend: composição de pacotes (kits)** | ⬜ **próximo** | — |
-| 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ | — |
+| 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
+| **8** | **Frontend: composição de pacotes (kits)** | ✅ implementado | — |
+| 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ **próximo** | — |
 | 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
@@ -167,12 +167,11 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 8 — Composição de pacotes (kits)** em `frontend-app/`:
+**Sessão 9 — Clientes (CRUD)** em `frontend-app/`:
 
-1. Aba “Composição” em produto tipo PACOTE
-2. Listar filhos → `GET /api/produtos/{id}/composicao`
-3. Adicionar item → `POST`
-4. Remover item → `DELETE /{composicaoId}`
+1. Listagem paginada → `GET /api/clientes`
+2. Busca por CPF → `GET /api/clientes/cpf/{cpf}`
+3. Cadastro/edição/inativação
 
 ---
 

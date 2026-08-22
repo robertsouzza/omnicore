@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { atualizarProduto, buscarProduto, criarProduto } from '../api/produtos'
+import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
 import { useAuth } from '../auth/AuthContext'
 import {
   INDICADORES_TAMANHO,
@@ -131,10 +132,15 @@ export function ProdutoFormPage() {
     try {
       if (isEditing && id) {
         await atualizarProduto(session.token, Number(id), payload)
+        navigate('/produtos')
       } else {
-        await criarProduto(session.token, payload)
+        const criado = await criarProduto(session.token, payload)
+        if (payload.tipoProduto === 'PACOTE') {
+          navigate(`/produtos/${criado.id}/editar`)
+        } else {
+          navigate('/produtos')
+        }
       }
-      navigate('/produtos')
     } catch (err) {
       if (handleUnauthorized(err)) return
       setFieldErrors(getFieldErrors(err))
@@ -254,6 +260,11 @@ export function ProdutoFormPage() {
             {fieldErrors.tipoProduto && (
               <span className={styles.fieldError}>{fieldErrors.tipoProduto}</span>
             )}
+            {!isEditing && form.tipoProduto === 'PACOTE' && (
+              <span className={styles.hint}>
+                Após cadastrar, você será direcionado para montar a composição do kit.
+              </span>
+            )}
           </label>
 
           <label className={styles.label}>
@@ -304,6 +315,14 @@ export function ProdutoFormPage() {
           </button>
         </div>
       </form>
+
+      {isEditing && id && form.tipoProduto === 'PACOTE' && session && (
+        <ComposicaoPacoteSection
+          pacoteId={Number(id)}
+          token={session.token}
+          onUnauthorized={handleUnauthorized}
+        />
+      )}
     </section>
   )
 }

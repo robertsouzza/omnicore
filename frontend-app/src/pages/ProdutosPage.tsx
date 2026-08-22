@@ -24,6 +24,11 @@ function ProdutoActions({ produto, actionId, onInativar, className }: ProdutoAct
       <Link to={`/produtos/${produto.id}/editar`} className={styles.linkBtn}>
         Editar
       </Link>
+      {produto.tipoProduto === 'PACOTE' && (
+        <Link to={`/produtos/${produto.id}/editar`} className={styles.kitLink}>
+          Kit
+        </Link>
+      )}
       {produto.ativo && (
         <button
           type="button"
