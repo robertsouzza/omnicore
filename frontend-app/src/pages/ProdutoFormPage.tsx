@@ -140,7 +140,7 @@ export function ProdutoFormPage() {
             'Você escolheu um produto tipo Pacote.\n\nDeseja montar a composição do kit agora?',
           )
           if (montarAgora) {
-            navigate(`/produtos/${criado.id}/editar`)
+            navigate(`/produtos/${criado.id}/kit`)
           } else {
             navigate('/produtos')
           }

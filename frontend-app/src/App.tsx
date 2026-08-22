@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
+import { ProdutoKitPage } from './pages/ProdutoKitPage'
 import { ProdutosPage } from './pages/ProdutosPage'
 
 export default function App() {
@@ -17,6 +18,7 @@ export default function App() {
               <Route index element={<Navigate to="/produtos" replace />} />
               <Route path="/produtos" element={<ProdutosPage />} />
               <Route path="/produtos/novo" element={<ProdutoFormPage />} />
+              <Route path="/produtos/:id/kit" element={<ProdutoKitPage />} />
               <Route path="/produtos/:id/editar" element={<ProdutoFormPage />} />
             </Route>
           </Route>

@@ -10,12 +10,14 @@ interface ComposicaoPacoteSectionProps {
   pacoteId: number
   token: string
   onUnauthorized: (err: unknown) => boolean
+  hideHeader?: boolean
 }
 
 export function ComposicaoPacoteSection({
   pacoteId,
   token,
   onUnauthorized,
+  hideHeader = false,
 }: ComposicaoPacoteSectionProps) {
   const [composicao, setComposicao] = useState<ComposicaoPacote[]>([])
   const [unitarios, setUnitarios] = useState<Produto[]>([])
@@ -103,12 +105,14 @@ export function ComposicaoPacoteSection({
 
   return (
     <section className={styles.section}>
-      <div className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Composição do kit</h2>
-        <p className={styles.sectionSubtitle}>
-          Produtos unitários consumidos por cada unidade vendida deste pacote.
-        </p>
-      </div>
+      {!hideHeader && (
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>Composição do kit</h2>
+          <p className={styles.sectionSubtitle}>
+            Produtos unitários consumidos por cada unidade vendida deste pacote.
+          </p>
+        </div>
+      )}
 
       {loading && <p className={styles.status}>Carregando composição…</p>}
       {error && <p className={styles.error}>{error}</p>}
