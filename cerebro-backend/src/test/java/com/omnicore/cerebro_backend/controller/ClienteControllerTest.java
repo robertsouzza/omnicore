@@ -46,8 +46,14 @@ class ClienteControllerTest {
                 "nomeCompleto": "Maria Silva",
                 "cpf": "12345678909",
                 "email": "maria@email.com",
+                "codigoPais": "BR",
                 "celular": "11999998888",
-                "enderecoEntregaPadrao": "Rua A, 100"
+                "cep": "69309209",
+                "logradouro": "Rua A",
+                "numero": "100",
+                "bairro": "Centro",
+                "cidade": "Boa Vista",
+                "estado": "RR"
             }
             """;
 

@@ -38,11 +38,33 @@ public class Cliente {
     @Column(nullable = false, length = 150)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Builder.Default
+    @Column(name = "codigo_pais", nullable = false, length = 4)
+    private String codigoPais = "BR";
+
+    @Column(nullable = false, length = 15)
     private String celular;
 
-    @Column(name = "endereco_entrega_padrao", length = 255)
-    private String enderecoEntregaPadrao;
+    @Column(length = 8)
+    private String cep;
+
+    @Column(length = 150)
+    private String logradouro;
+
+    @Column(length = 20)
+    private String numero;
+
+    @Column(length = 100)
+    private String complemento;
+
+    @Column(length = 100)
+    private String bairro;
+
+    @Column(length = 100)
+    private String cidade;
+
+    @Column(length = 2)
+    private String estado;
 
     @Builder.Default
     @Column(nullable = false)

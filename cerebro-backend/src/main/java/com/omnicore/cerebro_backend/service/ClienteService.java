@@ -7,6 +7,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 import com.omnicore.cerebro_backend.dto.ClienteRequestDTO;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Cliente;
@@ -16,7 +19,10 @@ import com.omnicore.cerebro_backend.repository.ClienteRepository;
 @Service
 public class ClienteService {
 
+    private static final String PAIS_PADRAO = "BR";
+
     private final ClienteRepository clienteRepository;
+    private final PhoneNumberUtil phoneNumberUtil = PhoneNumberUtil.getInstance();
 
     public ClienteService(ClienteRepository clienteRepository) {
         this.clienteRepository = clienteRepository;
@@ -30,13 +36,8 @@ public class ClienteService {
             throw new BusinessException("Já existe um cliente cadastrado com o CPF: " + cpfNormalizado);
         });
 
-        Cliente cliente = Cliente.builder()
-                .nomeCompleto(dto.nomeCompleto())
-                .cpf(cpfNormalizado)
-                .email(dto.email())
-                .celular(dto.celular())
-                .enderecoEntregaPadrao(dto.enderecoEntregaPadrao())
-                .build();
+        Cliente cliente = Cliente.builder().build();
+        aplicarDto(cliente, dto);
 
         return Objects.requireNonNull(
                 clienteRepository.save(cliente),
@@ -54,11 +55,7 @@ public class ClienteService {
             }
         });
 
-        cliente.setNomeCompleto(dto.nomeCompleto());
-        cliente.setCpf(cpfNormalizado);
-        cliente.setEmail(dto.email());
-        cliente.setCelular(dto.celular());
-        cliente.setEnderecoEntregaPadrao(dto.enderecoEntregaPadrao());
+        aplicarDto(cliente, dto);
 
         return Objects.requireNonNull(
                 clienteRepository.save(cliente),
@@ -116,7 +113,91 @@ public class ClienteService {
         }
     }
 
+    private void aplicarDto(Cliente cliente, ClienteRequestDTO dto) {
+        String codigoPais = normalizarCodigoPais(dto.codigoPais());
+        String celular = normalizarCelular(codigoPais, dto.celular());
+        validarCelular(codigoPais, celular);
+
+        cliente.setNomeCompleto(dto.nomeCompleto().trim());
+        cliente.setCpf(normalizarCpf(dto.cpf()));
+        cliente.setEmail(dto.email().trim());
+        cliente.setCodigoPais(codigoPais);
+        cliente.setCelular(celular);
+        cliente.setCep(normalizarCep(dto.cep()));
+        cliente.setLogradouro(trimToNull(dto.logradouro()));
+        cliente.setNumero(trimToNull(dto.numero()));
+        cliente.setComplemento(trimToNull(dto.complemento()));
+        cliente.setBairro(trimToNull(dto.bairro()));
+        cliente.setCidade(trimToNull(dto.cidade()));
+        cliente.setEstado(normalizarEstado(dto.estado()));
+    }
+
+    private void validarCelular(String codigoPais, String celular) {
+        try {
+            PhoneNumber numero = phoneNumberUtil.parse(celular, codigoPais);
+            if (!phoneNumberUtil.isValidNumber(numero)) {
+                throw new BusinessException("Informe um celular válido para o país selecionado.");
+            }
+        } catch (NumberParseException ex) {
+            throw new BusinessException("Informe um celular válido para o país selecionado.");
+        }
+    }
+
     private String normalizarCpf(String cpf) {
         return cpf.replaceAll("\\D", "");
+    }
+
+    private String normalizarCodigoPais(String codigoPais) {
+        if (codigoPais == null || codigoPais.isBlank()) {
+            return PAIS_PADRAO;
+        }
+
+        String valor = codigoPais.trim().toUpperCase();
+        if ("55".equals(valor)) {
+            return PAIS_PADRAO;
+        }
+        if (valor.length() == 2 && phoneNumberUtil.getCountryCodeForRegion(valor) != 0) {
+            return valor;
+        }
+
+        throw new BusinessException("Informe um país válido para o celular.");
+    }
+
+    private String normalizarCelular(String codigoPais, String celular) {
+        try {
+            PhoneNumber numero = phoneNumberUtil.parse(celular, codigoPais);
+            return String.valueOf(numero.getNationalNumber());
+        } catch (NumberParseException ex) {
+            return celular.replaceAll("\\D", "");
+        }
+    }
+
+    private String normalizarCep(String cep) {
+        if (cep == null || cep.isBlank()) {
+            return null;
+        }
+        String digits = cep.replaceAll("\\D", "");
+        if (digits.isBlank()) {
+            return null;
+        }
+        if (digits.length() != 8) {
+            throw new BusinessException("Informe um CEP válido com 8 dígitos.");
+        }
+        return digits;
+    }
+
+    private String normalizarEstado(String estado) {
+        if (estado == null || estado.isBlank()) {
+            return null;
+        }
+        return estado.trim().toUpperCase();
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

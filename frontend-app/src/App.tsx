@@ -2,6 +2,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { ClienteFormPage } from './pages/ClienteFormPage'
+import { ClientesPage } from './pages/ClientesPage'
 import { LoginPage } from './pages/LoginPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutoKitPage } from './pages/ProdutoKitPage'
@@ -20,6 +22,9 @@ export default function App() {
               <Route path="/produtos/novo" element={<ProdutoFormPage />} />
               <Route path="/produtos/:id/kit" element={<ProdutoKitPage />} />
               <Route path="/produtos/:id/editar" element={<ProdutoFormPage />} />
+              <Route path="/clientes" element={<ClientesPage />} />
+              <Route path="/clientes/novo" element={<ClienteFormPage />} />
+              <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/produtos" replace />} />

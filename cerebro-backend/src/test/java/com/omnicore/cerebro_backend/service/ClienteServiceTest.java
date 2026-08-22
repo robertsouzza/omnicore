@@ -45,12 +45,19 @@ class ClienteServiceTest {
                 "Maria Silva",
                 "123.456.789-09",
                 "maria@email.com",
-                "11999998888",
-                "Rua A, 100");
+                "BR",
+                "(11) 99999-8888",
+                "69309-209",
+                "Rua Antônio Pinheiro Galvão",
+                "634",
+                null,
+                "Buritis",
+                "Boa Vista",
+                "RR");
     }
 
     @Test
-    @DisplayName("Deve cadastrar cliente normalizando CPF")
+    @DisplayName("Deve cadastrar cliente normalizando CPF, celular e CEP")
     void deveCadastrarCliente() {
         when(clienteRepository.findByCpf("12345678909")).thenReturn(Optional.empty());
         when(clienteRepository.save(any(Cliente.class))).thenAnswer(inv -> {
@@ -66,7 +73,12 @@ class ClienteServiceTest {
 
         ArgumentCaptor<Cliente> captor = ArgumentCaptor.forClass(Cliente.class);
         verify(clienteRepository).save(captor.capture());
-        assertEquals("Maria Silva", captor.getValue().getNomeCompleto());
+        Cliente persistido = captor.getValue();
+        assertEquals("Maria Silva", persistido.getNomeCompleto());
+        assertEquals("BR", persistido.getCodigoPais());
+        assertEquals("11999998888", persistido.getCelular());
+        assertEquals("69309209", persistido.getCep());
+        assertEquals("RR", persistido.getEstado());
     }
 
     @Test
@@ -75,6 +87,29 @@ class ClienteServiceTest {
         when(clienteRepository.findByCpf("12345678909")).thenReturn(Optional.of(new Cliente()));
 
         assertThrows(BusinessException.class, () -> clienteService.cadastrar(dtoValido));
+        verify(clienteRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar celular brasileiro inválido")
+    void deveRejeitarCelularBrInvalido() {
+        ClienteRequestDTO dtoInvalido = new ClienteRequestDTO(
+                dtoValido.nomeCompleto(),
+                dtoValido.cpf(),
+                dtoValido.email(),
+                "BR",
+                "119999",
+                dtoValido.cep(),
+                dtoValido.logradouro(),
+                dtoValido.numero(),
+                dtoValido.complemento(),
+                dtoValido.bairro(),
+                dtoValido.cidade(),
+                dtoValido.estado());
+
+        when(clienteRepository.findByCpf("12345678909")).thenReturn(Optional.empty());
+
+        assertThrows(BusinessException.class, () -> clienteService.cadastrar(dtoInvalido));
         verify(clienteRepository, never()).save(any());
     }
 
