@@ -136,7 +136,14 @@ export function ProdutoFormPage() {
       } else {
         const criado = await criarProduto(session.token, payload)
         if (payload.tipoProduto === 'PACOTE') {
-          navigate(`/produtos/${criado.id}/editar`)
+          const montarAgora = window.confirm(
+            'Você escolheu um produto tipo Pacote.\n\nDeseja montar a composição do kit agora?',
+          )
+          if (montarAgora) {
+            navigate(`/produtos/${criado.id}/editar`)
+          } else {
+            navigate('/produtos')
+          }
         } else {
           navigate('/produtos')
         }
@@ -170,7 +177,7 @@ export function ProdutoFormPage() {
         </Link>
       </div>
 
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} id="produto-form" onSubmit={handleSubmit}>
         <div className={styles.grid}>
           <label className={styles.label}>
             Código de barras *
@@ -262,7 +269,7 @@ export function ProdutoFormPage() {
             )}
             {!isEditing && form.tipoProduto === 'PACOTE' && (
               <span className={styles.hint}>
-                Após cadastrar, você será direcionado para montar a composição do kit.
+                Após cadastrar, perguntaremos se deseja montar a composição do kit.
               </span>
             )}
           </label>
@@ -305,15 +312,6 @@ export function ProdutoFormPage() {
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
-
-        <div className={styles.actions}>
-          <Link to="/produtos" className={styles.cancelBtn}>
-            Cancelar
-          </Link>
-          <button type="submit" className={styles.submitBtn} disabled={submitting}>
-            {submitting ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Cadastrar produto'}
-          </button>
-        </div>
       </form>
 
       {isEditing && id && form.tipoProduto === 'PACOTE' && session && (
@@ -323,6 +321,20 @@ export function ProdutoFormPage() {
           onUnauthorized={handleUnauthorized}
         />
       )}
+
+      <div className={styles.footerActions}>
+        <Link to="/produtos" className={styles.cancelBtn}>
+          Cancelar
+        </Link>
+        <button
+          type="submit"
+          form="produto-form"
+          className={styles.submitBtn}
+          disabled={submitting}
+        >
+          {submitting ? 'Salvando…' : isEditing ? 'Salvar alterações' : 'Cadastrar produto'}
+        </button>
+      </div>
     </section>
   )
 }

@@ -125,13 +125,15 @@ select.input:disabled {
   border-radius: 8px;
 }
 
-.actions {
+.footerActions {
   display: flex;
   flex-direction: column-reverse;
   gap: 0.75rem;
-  margin-top: 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #f1f5f9;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgb(15 39 68 / 6%);
 }
 
 .cancelBtn {
@@ -192,9 +194,10 @@ select.input:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .actions {
+  .footerActions {
     flex-direction: row;
     justify-content: flex-end;
+    padding: 1rem 1.5rem;
   }
 
   .submitBtn {

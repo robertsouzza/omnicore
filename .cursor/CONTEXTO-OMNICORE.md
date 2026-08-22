@@ -60,7 +60,7 @@
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
-| **8** | **Frontend: composição de pacotes (kits)** | ✅ implementado | — |
+| **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2` |
 | 9 | Frontend: clientes (listagem, CPF, CRUD) | ⬜ **próximo** | — |
 | 10 | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
