@@ -61,7 +61,7 @@
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
 | 7.2 | Produtos: busca por nome/código de barras + UX listagem (paridade clientes) | ✅ | `856f1e0`, `54d4b56` |
-| 7.3 | Produtos: thumbnail + lightbox na listagem (`urlImagem`) | ✅ | `434c14f` |
+| 7.3 | Produtos: thumbnail + lightbox na listagem (`urlImagem`) | ✅ | `c852fb4` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
@@ -256,4 +256,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 7.3 imagem na listagem (`434c14f`); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — Sessão 7.3 imagem na listagem (`c852fb4`); próximo: Sessão 10 estoque.*
