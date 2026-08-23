@@ -61,6 +61,7 @@
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
 | 7.2 | Produtos: busca por nome/código de barras + UX listagem (paridade clientes) | ✅ | `856f1e0`, `54d4b56` |
+| 7.3 | Produtos: thumbnail + lightbox na listagem (`urlImagem`) | ✅ | `434c14f` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
@@ -84,6 +85,10 @@
 **Backend:** `GET /api/produtos?nome=` e `?codigoBarras=` (mín. 3 caracteres/dígitos, paginado); filtros combináveis (AND); normalização EAN só dígitos; testes em `ProdutoServiceTest` e `ProdutoControllerTest`.
 
 **Frontend:** campos “Buscar por produto” e “Código de barras”; filtro instantâneo na página + API a partir de 3 chars; paginação sempre visível; input não perde foco durante refresh.
+
+### Sessão 7.3 — imagem na listagem de produtos — entregue
+
+**Frontend:** coluna/campo **Imagem** na listagem (tabela desktop + cards mobile); miniaturas 80×80 (mobile) / 96×96 (desktop); placeholder com inicial quando sem URL ou erro de carga; clique abre **lightbox** centralizado (×, Esc ou clique fora para fechar); conversão automática de URLs GitHub `/blob/` para `raw.githubusercontent.com`.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -112,7 +117,7 @@
 | **Fluxo alvo (PDF Gemini)** | Usuário escolhe `.jpg`/`.png` no React → API Java recebe arquivo → upload para **Object Storage** (S3, Cloudinary, Supabase Storage ou MinIO) → storage devolve URL pública → Java persiste só a `String` no banco |
 | **Por que adiar upload** | Binário no PostgreSQL degrada performance; upload exige **serviço externo ou MinIO** (conta, credenciais, bucket, política pública) — fora do escopo Sessões 1–10 |
 | **Dev/teste hoje** | URLs manuais (Git raw, CDN, link público) coladas no cadastro |
-| **Melhorias sem storage** | Preview da imagem no form, thumbnail na listagem — **podem ser feitas agora** (só consomem `urlImagem` existente) |
+| **Melhorias sem storage** | ~~Thumbnail + lightbox na listagem~~ ✅ (Sessão 7.3); preview no form ainda opcional |
 | **Dependências para upload real** | Provedor escolhido + credenciais; endpoint `POST` multipart no backend; biblioteca AWS SDK / Cloudinary / MinIO client; input `type="file"` + progresso no frontend; limites de tamanho/tipo MIME |
 | **Momento sugerido** | **Após Sessão 11** (vendas no frontend) e **antes da Sessão 12** (PWA salão / vitrine e-commerce) — sessão dedicada tipo **11.5**; até lá, URL manual no cadastro e (opcional) preview/thumbnail sem storage |
 
@@ -251,4 +256,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — débito técnico imagem produto (`5df8020`); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — Sessão 7.3 imagem na listagem (`434c14f`); próximo: Sessão 10 estoque.*

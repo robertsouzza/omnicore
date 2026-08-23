@@ -18,6 +18,125 @@ function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+/** Converte URLs GitHub /blob/ para raw quando aplicável. */
+function resolveImagemUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim()
+  if (!trimmed) return null
+
+  const blobMatch = trimmed.match(
+    /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/,
+  )
+  if (blobMatch) {
+    const [, owner, repo, branch, path] = blobMatch
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  }
+
+  return trimmed
+}
+
+interface ProdutoThumbnailProps {
+  produto: Produto
+  onPreview?: (produto: Produto) => void
+}
+
+function ProdutoThumbnail({ produto, onPreview }: ProdutoThumbnailProps) {
+  const [failed, setFailed] = useState(false)
+  const src = resolveImagemUrl(produto.urlImagem)
+  const canPreview = Boolean(src && !failed && onPreview)
+
+  const image = (
+    <img
+      className={styles.thumb}
+      src={src ?? undefined}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(true)}
+    />
+  )
+
+  if (!src || failed) {
+    return (
+      <div className={styles.thumbPlaceholder} aria-hidden="true">
+        <span>{produto.nome.charAt(0).toUpperCase()}</span>
+      </div>
+    )
+  }
+
+  if (!canPreview) {
+    return image
+  }
+
+  return (
+    <button
+      type="button"
+      className={styles.thumbBtn}
+      aria-label={`Ampliar imagem de ${produto.nome}`}
+      onClick={() => onPreview?.(produto)}
+    >
+      {image}
+    </button>
+  )
+}
+
+function ProdutoImagemLightbox({
+  produto,
+  onClose,
+}: {
+  produto: Produto
+  onClose: () => void
+}) {
+  const [failed, setFailed] = useState(false)
+  const src = resolveImagemUrl(produto.urlImagem)
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') onClose()
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [onClose])
+
+  if (!src || failed) {
+    return null
+  }
+
+  return (
+    <div
+      className={styles.lightboxOverlay}
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Visualização ampliada: ${produto.nome}`}
+      onClick={onClose}
+    >
+      <div className={styles.lightboxPanel} onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className={styles.lightboxClose}
+          aria-label="Fechar visualização"
+          onClick={onClose}
+        >
+          ×
+        </button>
+        <img
+          className={styles.lightboxImage}
+          src={src}
+          alt={produto.nome}
+          onError={() => setFailed(true)}
+        />
+        <p className={styles.lightboxCaption}>{produto.nome}</p>
+      </div>
+    </div>
+  )
+}
+
 interface ProdutoActionsProps {
   produto: Produto
   actionId: number | null
@@ -71,6 +190,7 @@ export function ProdutosPage() {
   const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
   const [codigoBarrasBusca, setCodigoBarrasBusca] = useState('')
   const [codigoBarrasDebounced, setCodigoBarrasDebounced] = useState('')
+  const [previewProduto, setPreviewProduto] = useState<Produto | null>(null)
   const hasLoadedOnce = useRef(false)
 
   const handleUnauthorized = useCallback(
@@ -264,9 +384,12 @@ export function ProdutosPage() {
                     key={produto.id}
                     className={`${styles.card}${!produto.ativo ? ` ${styles.cardInactive}` : ''}`}
                   >
-                    <div className={styles.cardTop}>
-                      <h2 className={styles.cardTitle}>{produto.nome}</h2>
-                      {incluirInativos && <StatusBadge ativo={produto.ativo} />}
+                    <div className={styles.cardHeader}>
+                      <ProdutoThumbnail produto={produto} onPreview={setPreviewProduto} />
+                      <div className={styles.cardTop}>
+                        <h2 className={styles.cardTitle}>{produto.nome}</h2>
+                        {incluirInativos && <StatusBadge ativo={produto.ativo} />}
+                      </div>
                     </div>
                     <dl className={styles.cardMeta}>
                       <div>
@@ -300,6 +423,7 @@ export function ProdutosPage() {
                 <table className={styles.table}>
                   <thead>
                     <tr>
+                      <th className={styles.thCol}>Imagem</th>
                       <th>Código</th>
                       <th>Nome</th>
                       <th>Categoria</th>
@@ -315,6 +439,9 @@ export function ProdutosPage() {
                         key={produto.id}
                         className={!produto.ativo ? styles.inactiveRow : undefined}
                       >
+                        <td className={styles.thCol}>
+                          <ProdutoThumbnail produto={produto} onPreview={setPreviewProduto} />
+                        </td>
                         <td className={styles.mono}>{produto.codigoBarras}</td>
                         <td>{produto.nome}</td>
                         <td>{produto.categoria}</td>
@@ -369,6 +496,10 @@ export function ProdutosPage() {
             </div>
           )}
         </>
+      )}
+
+      {previewProduto && (
+        <ProdutoImagemLightbox produto={previewProduto} onClose={() => setPreviewProduto(null)} />
       )}
     </section>
   )

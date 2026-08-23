@@ -155,7 +155,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Tela | Rota | Status |
 |------|------|--------|
 | Login | `/login` | ✅ |
-| Listagem de produtos (busca nome/EAN, paginação) | `/produtos` | ✅ |
+| Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox) | `/produtos` | ✅ |
 | Cadastro / edição de produtos | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
@@ -206,7 +206,7 @@ npm run build
 | Auth JWT + Swagger Authorize | ✅ |
 | CI GitHub Actions (backend) | ✅ |
 | Frontend: login | ✅ |
-| Frontend: produtos (CRUD, kits, busca nome/EAN) | ✅ |
+| Frontend: produtos (CRUD, kits, busca nome/EAN, imagem na listagem) | ✅ |
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
 | Frontend: estoque | ⬜ **próximo** |
 | Frontend: vendas + PWA salão | ⬜ |
