@@ -35,4 +35,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto.
 
 ## Git (main)
 
-Último commit relevante: `856f1e0` — Sessão 7.2 busca por nome e paginação em produtos
+Último commit relevante: `dbec4d0` — produtos: busca por código de barras (EAN)

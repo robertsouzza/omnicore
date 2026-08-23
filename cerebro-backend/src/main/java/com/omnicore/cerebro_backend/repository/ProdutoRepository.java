@@ -19,5 +19,15 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
     Page<Produto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
 
     Page<Produto> findByAtivoAndNomeContainingIgnoreCase(boolean ativo, String nome, Pageable pageable);
+
+    Page<Produto> findByCodigoBarrasContaining(String codigoBarras, Pageable pageable);
+
+    Page<Produto> findByAtivoAndCodigoBarrasContaining(boolean ativo, String codigoBarras, Pageable pageable);
+
+    Page<Produto> findByNomeContainingIgnoreCaseAndCodigoBarrasContaining(
+            String nome, String codigoBarras, Pageable pageable);
+
+    Page<Produto> findByAtivoAndNomeContainingIgnoreCaseAndCodigoBarrasContaining(
+            boolean ativo, String nome, String codigoBarras, Pageable pageable);
     
 }

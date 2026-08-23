@@ -6,6 +6,7 @@ export interface ListarProdutosParams {
   size?: number
   incluirInativos?: boolean
   nome?: string
+  codigoBarras?: string
 }
 
 export function listarProdutos(
@@ -21,6 +22,10 @@ export function listarProdutos(
   const nome = params.nome?.trim()
   if (nome) {
     search.set('nome', nome)
+  }
+  const codigoBarras = params.codigoBarras?.replace(/\D/g, '')
+  if (codigoBarras && codigoBarras.length >= 3) {
+    search.set('codigoBarras', codigoBarras)
   }
 
   return apiFetch<Page<Produto>>(`/api/produtos?${search}`, {}, token)

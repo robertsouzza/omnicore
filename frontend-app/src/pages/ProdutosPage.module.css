@@ -75,6 +75,39 @@
   font-size: 0.8125rem;
   color: #64748b;
   font-weight: 400;
+  grid-column: 1 / -1;
+}
+
+.searchLabelCodigo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.searchInputCodigo {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: ui-monospace, monospace;
+  width: 100%;
+}
+
+.searchInputCodigo:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 0;
+  border-color: #2563eb;
+}
+
+@media (min-width: 768px) {
+  .searchPanel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: end;
+  }
 }
 
 .filter {

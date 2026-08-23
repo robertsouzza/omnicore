@@ -61,27 +61,61 @@ public class ProdutoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos, String nome) {
+    public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos, String nome, String codigoBarras) {
         if (pageable == null) {
             throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
         }
 
-        String termoNome = trimToNull(nome);
-        if (termoNome != null && termoNome.length() < 3) {
-            termoNome = null;
-        }
+        String termoNome = normalizarTermoBusca(nome);
+        String termoCodigo = normalizarCodigoBarrasBusca(codigoBarras);
+        boolean apenasAtivos = !incluirInativos;
 
-        if (termoNome == null) {
-            if (incluirInativos) {
-                return produtoRepository.findAll(pageable);
+        if (termoNome == null && termoCodigo == null) {
+            if (apenasAtivos) {
+                return produtoRepository.findByAtivo(true, pageable);
             }
-            return produtoRepository.findByAtivo(true, pageable);
+            return produtoRepository.findAll(pageable);
         }
 
-        if (incluirInativos) {
-            return produtoRepository.findByNomeContainingIgnoreCase(termoNome, pageable);
+        if (termoNome != null && termoCodigo != null) {
+            if (apenasAtivos) {
+                return produtoRepository.findByAtivoAndNomeContainingIgnoreCaseAndCodigoBarrasContaining(
+                        true, termoNome, termoCodigo, pageable);
+            }
+            return produtoRepository.findByNomeContainingIgnoreCaseAndCodigoBarrasContaining(
+                    termoNome, termoCodigo, pageable);
         }
-        return produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, termoNome, pageable);
+
+        if (termoCodigo != null) {
+            if (apenasAtivos) {
+                return produtoRepository.findByAtivoAndCodigoBarrasContaining(true, termoCodigo, pageable);
+            }
+            return produtoRepository.findByCodigoBarrasContaining(termoCodigo, pageable);
+        }
+
+        if (apenasAtivos) {
+            return produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, termoNome, pageable);
+        }
+        return produtoRepository.findByNomeContainingIgnoreCase(termoNome, pageable);
+    }
+
+    private String normalizarTermoBusca(String value) {
+        String trimmed = trimToNull(value);
+        if (trimmed == null || trimmed.length() < 3) {
+            return null;
+        }
+        return trimmed;
+    }
+
+    private String normalizarCodigoBarrasBusca(String codigoBarras) {
+        if (codigoBarras == null || codigoBarras.isBlank()) {
+            return null;
+        }
+        String digits = codigoBarras.replaceAll("\\D", "");
+        if (digits.length() < 3) {
+            return null;
+        }
+        return digits;
     }
 
     private String trimToNull(String value) {

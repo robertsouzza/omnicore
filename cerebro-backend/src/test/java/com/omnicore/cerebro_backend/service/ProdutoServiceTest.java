@@ -76,7 +76,7 @@ public class ProdutoServiceTest {
         when(produtoRepository.findByAtivo(true, pageable)).thenReturn(paginaMock);
 
         // Act
-        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, null);
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, null, null);
 
         // Assert
         assertNotNull(resultado);
@@ -94,7 +94,7 @@ public class ProdutoServiceTest {
         when(produtoRepository.findAll(pageable)).thenReturn(paginaMock);
 
         // Act
-        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, true, null);
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, true, null, null);
 
         // Assert
         assertNotNull(resultado);
@@ -111,7 +111,7 @@ public class ProdutoServiceTest {
         when(produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, "Coca", pageable))
                 .thenReturn(paginaMock);
 
-        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, "Coca");
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, "Coca", null);
 
         assertNotNull(resultado);
         verify(produtoRepository).findByAtivoAndNomeContainingIgnoreCase(true, "Coca", pageable);
@@ -124,10 +124,38 @@ public class ProdutoServiceTest {
         when(produtoRepository.findByAtivo(true, pageable))
                 .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of()));
 
-        produtoService.listarTodos(pageable, false, "Co");
+        produtoService.listarTodos(pageable, false, "Co", null);
 
         verify(produtoRepository).findByAtivo(true, pageable);
         verify(produtoRepository, never()).findByAtivoAndNomeContainingIgnoreCase(anyBoolean(), any(), any());
+    }
+
+    @Test
+    @DisplayName("Deve listar produtos filtrando por código de barras")
+    void deveListarProdutosPorCodigoBarras() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        org.springframework.data.domain.Page<Produto> paginaMock = new org.springframework.data.domain.PageImpl<>(java.util.List.of(new Produto()));
+
+        when(produtoRepository.findByAtivoAndCodigoBarrasContaining(true, "789123", pageable))
+                .thenReturn(paginaMock);
+
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, null, "789123");
+
+        assertNotNull(resultado);
+        verify(produtoRepository).findByAtivoAndCodigoBarrasContaining(true, "789123", pageable);
+    }
+
+    @Test
+    @DisplayName("Deve ignorar busca por código de barras com menos de 3 dígitos")
+    void deveIgnorarBuscaPorCodigoBarrasCurto() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(produtoRepository.findByAtivo(true, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of()));
+
+        produtoService.listarTodos(pageable, false, null, "78");
+
+        verify(produtoRepository).findByAtivo(true, pageable);
+        verify(produtoRepository, never()).findByAtivoAndCodigoBarrasContaining(anyBoolean(), any(), any());
     }
 
     @Test

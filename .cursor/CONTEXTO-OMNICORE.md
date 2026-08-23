@@ -60,7 +60,7 @@
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
-| 7.2 | Produtos: busca por nome paginada + UX listagem (paridade clientes) | ✅ | `856f1e0` |
+| 7.2 | Produtos: busca por nome/código de barras + UX listagem (paridade clientes) | ✅ | `856f1e0`, `dbec4d0` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
@@ -81,9 +81,9 @@
 
 ### Sessão 7.2 — busca e paginação de produtos (paridade clientes)
 
-**Backend:** `GET /api/produtos?nome=` (mín. 3 letras, paginado); filtro `ContainingIgnoreCase` no repositório; testes em `ProdutoServiceTest` e `ProdutoControllerTest`.
+**Backend:** `GET /api/produtos?nome=` e `?codigoBarras=` (mín. 3 caracteres/dígitos, paginado); filtros combináveis (AND); normalização EAN só dígitos; testes em `ProdutoServiceTest` e `ProdutoControllerTest`.
 
-**Frontend:** campo “Buscar por produto”; filtro instantâneo na página atual; API a partir de 3 letras; paginação sempre visível (“Página X de Y · N itens”); input não perde foco durante refresh.
+**Frontend:** campos “Buscar por produto” e “Código de barras”; filtro instantâneo na página + API a partir de 3 chars; paginação sempre visível; input não perde foco durante refresh.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -236,4 +236,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 7.2 (`856f1e0`); próximo: Sessão 10 estoque (frontend).*
+*Última atualização: 23/ago/2026 — Sessão 7.2 (`dbec4d0` busca EAN); próximo: Sessão 10 estoque.*

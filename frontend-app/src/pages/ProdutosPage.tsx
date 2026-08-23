@@ -7,8 +7,12 @@ import type { Page, Produto } from '../types/produto'
 import { getErrorMessage } from '../utils/validation'
 import styles from './ProdutosPage.module.css'
 
-/** Mínimo de letras para disparar busca por nome no servidor (escala). */
-const NOME_BUSCA_MIN_API = 3
+/** Mínimo de caracteres para disparar busca no servidor (escala). */
+const BUSCA_MIN_API = 3
+
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
 
 function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -65,6 +69,8 @@ export function ProdutosPage() {
   const [actionId, setActionId] = useState<number | null>(null)
   const [nomeBusca, setNomeBusca] = useState('')
   const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
+  const [codigoBarrasBusca, setCodigoBarrasBusca] = useState('')
+  const [codigoBarrasDebounced, setCodigoBarrasDebounced] = useState('')
   const hasLoadedOnce = useRef(false)
 
   const handleUnauthorized = useCallback(
@@ -81,12 +87,22 @@ export function ProdutosPage() {
   useEffect(() => {
     const timer = window.setTimeout(() => {
       const termo = nomeBusca.trim()
-      setNomeBuscaDebounced(termo.length >= NOME_BUSCA_MIN_API ? termo : '')
+      setNomeBuscaDebounced(termo.length >= BUSCA_MIN_API ? termo : '')
       setPageNumber(0)
     }, 300)
 
     return () => window.clearTimeout(timer)
   }, [nomeBusca])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const digits = onlyDigits(codigoBarrasBusca)
+      setCodigoBarrasDebounced(digits.length >= BUSCA_MIN_API ? digits : '')
+      setPageNumber(0)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [codigoBarrasBusca])
 
   const load = useCallback(async () => {
     if (!session) return
@@ -103,6 +119,7 @@ export function ProdutosPage() {
         page: pageNumber,
         incluirInativos,
         nome: nomeBuscaDebounced || undefined,
+        codigoBarras: codigoBarrasDebounced || undefined,
       })
       setPage(data)
     } catch (err) {
@@ -113,7 +130,7 @@ export function ProdutosPage() {
       setInitialLoading(false)
       setRefreshing(false)
     }
-  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, handleUnauthorized])
+  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, codigoBarrasDebounced, handleUnauthorized])
 
   useEffect(() => {
     void load()
@@ -142,19 +159,24 @@ export function ProdutosPage() {
   }
 
   const produtosExibidos = useMemo(() => {
-    const termo = nomeBusca.trim().toLowerCase()
+    const termoNome = nomeBusca.trim().toLowerCase()
+    const termoCodigo = onlyDigits(codigoBarrasBusca)
     const base = page?.content ?? []
 
-    if (!termo) {
-      return base
-    }
-
-    return base.filter((produto) => produto.nome.toLowerCase().includes(termo))
-  }, [page, nomeBusca])
+    return base.filter((produto) => {
+      const matchNome = !termoNome || produto.nome.toLowerCase().includes(termoNome)
+      const matchCodigo = !termoCodigo || produto.codigoBarras.includes(termoCodigo)
+      return matchNome && matchCodigo
+    })
+  }, [page, nomeBusca, codigoBarrasBusca])
 
   const buscaPorNomeAtiva = nomeBusca.trim().length > 0
-  const buscaNomeCurta = buscaPorNomeAtiva && nomeBusca.trim().length < NOME_BUSCA_MIN_API
-  const buscaNomeNoServidor = nomeBuscaDebounced.length >= NOME_BUSCA_MIN_API
+  const buscaPorCodigoAtiva = onlyDigits(codigoBarrasBusca).length > 0
+  const buscaAtiva = buscaPorNomeAtiva || buscaPorCodigoAtiva
+  const buscaNomeCurta = buscaPorNomeAtiva && nomeBusca.trim().length < BUSCA_MIN_API
+  const buscaCodigoCurta = buscaPorCodigoAtiva && onlyDigits(codigoBarrasBusca).length < BUSCA_MIN_API
+  const buscaNoServidor =
+    nomeBuscaDebounced.length >= BUSCA_MIN_API || codigoBarrasDebounced.length >= BUSCA_MIN_API
   const listaPronta = page !== null && !initialLoading
 
   return (
@@ -186,16 +208,29 @@ export function ProdutosPage() {
             placeholder="Digite parte do nome"
             autoComplete="off"
           />
-          {buscaNomeCurta && (
-            <span className={styles.searchHint}>
-              Filtrando na página atual — digite {NOME_BUSCA_MIN_API} ou mais letras para buscar no
-              servidor.
-            </span>
-          )}
-          {refreshing && buscaNomeNoServidor && (
-            <span className={styles.searchHint}>Buscando no servidor…</span>
-          )}
         </label>
+
+        <label className={styles.searchLabelCodigo}>
+          Código de barras
+          <input
+            className={styles.searchInputCodigo}
+            value={codigoBarrasBusca}
+            onChange={(e) => setCodigoBarrasBusca(onlyDigits(e.target.value))}
+            placeholder="Digite o código (EAN)"
+            inputMode="numeric"
+            autoComplete="off"
+          />
+        </label>
+
+        {(buscaNomeCurta || buscaCodigoCurta) && (
+          <span className={styles.searchHint}>
+            Filtrando na página atual — informe {BUSCA_MIN_API} ou mais caracteres para buscar no
+            servidor.
+          </span>
+        )}
+        {refreshing && buscaNoServidor && (
+          <span className={styles.searchHint}>Buscando no servidor…</span>
+        )}
       </div>
 
       <label className={styles.filter}>
@@ -217,8 +252,8 @@ export function ProdutosPage() {
         <>
           {produtosExibidos.length === 0 ? (
             <p className={styles.status}>
-              {buscaPorNomeAtiva
-                ? 'Nenhum produto encontrado com este nome.'
+              {buscaAtiva
+                ? 'Nenhum produto encontrado para os filtros informados.'
                 : 'Nenhum produto encontrado.'}
             </p>
           ) : (

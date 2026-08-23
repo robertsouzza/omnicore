@@ -107,7 +107,7 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve retornar status 200 OK e carregar parâmetros de paginação e filtro")
     void deveRetornar200AoListarProdutos() throws Exception {
-        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq(null)))
+        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq(null), eq(null)))
                 .thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/produtos")
@@ -121,7 +121,7 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve repassar incluirInativos=true ao service")
     void deveListarProdutosIncluindoInativos() throws Exception {
-        when(produtoService.listarTodos(any(Pageable.class), eq(true), eq(null)))
+        when(produtoService.listarTodos(any(Pageable.class), eq(true), eq(null), eq(null)))
                 .thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/produtos")
@@ -133,11 +133,23 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve repassar filtro por nome ao service")
     void deveListarProdutosPorNome() throws Exception {
-        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq("Coca")))
+        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq("Coca"), eq(null)))
                 .thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/produtos")
                 .param("nome", "Coca")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/produtos deve repassar filtro por código de barras ao service")
+    void deveListarProdutosPorCodigoBarras() throws Exception {
+        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq(null), eq("789123")))
+                .thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/produtos")
+                .param("codigoBarras", "789123")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
