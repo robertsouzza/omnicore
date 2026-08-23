@@ -104,6 +104,20 @@
 
 **Decisão vigente:** OmniCore atende **entregas somente no Brasil**; estrangeiro usa telefone internacional (WhatsApp/Telegram) mas endereço de entrega deve ser brasileiro.
 
+### Débito técnico — Imagem do produto (upload / storage — futuro)
+
+| Item | Descrição |
+|------|-----------|
+| **MVP atual (entregue)** | Campo opcional `urlImagem` no backend + input “URL da imagem” no form React — **sem upload de arquivo** |
+| **Fluxo alvo (PDF Gemini)** | Usuário escolhe `.jpg`/`.png` no React → API Java recebe arquivo → upload para **Object Storage** (S3, Cloudinary, Supabase Storage ou MinIO) → storage devolve URL pública → Java persiste só a `String` no banco |
+| **Por que adiar upload** | Binário no PostgreSQL degrada performance; upload exige **serviço externo ou MinIO** (conta, credenciais, bucket, política pública) — fora do escopo Sessões 1–10 |
+| **Dev/teste hoje** | URLs manuais (Git raw, CDN, link público) coladas no cadastro |
+| **Melhorias sem storage** | Preview da imagem no form, thumbnail na listagem — **podem ser feitas agora** (só consomem `urlImagem` existente) |
+| **Dependências para upload real** | Provedor escolhido + credenciais; endpoint `POST` multipart no backend; biblioteca AWS SDK / Cloudinary / MinIO client; input `type="file"` + progresso no frontend; limites de tamanho/tipo MIME |
+| **Momento sugerido** | **Após Sessão 11** (vendas no frontend) e **antes da Sessão 12** (PWA salão / vitrine e-commerce) — sessão dedicada tipo **11.5**; até lá, URL manual no cadastro e (opcional) preview/thumbnail sem storage |
+
+**Decisão vigente (PDF Gemini):** preparar o model com `url_imagem`; **upload + nuvem ficam para sessão dedicada** quando o cadastro deixar de ser só operação interna e virar catálogo que cliente/vendedor enxerga — **ideal: entre Vendas (11) e PWA/E-commerce (12)**. Pode adiar até Fase 4–6 se produtos continuarem sendo seedados por dev com URL do Git.
+
 ### Sessão 9 — entregue (`7490a01`)
 
 **Backend:** endereço estruturado (cep, logradouro, numero, bairro, cidade, estado); `codigoPais` ISO (BR); validação celular com libphonenumber; `GET /api/cep/{cep}` (ViaCEP).
@@ -200,6 +214,7 @@ npm run build
 - **Produto inativo:** exclusão lógica sem reativação (decisão de negócio — não implementar endpoint/UI de reativar por enquanto)
 - **Fechar sessão:** sempre atualizar `.cursor/CONTEXTO-OMNICORE.md`, **`README.md` (raiz)**, `omnicore-projeto.mdc` e atalho `CONTEXTO-OMNICORE.md` (idealmente no mesmo commit da sessão)
 - **Clientes estrangeiros (9.1):** passaporte/doc. estrangeiro OK; entrega **somente Brasil** — endereço BR obrigatório para não-CPF (Fase B = entrega internacional, ver débito técnico)
+- **Imagem do produto:** MVP = **só URL opcional** (`urlImagem`); upload de arquivo + Object Storage = débito técnico (ver seção acima)
 
 ---
 
@@ -236,4 +251,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — README sincronizado; Sessão 7.2 (`54d4b56`); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — débito técnico imagem produto (upload/storage); próximo: Sessão 10 estoque.*

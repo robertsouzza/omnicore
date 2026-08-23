@@ -13,6 +13,7 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
 - Próximo foco: **Sessão 10 — Estoque** no frontend
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
+- Imagem produto: MVP = só URL (`urlImagem`); upload + Object Storage = débito técnico — **momento sugerido: após Sessão 11, antes da 12 (sessão 11.5)**
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
