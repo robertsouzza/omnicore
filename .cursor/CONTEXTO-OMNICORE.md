@@ -62,7 +62,7 @@
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
-| **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `bb3dda8` |
+| **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ **próximo** | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
@@ -229,4 +229,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 9.1 (`bb3dda8`); próximo: Sessão 10 estoque (frontend).*
+*Última atualização: 23/ago/2026 — Sessão 9.1 (`cd60244`); próximo: Sessão 10 estoque (frontend).*
