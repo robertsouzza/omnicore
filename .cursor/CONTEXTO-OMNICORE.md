@@ -251,4 +251,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — débito técnico imagem produto (upload/storage); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — débito técnico imagem produto (`5df8020`); próximo: Sessão 10 estoque.*
