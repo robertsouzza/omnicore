@@ -139,10 +139,10 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Módulo | Base path | Principais operações |
 |--------|-----------|----------------------|
 | Autenticação | `/api/auth` | Login JWT |
-| Produtos | `/api/produtos` | CRUD paginado, inativação lógica |
+| Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca por `nome` e `codigoBarras` |
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
 | Estoque | `/api/estoque` | Entrada, saída, saldo, histórico |
-| Clientes | `/api/clientes` | CRUD, busca por CPF |
+| Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
 | Vendas | `/api/vendas` | Criar, listar com filtros, cancelar com estorno |
 
@@ -150,13 +150,21 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 
 ---
 
-## Frontend (estado atual)
+## Frontend (estado atual — Ago/2026)
 
 | Tela | Rota | Status |
 |------|------|--------|
 | Login | `/login` | ✅ |
-| Listagem de produtos | `/produtos` | ✅ |
-| Cadastro / edição de produtos | — | ⬜ próximo |
+| Listagem de produtos (busca nome/EAN, paginação) | `/produtos` | ✅ |
+| Cadastro / edição de produtos | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
+| Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
+| Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
+| Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
+| Estoque | — | ⬜ **próximo** (Sessão 10) |
+| Vendas | — | ⬜ |
+| PWA salão (código de barras) | — | ⬜ |
+
+Último commit relevante: `54d4b56` (busca EAN em produtos). Cronograma completo: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 
 ---
 
@@ -190,8 +198,11 @@ npm run build
 | Clientes e colaboradores | ✅ (backend) |
 | Auth JWT + Swagger Authorize | ✅ |
 | CI GitHub Actions (backend) | ✅ |
-| Frontend: login + listagem produtos | ✅ |
-| Frontend: demais módulos + PWA salão | ⬜ |
+| Frontend: login | ✅ |
+| Frontend: produtos (CRUD, kits, busca nome/EAN) | ✅ |
+| Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
+| Frontend: estoque | ⬜ **próximo** |
+| Frontend: vendas + PWA salão | ⬜ |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

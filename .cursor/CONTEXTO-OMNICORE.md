@@ -198,7 +198,7 @@ npm run build
 - Frontend em `frontend-app/` (monorepo, não copiar backend para dentro)
 - Config Agent/Claude na **raiz** `~/omnicore/.cursor/` (não dentro de `cerebro-backend/`)
 - **Produto inativo:** exclusão lógica sem reativação (decisão de negócio — não implementar endpoint/UI de reativar por enquanto)
-- **Fechar sessão:** sempre atualizar este `.md`, `omnicore-projeto.mdc` e atalho `CONTEXTO-OMNICORE.md` (idealmente no mesmo commit da sessão)
+- **Fechar sessão:** sempre atualizar `.cursor/CONTEXTO-OMNICORE.md`, **`README.md` (raiz)**, `omnicore-projeto.mdc` e atalho `CONTEXTO-OMNICORE.md` (idealmente no mesmo commit da sessão)
 - **Clientes estrangeiros (9.1):** passaporte/doc. estrangeiro OK; entrega **somente Brasil** — endereço BR obrigatório para não-CPF (Fase B = entrega internacional, ver débito técnico)
 
 ---
@@ -236,4 +236,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 7.2 (`54d4b56` busca EAN); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — README sincronizado; Sessão 7.2 (`54d4b56`); próximo: Sessão 10 estoque.*

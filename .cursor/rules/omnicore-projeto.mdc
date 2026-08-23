@@ -23,10 +23,11 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 Antes do commit/push da sessão (ou no **mesmo commit**), atualizar:
 
 1. `.cursor/CONTEXTO-OMNICORE.md` — tabela de sessões (status ✅, hash do commit), “Próximo passo”, progresso das fases, data/`git` no rodapé
-2. `.cursor/rules/omnicore-projeto.mdc` — próximo foco + último commit relevante
-3. `CONTEXTO-OMNICORE.md` (atalho raiz) — mensagem modelo com próxima sessão
+2. **`README.md` (raiz)** — tabelas “Frontend (estado atual)”, “Progresso do projeto” e módulos da API se mudaram
+3. `.cursor/rules/omnicore-projeto.mdc` — próximo foco + último commit relevante
+4. `CONTEXTO-OMNICORE.md` (atalho raiz) — mensagem modelo com próxima sessão
 
-Nunca encerrar sessão entregue sem sincronizar o contexto.
+Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Auth (dev)
 
