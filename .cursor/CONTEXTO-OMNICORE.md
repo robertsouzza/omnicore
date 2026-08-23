@@ -60,7 +60,7 @@
 | 6 | Frontend: scaffold Vite + login JWT + listagem produtos + CORS | ✅ testado browser | `3d7caab` |
 | 7 | Frontend: cadastro/edição/inativação de produtos | ✅ | `7c48196` |
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
-| 7.2 | Produtos: busca por nome/código de barras + UX listagem (paridade clientes) | ✅ | `856f1e0`, `dbec4d0` |
+| 7.2 | Produtos: busca por nome/código de barras + UX listagem (paridade clientes) | ✅ | `856f1e0`, `54d4b56` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
@@ -236,4 +236,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 7.2 (`dbec4d0` busca EAN); próximo: Sessão 10 estoque.*
+*Última atualização: 23/ago/2026 — Sessão 7.2 (`54d4b56` busca EAN); próximo: Sessão 10 estoque.*
