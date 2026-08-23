@@ -1,7 +1,10 @@
 package com.omnicore.cerebro_backend.dto;
 
+import com.omnicore.cerebro_backend.model.TipoDocumento;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record ClienteRequestDTO(
@@ -9,9 +12,12 @@ public record ClienteRequestDTO(
     @Size(max = 150, message = "O nome completo deve ter no máximo 150 caracteres.")
     String nomeCompleto,
 
-    @NotBlank(message = "O CPF é obrigatório.")
-    @Size(min = 11, max = 14, message = "Informe um CPF válido (11 a 14 caracteres).")
-    String cpf,
+    @NotNull(message = "O tipo de documento é obrigatório.")
+    TipoDocumento tipoDocumento,
+
+    @NotBlank(message = "O número do documento é obrigatório.")
+    @Size(min = 3, max = 30, message = "Informe um documento válido (3 a 30 caracteres).")
+    String numeroDocumento,
 
     @NotBlank(message = "O e-mail é obrigatório.")
     @Email(message = "Informe um e-mail válido.")
@@ -23,7 +29,7 @@ public record ClienteRequestDTO(
     String codigoPais,
 
     @NotBlank(message = "O celular é obrigatório.")
-    @Size(min = 10, max = 15, message = "Informe um celular válido (10 a 15 dígitos).")
+    @Size(min = 4, max = 15, message = "Informe um celular válido (4 a 15 dígitos).")
     String celular,
 
     @Size(max = 9, message = "Informe um CEP válido (8 dígitos).")

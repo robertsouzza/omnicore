@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -38,6 +39,43 @@ public class GlobalExceptionHandler {
         body.put("message", "Um ou mais campos estão inválidos.");
         body.put("fields", campos);
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        Map<String, Object> body = corpoBase(HttpStatus.CONFLICT, "Conflito de Dados", request);
+        body.put("message", mensagemIntegridade(ex));
+        return new ResponseEntity<>(body, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleGenericException(Exception ex, WebRequest request) {
+        Map<String, Object> body = corpoBase(HttpStatus.INTERNAL_SERVER_ERROR, "Erro Interno", request);
+        body.put("message", "Ocorreu um erro inesperado. Tente novamente em instantes.");
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private String mensagemIntegridade(DataIntegrityViolationException ex) {
+        String detalhe = ex.getMostSpecificCause() != null
+                ? ex.getMostSpecificCause().getMessage()
+                : ex.getMessage();
+
+        if (detalhe == null) {
+            return "Não foi possível salvar os dados. Verifique se já existe um registro com as mesmas informações.";
+        }
+
+        String lower = detalhe.toLowerCase();
+        if (lower.contains("duplicate") || lower.contains("unique") || lower.contains("already exists")) {
+            return "Já existe um registro com estas informações (documento ou e-mail duplicado).";
+        }
+        if (lower.contains("violates not-null constraint")) {
+            return "Faltam dados obrigatórios para concluir o cadastro. Verifique os campos e tente novamente.";
+        }
+        if (lower.contains("violates foreign key constraint")) {
+            return "Referência inválida em um dos campos informados.";
+        }
+
+        return "Não foi possível salvar os dados. Verifique se já existe um registro com as mesmas informações.";
     }
 
     private Map<String, Object> corpoBase(HttpStatus status, String error, WebRequest request) {

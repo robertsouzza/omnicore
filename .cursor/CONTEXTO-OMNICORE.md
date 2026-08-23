@@ -62,6 +62,7 @@
 | 7.1 | Frontend: responsividade (mobile cards, header, forms) | ✅ | `8cf002c` |
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
+| **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `bb3dda8` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ **próximo** | — |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
@@ -76,6 +77,25 @@
 | **10** | Saldo, movimentação manual, histórico paginado por produto | `/api/estoque/*` |
 | **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
+
+### Sessão 9.1 — documento do cliente (Fase A) — entregue
+
+**Backend:** `tipoDocumento` (CPF, PASSAPORTE, DOCUMENTO_ESTRANGEIRO) + `numeroDocumento` único por tipo; `GET /api/clientes/documento?tipo=&numero=`; atalho `/cpf/{cpf}` mantido; `GET /api/clientes?nome=` (mín. 3 letras, paginado). Estrangeiro exige **endereço de entrega no Brasil**. Validação **CPF com dígitos verificadores** (`CpfValidator`); celular 4–15 dígitos + libphonenumber. `GlobalExceptionHandler`: mensagens amigáveis (409/500).
+
+**Frontend:** select tipo documento; máscara CPF ou alfanumérico; busca por **nome** (filtro instantâneo na página + API a partir de 3 letras); busca por documento; coluna “Documento”; paginação sempre visível (“Página X de Y · N clientes”); listagem não some em erro de busca; validação CPF no form.
+
+**Migração DB:** `cerebro-backend/scripts/migrate-cliente-documento.sql` — copia `cpf` → `numero_documento`, remove colunas legadas `cpf` e `endereco_entrega_padrao`.
+
+### Débito técnico — Clientes Fase B (futuro)
+
+| Item | Descrição |
+|------|-----------|
+| Entrega internacional | Endereço no exterior, sem CEP/ViaCEP BR |
+| País do documento | Campo emissor (ex.: passaporte canadense) |
+| Endereço dual | Residência exterior + endereço BR separados |
+| Validação fiscal | Integração receita/NFC-e se necessário |
+
+**Decisão vigente:** OmniCore atende **entregas somente no Brasil**; estrangeiro usa telefone internacional (WhatsApp/Telegram) mas endereço de entrega deve ser brasileiro.
 
 ### Sessão 9 — entregue (`7490a01`)
 
@@ -120,13 +140,16 @@ Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 | perfil | VENDEDOR |
 | ativo | true |
 
-### Cliente de teste
+### Clientes de teste (4 cadastrados — Ago/2026)
 
-| id | nome | email | cpf | codigoPais | celular |
-|----|------|-------|-----|------------|---------|
-| 1 | Maria Silva Teste | maria.teste@omnicore.local | 12345678909 | BR (legado `55` ok) | 11999998888 |
+| id | nome | documento | país tel. |
+|----|------|-----------|-----------|
+| 1 | Maria Silva Teste | CPF | BR |
+| 2 | Rafael Castro de Melo | CPF | BR |
+| 4 | Sofia Mendes Almeida | Passaporte N1234568 | PT |
+| 5 | Michael Johnson | Doc. estrangeiro CA-D1234568 | US |
 
-> Endereço estruturado: preencher via form (CEP + ViaCEP) — coluna legada `endereco_entrega_padrao` pode existir no banco.
+> Migração 9.1: rodar `migrate-cliente-documento.sql` uma vez se o banco ainda tiver coluna `cpf`.
 
 ---
 
@@ -168,6 +191,8 @@ npm run build
 - Frontend em `frontend-app/` (monorepo, não copiar backend para dentro)
 - Config Agent/Claude na **raiz** `~/omnicore/.cursor/` (não dentro de `cerebro-backend/`)
 - **Produto inativo:** exclusão lógica sem reativação (decisão de negócio — não implementar endpoint/UI de reativar por enquanto)
+- **Fechar sessão:** sempre atualizar este `.md`, `omnicore-projeto.mdc` e atalho `CONTEXTO-OMNICORE.md` (idealmente no mesmo commit da sessão)
+- **Clientes estrangeiros (9.1):** passaporte/doc. estrangeiro OK; entrega **somente Brasil** — endereço BR obrigatório para não-CPF (Fase B = entrega internacional, ver débito técnico)
 
 ---
 
@@ -204,4 +229,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 22/ago/2026 — git em `7490a01`; Sessão 9 (clientes + CEP + telefone) concluída.*
+*Última atualização: 23/ago/2026 — Sessão 9.1 (`bb3dda8`); próximo: Sessão 10 estoque (frontend).*

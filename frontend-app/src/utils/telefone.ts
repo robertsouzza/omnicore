@@ -77,3 +77,10 @@ export function isCelularValido(iso: CountryCode, maskedValue: string): boolean 
   const parsed = parsePhoneNumberFromString(maskedValue, iso)
   return parsed?.isValid() ?? false
 }
+
+export function celularPlaceholder(iso: CountryCode): string {
+  if (iso === 'BR') return 'DDD + número'
+  if (iso === 'PT') return '9 dígitos (ex.: 912 345 678)'
+  if (iso === 'US') return '10 dígitos (ex.: 415 555 2671)'
+  return 'Número sem código do país'
+}

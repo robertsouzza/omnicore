@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +20,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "tb_cliente")
+@Table(name = "tb_cliente", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "tipo_documento", "numero_documento" })
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -32,8 +37,13 @@ public class Cliente {
     @Column(name = "nome_completo", nullable = false, length = 150)
     private String nomeCompleto;
 
-    @Column(nullable = false, unique = true, length = 14)
-    private String cpf;
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_documento", nullable = false, length = 30)
+    private TipoDocumento tipoDocumento = TipoDocumento.CPF;
+
+    @Column(name = "numero_documento", nullable = false, length = 30)
+    private String numeroDocumento;
 
     @Column(nullable = false, length = 150)
     private String email;

@@ -1,11 +1,13 @@
 import type { Page } from './produto'
+import type { TipoDocumento } from '../utils/documento'
 
-export type { Page }
+export type { Page, TipoDocumento }
 
 export interface Cliente {
   id: number
   nomeCompleto: string
-  cpf: string
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
   email: string
   codigoPais: string
   celular: string
@@ -23,7 +25,8 @@ export interface Cliente {
 
 export interface ClienteRequest {
   nomeCompleto: string
-  cpf: string
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
   email: string
   /** Código ISO do país do celular (ex.: BR, US, PT). */
   codigoPais: string
@@ -47,3 +50,4 @@ export interface CepConsulta {
 
 export type { PaisTelefoneOption } from '../utils/telefone'
 export { PAISES_TELEFONE, PAIS_PADRAO } from '../utils/telefone'
+export { TIPOS_DOCUMENTO, TIPO_DOCUMENTO_PADRAO } from '../utils/documento'

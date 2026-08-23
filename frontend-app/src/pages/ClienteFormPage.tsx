@@ -4,10 +4,16 @@ import { consultarCep } from '../api/cep'
 import { ApiError } from '../api/client'
 import { atualizarCliente, buscarCliente, criarCliente } from '../api/clientes'
 import { useAuth } from '../auth/AuthContext'
-import { PAISES_TELEFONE, PAIS_PADRAO, type ClienteRequest } from '../types/cliente'
+import { PAISES_TELEFONE, PAIS_PADRAO, TIPOS_DOCUMENTO, TIPO_DOCUMENTO_PADRAO, type ClienteRequest, type TipoDocumento } from '../types/cliente'
 import { cepToDigits, formatCep, maskCepInput } from '../utils/cep'
-import { formatCpf, maskCpfInput, onlyDigits } from '../utils/cpf'
+import { isCpfValido, onlyDigits } from '../utils/cpf'
 import {
+  documentoEstrangeiro,
+  maskDocumentoInput,
+  normalizeNumeroDocumento,
+} from '../utils/documento'
+import {
+  celularPlaceholder,
   celularToNationalDigits,
   formatCelularDisplay,
   formatCelularForInput,
@@ -19,7 +25,8 @@ import styles from './ClienteFormPage.module.css'
 
 interface FormState {
   nomeCompleto: string
-  cpf: string
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
   email: string
   codigoPais: string
   celular: string
@@ -34,7 +41,8 @@ interface FormState {
 
 const INITIAL_FORM: FormState = {
   nomeCompleto: '',
-  cpf: '',
+  tipoDocumento: TIPO_DOCUMENTO_PADRAO,
+  numeroDocumento: '',
   email: '',
   codigoPais: PAIS_PADRAO,
   celular: '',
@@ -55,7 +63,8 @@ function emptyToNull(value: string): string | null {
 function toRequest(form: FormState): ClienteRequest {
   return {
     nomeCompleto: form.nomeCompleto.trim(),
-    cpf: onlyDigits(form.cpf),
+    tipoDocumento: form.tipoDocumento,
+    numeroDocumento: normalizeNumeroDocumento(form.tipoDocumento, form.numeroDocumento),
     email: form.email.trim(),
     codigoPais: normalizePaisIso(form.codigoPais),
     celular: celularToNationalDigits(normalizePaisIso(form.codigoPais), form.celular),
@@ -71,7 +80,8 @@ function toRequest(form: FormState): ClienteRequest {
 
 function fromCliente(cliente: {
   nomeCompleto: string
-  cpf: string
+  tipoDocumento: TipoDocumento
+  numeroDocumento: string
   email: string
   codigoPais: string
   celular: string
@@ -86,7 +96,8 @@ function fromCliente(cliente: {
   const paisIso = normalizePaisIso(cliente.codigoPais)
   return {
     nomeCompleto: cliente.nomeCompleto,
-    cpf: formatCpf(cliente.cpf),
+    tipoDocumento: cliente.tipoDocumento,
+    numeroDocumento: maskDocumentoInput(cliente.tipoDocumento, cliente.numeroDocumento),
     email: cliente.email,
     codigoPais: paisIso,
     celular: formatCelularForInput(paisIso, cliente.celular),
@@ -185,6 +196,12 @@ export function ClienteFormPage() {
 
     setError(null)
     setFieldErrors({})
+
+    if (form.tipoDocumento === 'CPF' && !isCpfValido(form.numeroDocumento)) {
+      setFieldErrors({ numeroDocumento: 'Informe um CPF válido.' })
+      return
+    }
+
     setSubmitting(true)
 
     const payload = toRequest(form)
@@ -204,6 +221,8 @@ export function ClienteFormPage() {
       setSubmitting(false)
     }
   }
+
+  const enderecoObrigatorio = documentoEstrangeiro(form.tipoDocumento)
 
   if (loading) {
     return <p className={styles.status}>Carregando cliente…</p>
@@ -244,21 +263,47 @@ export function ClienteFormPage() {
           </label>
 
           <label className={styles.label}>
-            CPF *
-            <input
-              className={fieldErrors.cpf ? styles.inputError : styles.input}
-              value={form.cpf}
-              onChange={(e) => updateField('cpf', maskCpfInput(e.target.value))}
-              placeholder="000.000.000-00"
-              inputMode="numeric"
-              maxLength={14}
-              required
+            Tipo de documento *
+            <select
+              className={fieldErrors.tipoDocumento ? styles.inputError : styles.input}
+              value={form.tipoDocumento}
+              onChange={(e) => {
+                updateField('tipoDocumento', e.target.value as TipoDocumento)
+                updateField('numeroDocumento', '')
+              }}
               disabled={submitting}
-            />
-            {fieldErrors.cpf && <span className={styles.fieldError}>{fieldErrors.cpf}</span>}
+            >
+              {TIPOS_DOCUMENTO.map((tipo) => (
+                <option key={tipo.value} value={tipo.value}>
+                  {tipo.label}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.tipoDocumento && (
+              <span className={styles.fieldError}>{fieldErrors.tipoDocumento}</span>
+            )}
           </label>
 
           <label className={styles.label}>
+            Número do documento *
+            <input
+              className={fieldErrors.numeroDocumento ? styles.inputError : styles.input}
+              value={form.numeroDocumento}
+              onChange={(e) =>
+                updateField('numeroDocumento', maskDocumentoInput(form.tipoDocumento, e.target.value))
+              }
+              placeholder={form.tipoDocumento === 'CPF' ? '000.000.000-00' : 'Informe o documento'}
+              inputMode={form.tipoDocumento === 'CPF' ? 'numeric' : 'text'}
+              maxLength={form.tipoDocumento === 'CPF' ? 14 : 30}
+              required
+              disabled={submitting}
+            />
+            {fieldErrors.numeroDocumento && (
+              <span className={styles.fieldError}>{fieldErrors.numeroDocumento}</span>
+            )}
+          </label>
+
+          <label className={`${styles.label} ${styles.fullWidth}`}>
             E-mail *
             <input
               type="email"
@@ -306,7 +351,7 @@ export function ClienteFormPage() {
               onChange={(e) =>
                 updateField('celular', maskCelularInput(normalizePaisIso(form.codigoPais), e.target.value))
               }
-              placeholder="Digite DDD + número"
+              placeholder={celularPlaceholder(normalizePaisIso(form.codigoPais))}
               inputMode="tel"
               required
               disabled={submitting}
@@ -326,10 +371,16 @@ export function ClienteFormPage() {
           </label>
         </div>
 
-        <h2 className={styles.sectionTitle}>Endereço de entrega</h2>
+        <h2 className={styles.sectionTitle}>Endereço de entrega no Brasil</h2>
+        {enderecoObrigatorio && (
+          <p className={styles.hint}>
+            Entregas somente no Brasil. Clientes estrangeiros devem informar um endereço brasileiro
+            para recebimento (hotel, Airbnb, endereço de contato local etc.).
+          </p>
+        )}
         <div className={styles.cepRow}>
           <label className={styles.label}>
-            CEP
+            CEP{enderecoObrigatorio ? ' *' : ''}
             <input
               className={fieldErrors.cep ? styles.inputError : styles.input}
               value={form.cep}
@@ -337,6 +388,7 @@ export function ClienteFormPage() {
               placeholder="00000-000"
               inputMode="numeric"
               maxLength={9}
+              required={enderecoObrigatorio}
               disabled={submitting || buscandoCep}
             />
             {fieldErrors.cep && <span className={styles.fieldError}>{fieldErrors.cep}</span>}
@@ -353,12 +405,13 @@ export function ClienteFormPage() {
 
         <div className={styles.grid}>
           <label className={`${styles.label} ${styles.fullWidth}`}>
-            Endereço
+            Endereço{enderecoObrigatorio ? ' *' : ''}
             <input
               className={fieldErrors.logradouro ? styles.inputError : styles.input}
               value={form.logradouro}
               onChange={(e) => updateField('logradouro', e.target.value)}
               maxLength={150}
+              required={enderecoObrigatorio}
               disabled={submitting}
             />
             {fieldErrors.logradouro && (
@@ -367,12 +420,13 @@ export function ClienteFormPage() {
           </label>
 
           <label className={styles.label}>
-            Nº
+            Nº{enderecoObrigatorio ? ' *' : ''}
             <input
               className={fieldErrors.numero ? styles.inputError : styles.input}
               value={form.numero}
               onChange={(e) => updateField('numero', e.target.value)}
               maxLength={20}
+              required={enderecoObrigatorio}
               disabled={submitting}
             />
             {fieldErrors.numero && <span className={styles.fieldError}>{fieldErrors.numero}</span>}

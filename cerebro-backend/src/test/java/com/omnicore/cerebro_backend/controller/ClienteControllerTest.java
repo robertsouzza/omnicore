@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.Cliente;
+import com.omnicore.cerebro_backend.model.TipoDocumento;
 import com.omnicore.cerebro_backend.service.ClienteService;
 
 @WebMvcTest(controllers = ClienteController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
@@ -44,7 +45,8 @@ class ClienteControllerTest {
     private static final String PAYLOAD = """
             {
                 "nomeCompleto": "Maria Silva",
-                "cpf": "12345678909",
+                "tipoDocumento": "CPF",
+                "numeroDocumento": "12345678909",
                 "email": "maria@email.com",
                 "codigoPais": "BR",
                 "celular": "11999998888",
@@ -60,7 +62,7 @@ class ClienteControllerTest {
     @Test
     @DisplayName("POST /api/clientes deve retornar 201 Created")
     void deveCadastrarCliente() throws Exception {
-        Cliente cliente = Cliente.builder().id(1L).nomeCompleto("Maria Silva").cpf("12345678909").build();
+        Cliente cliente = Cliente.builder().id(1L).nomeCompleto("Maria Silva").numeroDocumento("12345678909").build();
         when(clienteService.cadastrar(any())).thenReturn(cliente);
 
         mockMvc.perform(post("/api/clientes")
@@ -71,20 +73,33 @@ class ClienteControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/clientes/documento deve retornar 200 OK")
+    void deveBuscarPorDocumento() throws Exception {
+        Cliente cliente = Cliente.builder().id(1L).tipoDocumento(TipoDocumento.CPF).numeroDocumento("12345678909").build();
+        when(clienteService.buscarPorDocumento(TipoDocumento.CPF, "12345678909")).thenReturn(cliente);
+
+        mockMvc.perform(get("/api/clientes/documento")
+                .param("tipo", "CPF")
+                .param("numero", "12345678909"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.numeroDocumento").value("12345678909"));
+    }
+
+    @Test
     @DisplayName("GET /api/clientes/cpf/{cpf} deve retornar 200 OK")
     void deveBuscarPorCpf() throws Exception {
-        Cliente cliente = Cliente.builder().id(1L).cpf("12345678909").nomeCompleto("Maria").build();
+        Cliente cliente = Cliente.builder().id(1L).numeroDocumento("12345678909").nomeCompleto("Maria").build();
         when(clienteService.buscarPorCpf("12345678909")).thenReturn(cliente);
 
         mockMvc.perform(get("/api/clientes/cpf/{cpf}", "12345678909"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cpf").value("12345678909"));
+                .andExpect(jsonPath("$.numeroDocumento").value("12345678909"));
     }
 
     @Test
     @DisplayName("GET /api/clientes deve listar paginado")
     void deveListarClientes() throws Exception {
-        when(clienteService.listar(any(Pageable.class), eq(false)))
+        when(clienteService.listar(any(Pageable.class), eq(false), eq(null)))
                 .thenReturn(new PageImpl<>(java.util.List.of(Cliente.builder().id(1L).build())));
 
         mockMvc.perform(get("/api/clientes"))

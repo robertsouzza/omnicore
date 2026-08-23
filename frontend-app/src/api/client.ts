@@ -1,5 +1,26 @@
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? ''
 
+function extractApiErrorMessage(body: unknown, status: number): string {
+  if (typeof body === 'object' && body !== null) {
+    const record = body as Record<string, unknown>
+    if (typeof record.message === 'string' && record.message.trim()) {
+      return record.message
+    }
+    if (typeof record.error === 'string' && record.error.trim()) {
+      return record.error
+    }
+  }
+
+  if (status === 409) {
+    return 'Conflito ao salvar os dados. Verifique se o registro já existe.'
+  }
+  if (status >= 500) {
+    return 'Erro interno do servidor. Tente novamente em instantes.'
+  }
+
+  return `Erro ${status}`
+}
+
 export class ApiError extends Error {
   status: number
   body?: unknown
@@ -40,13 +61,7 @@ export async function apiFetch<T>(
       body = undefined
     }
 
-    const message =
-      typeof body === 'object' &&
-      body !== null &&
-      'message' in body &&
-      typeof (body as { message: unknown }).message === 'string'
-        ? (body as { message: string }).message
-        : `Erro ${response.status}`
+    const message = extractApiErrorMessage(body, response.status)
 
     throw new ApiError(message, response.status, body)
   }

@@ -12,10 +12,21 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
 - Próximo foco: **Sessão 10 — Estoque** no frontend
+- Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
 - Config Cursor/Agent na raiz: `~/omnicore/.cursor/` (rules + contexto)
+
+## Ao fechar uma sessão (obrigatório)
+
+Antes do commit/push da sessão (ou no **mesmo commit**), atualizar:
+
+1. `.cursor/CONTEXTO-OMNICORE.md` — tabela de sessões (status ✅, hash do commit), “Próximo passo”, progresso das fases, data/`git` no rodapé
+2. `.cursor/rules/omnicore-projeto.mdc` — próximo foco + último commit relevante
+3. `CONTEXTO-OMNICORE.md` (atalho raiz) — mensagem modelo com próxima sessão
+
+Nunca encerrar sessão entregue sem sincronizar o contexto.
 
 ## Auth (dev)
 
@@ -24,4 +35,4 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 ## Git (main)
 
-Último commit relevante: `7490a01` — Sessão 9 clientes (CRUD, CEP, telefone internacional)
+Último commit relevante: `bb3dda8` — Sessão 9.1 clientes estrangeiros, CPF válido, busca por nome

@@ -1,18 +1,27 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import {
-  buscarClientePorCpf,
+  buscarClientePorDocumento,
   inativarCliente,
   listarClientes,
 } from '../api/clientes'
 import { useAuth } from '../auth/AuthContext'
-import type { Cliente, Page } from '../types/cliente'
+import type { Cliente, Page, TipoDocumento } from '../types/cliente'
+import { TIPOS_DOCUMENTO, TIPO_DOCUMENTO_PADRAO } from '../types/cliente'
 import { formatEnderecoResumo } from '../utils/cep'
-import { formatCpf, maskCpfInput, onlyDigits } from '../utils/cpf'
+import { isCpfValido } from '../utils/cpf'
+import {
+  formatDocumentoDisplay,
+  maskDocumentoInput,
+  normalizeNumeroDocumento,
+} from '../utils/documento'
 import { formatCelularDisplay, normalizePaisIso } from '../utils/telefone'
 import { getErrorMessage } from '../utils/validation'
 import styles from './ClientesPage.module.css'
+
+/** Mínimo de letras para disparar busca por nome no servidor (escala). */
+const NOME_BUSCA_MIN_API = 3
 
 interface ClienteActionsProps {
   cliente: Cliente
@@ -70,8 +79,10 @@ function ClienteCard({
       </div>
       <dl className={styles.cardMeta}>
         <div>
-          <dt>CPF</dt>
-          <dd className={styles.mono}>{formatCpf(cliente.cpf)}</dd>
+          <dt>Documento</dt>
+          <dd className={styles.mono}>
+            {formatDocumentoDisplay(cliente.tipoDocumento, cliente.numeroDocumento)}
+          </dd>
         </div>
         <div>
           <dt>Celular</dt>
@@ -112,7 +123,9 @@ function ClienteTableRow({
   return (
     <tr className={!cliente.ativo ? styles.inactiveRow : undefined}>
       <td>{cliente.nomeCompleto}</td>
-      <td className={styles.mono}>{formatCpf(cliente.cpf)}</td>
+      <td className={styles.mono}>
+        {formatDocumentoDisplay(cliente.tipoDocumento, cliente.numeroDocumento)}
+      </td>
       <td>{cliente.email}</td>
       <td>{formatCelularDisplay(normalizePaisIso(cliente.codigoPais), cliente.celular)}</td>
       {incluirInativos && (
@@ -132,13 +145,18 @@ export function ClientesPage() {
   const [page, setPage] = useState<Page<Cliente> | null>(null)
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [searchNotice, setSearchNotice] = useState<string | null>(null)
   const [actionId, setActionId] = useState<number | null>(null)
-  const [cpfBusca, setCpfBusca] = useState('')
-  const [buscaResultado, setBuscaResultado] = useState<Cliente | null>(null)
-  const [buscaAtiva, setBuscaAtiva] = useState(false)
-  const [buscando, setBuscando] = useState(false)
+  const [nomeBusca, setNomeBusca] = useState('')
+  const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
+  const [tipoDocumentoBusca, setTipoDocumentoBusca] = useState<TipoDocumento>(TIPO_DOCUMENTO_PADRAO)
+  const [documentoBusca, setDocumentoBusca] = useState('')
+  const [clientePorDocumento, setClientePorDocumento] = useState<Cliente | null>(null)
+  const [buscandoDocumento, setBuscandoDocumento] = useState(false)
+  const hasLoadedOnce = useRef(false)
 
   const handleUnauthorized = useCallback(
     (err: unknown) => {
@@ -151,61 +169,92 @@ export function ClientesPage() {
     [logout],
   )
 
-  const load = useCallback(async () => {
-    if (!session || buscaAtiva) return
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const termo = nomeBusca.trim()
+      setNomeBuscaDebounced(termo.length >= NOME_BUSCA_MIN_API ? termo : '')
+      setPageNumber(0)
+      setClientePorDocumento(null)
+    }, 300)
 
-    setLoading(true)
-    setError(null)
+    return () => window.clearTimeout(timer)
+  }, [nomeBusca])
+
+  const load = useCallback(async () => {
+    if (!session) return
+
+    if (!hasLoadedOnce.current) {
+      setInitialLoading(true)
+    } else {
+      setRefreshing(true)
+    }
+    setLoadError(null)
 
     try {
       const data = await listarClientes(session.token, {
         page: pageNumber,
         incluirInativos,
+        nome: nomeBuscaDebounced || undefined,
       })
       setPage(data)
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setError(getErrorMessage(err, 'Erro ao carregar clientes.'))
+      setLoadError(getErrorMessage(err, 'Erro ao carregar clientes.'))
     } finally {
-      setLoading(false)
+      hasLoadedOnce.current = true
+      setInitialLoading(false)
+      setRefreshing(false)
     }
-  }, [session, pageNumber, incluirInativos, buscaAtiva, handleUnauthorized])
+  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, handleUnauthorized])
 
   useEffect(() => {
     void load()
   }, [load])
 
-  async function handleBuscarCpf(event: FormEvent) {
+  async function handleBuscarDocumento(event: FormEvent) {
     event.preventDefault()
     if (!session) return
 
-    const digits = onlyDigits(cpfBusca)
-    if (digits.length < 11) {
-      setError('Informe um CPF com 11 dígitos para buscar.')
+    const numero = normalizeNumeroDocumento(tipoDocumentoBusca, documentoBusca)
+
+    if (tipoDocumentoBusca === 'CPF') {
+      if (numero.length < 11) {
+        setSearchNotice('Informe um CPF com 11 dígitos para buscar.')
+        setClientePorDocumento(null)
+        return
+      }
+      if (!isCpfValido(numero)) {
+        setSearchNotice('Informe um CPF válido para buscar.')
+        setClientePorDocumento(null)
+        return
+      }
+    } else if (numero.length < 3) {
+      setSearchNotice('Informe pelo menos 3 caracteres do documento para buscar.')
+      setClientePorDocumento(null)
       return
     }
 
-    setBuscando(true)
-    setError(null)
-    setBuscaAtiva(true)
-    setBuscaResultado(null)
+    setBuscandoDocumento(true)
+    setSearchNotice(null)
 
     try {
-      const cliente = await buscarClientePorCpf(session.token, digits)
-      setBuscaResultado(cliente)
+      const cliente = await buscarClientePorDocumento(session.token, tipoDocumentoBusca, numero)
+      setClientePorDocumento(cliente)
+      setSearchNotice(null)
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setError(getErrorMessage(err, 'Cliente não encontrado para este CPF.'))
+      setClientePorDocumento(null)
+      setSearchNotice(getErrorMessage(err, 'Nenhum cliente encontrado para este documento.'))
     } finally {
-      setBuscando(false)
+      setBuscandoDocumento(false)
     }
   }
 
-  function limparBusca() {
-    setCpfBusca('')
-    setBuscaAtiva(false)
-    setBuscaResultado(null)
-    setError(null)
+  function limparBuscaDocumento() {
+    setDocumentoBusca('')
+    setTipoDocumentoBusca(TIPO_DOCUMENTO_PADRAO)
+    setClientePorDocumento(null)
+    setSearchNotice(null)
   }
 
   async function handleInativar(cliente: Cliente) {
@@ -217,30 +266,43 @@ export function ClientesPage() {
     if (!confirmed) return
 
     setActionId(cliente.id)
-    setError(null)
+    setLoadError(null)
 
     try {
       await inativarCliente(session.token, cliente.id)
-      if (buscaAtiva) {
-        setBuscaResultado((current) =>
-          current && current.id === cliente.id ? { ...current, ativo: false } : current,
-        )
-      } else {
-        await load()
+      if (clientePorDocumento?.id === cliente.id) {
+        setClientePorDocumento({ ...clientePorDocumento, ativo: false })
       }
+      await load()
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setError(getErrorMessage(err, 'Não foi possível inativar o cliente.'))
+      setLoadError(getErrorMessage(err, 'Não foi possível inativar o cliente.'))
     } finally {
       setActionId(null)
     }
   }
 
-  const clientesExibidos = buscaAtiva
-    ? buscaResultado
-      ? [buscaResultado]
-      : []
-    : (page?.content ?? [])
+  const clientesExibidos = useMemo(() => {
+    if (clientePorDocumento) {
+      return [clientePorDocumento]
+    }
+
+    const termo = nomeBusca.trim().toLowerCase()
+    const base = page?.content ?? []
+
+    if (!termo) {
+      return base
+    }
+
+    return base.filter((cliente) => cliente.nomeCompleto.toLowerCase().includes(termo))
+  }, [clientePorDocumento, page, nomeBusca])
+
+  const totalExibido = clientePorDocumento ? 1 : (page?.totalElements ?? 0)
+  const buscaPorNomeAtiva = nomeBusca.trim().length > 0
+  const buscaNomeCurta =
+    buscaPorNomeAtiva && nomeBusca.trim().length < NOME_BUSCA_MIN_API
+  const buscaNomeNoServidor = nomeBuscaDebounced.length >= NOME_BUSCA_MIN_API
+  const listaPronta = page !== null && !initialLoading
 
   return (
     <section className={styles.page}>
@@ -250,9 +312,9 @@ export function ClientesPage() {
           <p className={styles.subtitle}>Cadastro de clientes do OmniCore</p>
         </div>
         <div className={styles.headerActions}>
-          {!buscaAtiva && page && (
+          {page && (
             <span className={styles.count}>
-              {page.totalElements} {page.totalElements === 1 ? 'cliente' : 'clientes'}
+              {totalExibido} {totalExibido === 1 ? 'cliente' : 'clientes'}
             </span>
           )}
           <Link to="/clientes/novo" className={styles.newBtn}>
@@ -261,51 +323,105 @@ export function ClientesPage() {
         </div>
       </div>
 
-      <form className={styles.searchForm} onSubmit={handleBuscarCpf}>
-        <label className={styles.searchLabel}>
-          Buscar por CPF
+      <div className={styles.searchPanel}>
+        <label className={styles.searchLabelNome}>
+          Buscar por cliente
           <input
-            className={styles.searchInput}
-            value={cpfBusca}
-            onChange={(e) => setCpfBusca(maskCpfInput(e.target.value))}
-            placeholder="000.000.000-00"
-            inputMode="numeric"
-            maxLength={14}
-            disabled={buscando}
-          />
-        </label>
-        <button type="submit" className={styles.searchBtn} disabled={buscando}>
-          {buscando ? 'Buscando…' : 'Buscar'}
-        </button>
-        {buscaAtiva && (
-          <button type="button" className={styles.clearBtn} onClick={limparBusca}>
-            Limpar busca
-          </button>
-        )}
-      </form>
-
-      {!buscaAtiva && (
-        <label className={styles.filter}>
-          <input
-            type="checkbox"
-            checked={incluirInativos}
+            className={styles.searchInputNome}
+            value={nomeBusca}
             onChange={(e) => {
-              setIncluirInativos(e.target.checked)
-              setPageNumber(0)
+              setNomeBusca(e.target.value)
+              setClientePorDocumento(null)
+              setSearchNotice(null)
             }}
+            placeholder="Digite parte do nome"
+            autoComplete="off"
           />
-          Incluir clientes inativos
+          {buscaNomeCurta && (
+            <span className={styles.searchHint}>
+              Filtrando na página atual — digite {NOME_BUSCA_MIN_API} ou mais letras para buscar no
+              servidor.
+            </span>
+          )}
+          {refreshing && buscaNomeNoServidor && (
+            <span className={styles.searchHint}>Buscando no servidor…</span>
+          )}
         </label>
-      )}
 
-      {(loading || buscando) && <p className={styles.status}>Carregando…</p>}
-      {error && <p className={styles.error}>{error}</p>}
+        <form className={styles.searchFormDocumento} onSubmit={handleBuscarDocumento}>
+          <label className={styles.searchLabelTipo}>
+            Tipo
+            <select
+              className={styles.searchSelect}
+              value={tipoDocumentoBusca}
+              onChange={(e) => {
+                setTipoDocumentoBusca(e.target.value as TipoDocumento)
+                setDocumentoBusca('')
+                setClientePorDocumento(null)
+                setSearchNotice(null)
+              }}
+              disabled={buscandoDocumento}
+            >
+              {TIPOS_DOCUMENTO.map((tipo) => (
+                <option key={tipo.value} value={tipo.value}>
+                  {tipo.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.searchLabel}>
+            Documento
+            <input
+              className={styles.searchInput}
+              value={documentoBusca}
+              onChange={(e) => {
+                setDocumentoBusca(maskDocumentoInput(tipoDocumentoBusca, e.target.value))
+                setClientePorDocumento(null)
+              }}
+              placeholder={tipoDocumentoBusca === 'CPF' ? '000.000.000-00' : 'Número do documento'}
+              inputMode={tipoDocumentoBusca === 'CPF' ? 'numeric' : 'text'}
+              maxLength={tipoDocumentoBusca === 'CPF' ? 14 : 30}
+              disabled={buscandoDocumento}
+            />
+          </label>
+          <button type="submit" className={styles.searchBtn} disabled={buscandoDocumento}>
+            {buscandoDocumento ? 'Buscando…' : 'Buscar'}
+          </button>
+          {(clientePorDocumento || documentoBusca) && (
+            <button type="button" className={styles.clearBtn} onClick={limparBuscaDocumento}>
+              Limpar documento
+            </button>
+          )}
+        </form>
+      </div>
 
-      {!loading && !buscando && !error && (
+      <label className={styles.filter}>
+        <input
+          type="checkbox"
+          checked={incluirInativos}
+          onChange={(e) => {
+            setIncluirInativos(e.target.checked)
+            setPageNumber(0)
+            setClientePorDocumento(null)
+          }}
+        />
+        Incluir clientes inativos
+      </label>
+
+      {initialLoading && <p className={styles.status}>Carregando…</p>}
+      {buscandoDocumento && <p className={styles.status}>Buscando documento…</p>}
+      {loadError && <p className={styles.error}>{loadError}</p>}
+      {searchNotice && <p className={styles.searchNotice}>{searchNotice}</p>}
+
+      {listaPronta && !loadError && (
         <>
           {clientesExibidos.length === 0 ? (
             <p className={styles.status}>
-              {buscaAtiva ? 'Nenhum cliente encontrado para este CPF.' : 'Nenhum cliente encontrado.'}
+              {clientePorDocumento
+                ? 'Nenhum cliente encontrado para este documento.'
+                : buscaPorNomeAtiva
+                  ? 'Nenhum cliente encontrado com este nome.'
+                  : 'Nenhum cliente encontrado.'}
             </p>
           ) : (
             <>
@@ -314,7 +430,7 @@ export function ClientesPage() {
                   <ClienteCard
                     key={cliente.id}
                     cliente={cliente}
-                    incluirInativos={incluirInativos || buscaAtiva}
+                    incluirInativos={incluirInativos || !!clientePorDocumento}
                     actionId={actionId}
                     onInativar={(c) => void handleInativar(c)}
                   />
@@ -326,10 +442,10 @@ export function ClientesPage() {
                   <thead>
                     <tr>
                       <th>Nome</th>
-                      <th>CPF</th>
+                      <th>Documento</th>
                       <th>E-mail</th>
                       <th>Celular</th>
-                      {(incluirInativos || buscaAtiva) && <th>Status</th>}
+                      {(incluirInativos || clientePorDocumento) && <th>Status</th>}
                       <th>Ações</th>
                     </tr>
                   </thead>
@@ -338,7 +454,7 @@ export function ClientesPage() {
                       <ClienteTableRow
                         key={cliente.id}
                         cliente={cliente}
-                        incluirInativos={incluirInativos || buscaAtiva}
+                        incluirInativos={incluirInativos || !!clientePorDocumento}
                         actionId={actionId}
                         onInativar={(c) => void handleInativar(c)}
                       />
@@ -349,25 +465,32 @@ export function ClientesPage() {
             </>
           )}
 
-          {!buscaAtiva && page && page.totalPages > 1 && (
+          {!clientePorDocumento && page && (
             <div className={styles.pagination}>
-              <button
-                type="button"
-                disabled={page.first}
-                onClick={() => setPageNumber((n) => n - 1)}
-              >
-                Anterior
-              </button>
-              <span>
+              {page.totalPages > 1 && (
+                <button
+                  type="button"
+                  disabled={page.first}
+                  onClick={() => setPageNumber((n) => n - 1)}
+                >
+                  Anterior
+                </button>
+              )}
+              <span className={styles.paginationInfo}>
                 Página {page.number + 1} de {page.totalPages}
+                {' · '}
+                {page.totalElements}{' '}
+                {page.totalElements === 1 ? 'cliente no total' : 'clientes no total'}
               </span>
-              <button
-                type="button"
-                disabled={page.last}
-                onClick={() => setPageNumber((n) => n + 1)}
-              >
-                Próxima
-              </button>
+              {page.totalPages > 1 && (
+                <button
+                  type="button"
+                  disabled={page.last}
+                  onClick={() => setPageNumber((n) => n + 1)}
+                >
+                  Próxima
+                </button>
+              )}
             </div>
           )}
         </>

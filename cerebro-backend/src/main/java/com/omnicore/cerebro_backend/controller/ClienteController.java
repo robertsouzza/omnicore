@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.omnicore.cerebro_backend.dto.ClienteRequestDTO;
 import com.omnicore.cerebro_backend.model.Cliente;
+import com.omnicore.cerebro_backend.model.TipoDocumento;
 import com.omnicore.cerebro_backend.service.ClienteService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +36,7 @@ public class ClienteController {
     private final ClienteService clienteService;
 
     @PostMapping
-    @Operation(summary = "Cadastrar cliente", description = "Registra um novo cliente com CPF único.")
+    @Operation(summary = "Cadastrar cliente", description = "Registra um novo cliente com documento único (CPF, passaporte ou documento estrangeiro).")
     public ResponseEntity<Cliente> cadastrar(@Valid @RequestBody ClienteRequestDTO dto) {
         Cliente salvo = clienteService.cadastrar(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
@@ -46,12 +47,21 @@ public class ClienteController {
     public ResponseEntity<Page<Cliente>> listar(
             @ParameterObject
             @PageableDefault(page = 0, size = 20, sort = "nomeCompleto", direction = Sort.Direction.ASC) Pageable pageable,
-            @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos) {
-        return ResponseEntity.ok(clienteService.listar(pageable, incluirInativos));
+            @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos,
+            @RequestParam(value = "nome", required = false) String nome) {
+        return ResponseEntity.ok(clienteService.listar(pageable, incluirInativos, nome));
+    }
+
+    @GetMapping("/documento")
+    @Operation(summary = "Buscar cliente por documento", description = "Localiza cliente pelo tipo e número do documento.")
+    public ResponseEntity<Cliente> buscarPorDocumento(
+            @RequestParam TipoDocumento tipo,
+            @RequestParam String numero) {
+        return ResponseEntity.ok(clienteService.buscarPorDocumento(tipo, numero));
     }
 
     @GetMapping("/cpf/{cpf}")
-    @Operation(summary = "Buscar cliente por CPF", description = "Localiza cliente pelo CPF (com ou sem pontuação).")
+    @Operation(summary = "Buscar cliente por CPF", description = "Atalho para busca por documento tipo CPF.")
     public ResponseEntity<Cliente> buscarPorCpf(@PathVariable String cpf) {
         return ResponseEntity.ok(clienteService.buscarPorCpf(cpf));
     }

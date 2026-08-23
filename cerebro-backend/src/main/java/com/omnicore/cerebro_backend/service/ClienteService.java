@@ -13,7 +13,9 @@ import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 import com.omnicore.cerebro_backend.dto.ClienteRequestDTO;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Cliente;
+import com.omnicore.cerebro_backend.model.TipoDocumento;
 import com.omnicore.cerebro_backend.repository.ClienteRepository;
+import com.omnicore.cerebro_backend.util.CpfValidator;
 
 @SuppressWarnings("null")
 @Service
@@ -30,14 +32,12 @@ public class ClienteService {
 
     @Transactional
     public Cliente cadastrar(ClienteRequestDTO dto) {
-        String cpfNormalizado = normalizarCpf(dto.cpf());
-
-        clienteRepository.findByCpf(cpfNormalizado).ifPresent(c -> {
-            throw new BusinessException("Já existe um cliente cadastrado com o CPF: " + cpfNormalizado);
-        });
+        TipoDocumento tipoDocumento = dto.tipoDocumento();
+        String numeroDocumento = normalizarNumeroDocumento(tipoDocumento, dto.numeroDocumento());
+        validarDocumentoUnico(null, tipoDocumento, numeroDocumento);
 
         Cliente cliente = Cliente.builder().build();
-        aplicarDto(cliente, dto);
+        aplicarDto(cliente, dto, tipoDocumento, numeroDocumento);
 
         return Objects.requireNonNull(
                 clienteRepository.save(cliente),
@@ -47,15 +47,11 @@ public class ClienteService {
     @Transactional
     public Cliente atualizar(Long id, ClienteRequestDTO dto) {
         Cliente cliente = buscarPorId(id);
-        String cpfNormalizado = normalizarCpf(dto.cpf());
+        TipoDocumento tipoDocumento = dto.tipoDocumento();
+        String numeroDocumento = normalizarNumeroDocumento(tipoDocumento, dto.numeroDocumento());
+        validarDocumentoUnico(id, tipoDocumento, numeroDocumento);
 
-        clienteRepository.findByCpf(cpfNormalizado).ifPresent(outro -> {
-            if (!outro.getId().equals(id)) {
-                throw new BusinessException("Já existe outro cliente cadastrado com o CPF: " + cpfNormalizado);
-            }
-        });
-
-        aplicarDto(cliente, dto);
+        aplicarDto(cliente, dto, tipoDocumento, numeroDocumento);
 
         return Objects.requireNonNull(
                 clienteRepository.save(cliente),
@@ -72,24 +68,46 @@ public class ClienteService {
     }
 
     @Transactional(readOnly = true)
-    public Cliente buscarPorCpf(String cpf) {
-        if (cpf == null || cpf.isBlank()) {
-            throw new BusinessException("O CPF não pode ser vazio.");
+    public Cliente buscarPorDocumento(TipoDocumento tipoDocumento, String numeroDocumento) {
+        if (tipoDocumento == null) {
+            throw new BusinessException("O tipo de documento não pode ser nulo.");
         }
-        String cpfNormalizado = normalizarCpf(cpf);
-        return clienteRepository.findByCpf(cpfNormalizado)
-                .orElseThrow(() -> new BusinessException("Cliente com CPF " + cpfNormalizado + " não encontrado."));
+        if (numeroDocumento == null || numeroDocumento.isBlank()) {
+            throw new BusinessException("O número do documento não pode ser vazio.");
+        }
+
+        String numeroNormalizado = normalizarNumeroDocumento(tipoDocumento, numeroDocumento);
+        return clienteRepository.findByTipoDocumentoAndNumeroDocumento(tipoDocumento, numeroNormalizado)
+                .orElseThrow(() -> new BusinessException(
+                        "Cliente com documento " + tipoDocumento + " " + numeroNormalizado + " não encontrado."));
     }
 
     @Transactional(readOnly = true)
-    public Page<Cliente> listar(Pageable pageable, boolean incluirInativos) {
+    public Cliente buscarPorCpf(String cpf) {
+        return buscarPorDocumento(TipoDocumento.CPF, cpf);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Cliente> listar(Pageable pageable, boolean incluirInativos, String nome) {
         if (pageable == null) {
             throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
         }
-        if (incluirInativos) {
-            return clienteRepository.findAll(pageable);
+
+        String termoNome = trimToNull(nome);
+        if (termoNome != null && termoNome.length() < 3) {
+            termoNome = null;
         }
-        return clienteRepository.findByAtivo(true, pageable);
+        if (termoNome == null) {
+            if (incluirInativos) {
+                return clienteRepository.findAll(pageable);
+            }
+            return clienteRepository.findByAtivo(true, pageable);
+        }
+
+        if (incluirInativos) {
+            return clienteRepository.findByNomeCompletoContainingIgnoreCase(termoNome, pageable);
+        }
+        return clienteRepository.findByAtivoAndNomeCompletoContainingIgnoreCase(true, termoNome, pageable);
     }
 
     @Transactional
@@ -113,13 +131,15 @@ public class ClienteService {
         }
     }
 
-    private void aplicarDto(Cliente cliente, ClienteRequestDTO dto) {
+    private void aplicarDto(Cliente cliente, ClienteRequestDTO dto, TipoDocumento tipoDocumento, String numeroDocumento) {
         String codigoPais = normalizarCodigoPais(dto.codigoPais());
         String celular = normalizarCelular(codigoPais, dto.celular());
         validarCelular(codigoPais, celular);
+        validarEnderecoEntregaBrasil(tipoDocumento, dto);
 
         cliente.setNomeCompleto(dto.nomeCompleto().trim());
-        cliente.setCpf(normalizarCpf(dto.cpf()));
+        cliente.setTipoDocumento(tipoDocumento);
+        cliente.setNumeroDocumento(numeroDocumento);
         cliente.setEmail(dto.email().trim());
         cliente.setCodigoPais(codigoPais);
         cliente.setCelular(celular);
@@ -132,6 +152,56 @@ public class ClienteService {
         cliente.setEstado(normalizarEstado(dto.estado()));
     }
 
+    private void validarDocumentoUnico(Long idAtual, TipoDocumento tipoDocumento, String numeroDocumento) {
+        clienteRepository.findByTipoDocumentoAndNumeroDocumento(tipoDocumento, numeroDocumento).ifPresent(outro -> {
+            if (idAtual == null || !outro.getId().equals(idAtual)) {
+                throw new BusinessException("Já existe um cliente cadastrado com este documento.");
+            }
+        });
+    }
+
+    private void validarEnderecoEntregaBrasil(TipoDocumento tipoDocumento, ClienteRequestDTO dto) {
+        if (tipoDocumento == TipoDocumento.CPF) {
+            return;
+        }
+
+        if (dto.cep() == null || dto.cep().isBlank()) {
+            throw new BusinessException("Clientes estrangeiros devem informar CEP de entrega no Brasil.");
+        }
+        if (dto.logradouro() == null || dto.logradouro().isBlank()) {
+            throw new BusinessException("Clientes estrangeiros devem informar o endereço de entrega no Brasil.");
+        }
+        if (dto.numero() == null || dto.numero().isBlank()) {
+            throw new BusinessException("Clientes estrangeiros devem informar o número do endereço de entrega no Brasil.");
+        }
+    }
+
+    private String normalizarNumeroDocumento(TipoDocumento tipoDocumento, String numeroDocumento) {
+        if (numeroDocumento == null || numeroDocumento.isBlank()) {
+            throw new BusinessException("O número do documento é obrigatório.");
+        }
+
+        if (tipoDocumento == TipoDocumento.CPF) {
+            String cpf = numeroDocumento.replaceAll("\\D", "");
+            if (cpf.length() != 11) {
+                throw new BusinessException("Informe um CPF válido com 11 dígitos.");
+            }
+            if (!CpfValidator.isValido(cpf)) {
+                throw new BusinessException("Informe um CPF válido.");
+            }
+            return cpf;
+        }
+
+        String normalizado = numeroDocumento.replaceAll("\\s+", "").toUpperCase();
+        if (normalizado.length() < 3 || normalizado.length() > 30) {
+            throw new BusinessException("Informe um documento válido (3 a 30 caracteres).");
+        }
+        if (!normalizado.matches("[A-Z0-9\\-]+")) {
+            throw new BusinessException("Use apenas letras, números e hífen no documento.");
+        }
+        return normalizado;
+    }
+
     private void validarCelular(String codigoPais, String celular) {
         try {
             PhoneNumber numero = phoneNumberUtil.parse(celular, codigoPais);
@@ -141,10 +211,6 @@ public class ClienteService {
         } catch (NumberParseException ex) {
             throw new BusinessException("Informe um celular válido para o país selecionado.");
         }
-    }
-
-    private String normalizarCpf(String cpf) {
-        return cpf.replaceAll("\\D", "");
     }
 
     private String normalizarCodigoPais(String codigoPais) {
