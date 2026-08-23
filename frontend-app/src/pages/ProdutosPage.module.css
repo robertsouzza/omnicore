@@ -37,6 +37,46 @@
   background: #1a3a5c;
 }
 
+.searchPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgb(15 39 68 / 6%);
+}
+
+.searchLabelNome {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.searchInputNome {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.searchInputNome:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 0;
+  border-color: #2563eb;
+}
+
+.searchHint {
+  font-size: 0.8125rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
 .filter {
   display: inline-flex;
   align-items: center;
@@ -239,6 +279,20 @@
   color: #64748b;
   text-align: center;
   width: 100%;
+}
+
+.paginationInfo {
+  width: 100%;
+  font-weight: 500;
+  color: #475569;
+}
+
+@media (min-width: 640px) {
+  .paginationInfo {
+    width: auto;
+    flex: 1;
+    text-align: center;
+  }
 }
 
 .rowActions {

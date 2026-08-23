@@ -61,14 +61,35 @@ public class ProdutoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos) {
+    public Page<Produto> listarTodos(Pageable pageable, boolean incluirInativos, String nome) {
         if (pageable == null) {
             throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
         }
-        if (incluirInativos) {
-            return produtoRepository.findAll(pageable); // Traz tudo (Ativos e Inativos)
+
+        String termoNome = trimToNull(nome);
+        if (termoNome != null && termoNome.length() < 3) {
+            termoNome = null;
         }
-        return produtoRepository.findByAtivo(true, pageable); // Traw apenas os Ativos (Padrão)
+
+        if (termoNome == null) {
+            if (incluirInativos) {
+                return produtoRepository.findAll(pageable);
+            }
+            return produtoRepository.findByAtivo(true, pageable);
+        }
+
+        if (incluirInativos) {
+            return produtoRepository.findByNomeContainingIgnoreCase(termoNome, pageable);
+        }
+        return produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, termoNome, pageable);
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     @Transactional(readOnly = true)

@@ -5,6 +5,7 @@ export interface ListarProdutosParams {
   page?: number
   size?: number
   incluirInativos?: boolean
+  nome?: string
 }
 
 export function listarProdutos(
@@ -16,6 +17,10 @@ export function listarProdutos(
   search.set('size', String(params.size ?? 20))
   if (params.incluirInativos) {
     search.set('incluirInativos', 'true')
+  }
+  const nome = params.nome?.trim()
+  if (nome) {
+    search.set('nome', nome)
   }
 
   return apiFetch<Page<Produto>>(`/api/produtos?${search}`, {}, token)

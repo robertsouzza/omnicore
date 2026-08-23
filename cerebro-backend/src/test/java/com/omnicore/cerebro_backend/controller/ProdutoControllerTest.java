@@ -107,7 +107,7 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve retornar status 200 OK e carregar parâmetros de paginação e filtro")
     void deveRetornar200AoListarProdutos() throws Exception {
-        when(produtoService.listarTodos(any(Pageable.class), eq(false)))
+        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq(null)))
                 .thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/produtos")
@@ -121,11 +121,23 @@ public class ProdutoControllerTest {
     @Test
     @DisplayName("GET /api/produtos deve repassar incluirInativos=true ao service")
     void deveListarProdutosIncluindoInativos() throws Exception {
-        when(produtoService.listarTodos(any(Pageable.class), eq(true)))
+        when(produtoService.listarTodos(any(Pageable.class), eq(true), eq(null)))
                 .thenReturn(Page.empty());
 
         mockMvc.perform(get("/api/produtos")
                 .param("incluirInativos", "true")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("GET /api/produtos deve repassar filtro por nome ao service")
+    void deveListarProdutosPorNome() throws Exception {
+        when(produtoService.listarTodos(any(Pageable.class), eq(false), eq("Coca")))
+                .thenReturn(Page.empty());
+
+        mockMvc.perform(get("/api/produtos")
+                .param("nome", "Coca")
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }

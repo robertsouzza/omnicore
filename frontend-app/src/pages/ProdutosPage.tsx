@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { inativarProduto, listarProdutos } from '../api/produtos'
@@ -6,6 +6,9 @@ import { useAuth } from '../auth/AuthContext'
 import type { Page, Produto } from '../types/produto'
 import { getErrorMessage } from '../utils/validation'
 import styles from './ProdutosPage.module.css'
+
+/** Mínimo de letras para disparar busca por nome no servidor (escala). */
+const NOME_BUSCA_MIN_API = 3
 
 function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -56,9 +59,13 @@ export function ProdutosPage() {
   const [page, setPage] = useState<Page<Produto> | null>(null)
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
   const [actionId, setActionId] = useState<number | null>(null)
+  const [nomeBusca, setNomeBusca] = useState('')
+  const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
+  const hasLoadedOnce = useRef(false)
 
   const handleUnauthorized = useCallback(
     (err: unknown) => {
@@ -71,25 +78,42 @@ export function ProdutosPage() {
     [logout],
   )
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const termo = nomeBusca.trim()
+      setNomeBuscaDebounced(termo.length >= NOME_BUSCA_MIN_API ? termo : '')
+      setPageNumber(0)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [nomeBusca])
+
   const load = useCallback(async () => {
     if (!session) return
 
-    setLoading(true)
-    setError(null)
+    if (!hasLoadedOnce.current) {
+      setInitialLoading(true)
+    } else {
+      setRefreshing(true)
+    }
+    setLoadError(null)
 
     try {
       const data = await listarProdutos(session.token, {
         page: pageNumber,
         incluirInativos,
+        nome: nomeBuscaDebounced || undefined,
       })
       setPage(data)
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setError(getErrorMessage(err, 'Erro ao carregar produtos.'))
+      setLoadError(getErrorMessage(err, 'Erro ao carregar produtos.'))
     } finally {
-      setLoading(false)
+      hasLoadedOnce.current = true
+      setInitialLoading(false)
+      setRefreshing(false)
     }
-  }, [session, pageNumber, incluirInativos, handleUnauthorized])
+  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, handleUnauthorized])
 
   useEffect(() => {
     void load()
@@ -104,18 +128,34 @@ export function ProdutosPage() {
     if (!confirmed) return
 
     setActionId(produto.id)
-    setError(null)
+    setLoadError(null)
 
     try {
       await inativarProduto(session.token, produto.id)
       await load()
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setError(getErrorMessage(err, 'Não foi possível inativar o produto.'))
+      setLoadError(getErrorMessage(err, 'Não foi possível inativar o produto.'))
     } finally {
       setActionId(null)
     }
   }
+
+  const produtosExibidos = useMemo(() => {
+    const termo = nomeBusca.trim().toLowerCase()
+    const base = page?.content ?? []
+
+    if (!termo) {
+      return base
+    }
+
+    return base.filter((produto) => produto.nome.toLowerCase().includes(termo))
+  }, [page, nomeBusca])
+
+  const buscaPorNomeAtiva = nomeBusca.trim().length > 0
+  const buscaNomeCurta = buscaPorNomeAtiva && nomeBusca.trim().length < NOME_BUSCA_MIN_API
+  const buscaNomeNoServidor = nomeBuscaDebounced.length >= NOME_BUSCA_MIN_API
+  const listaPronta = page !== null && !initialLoading
 
   return (
     <section className={styles.page}>
@@ -136,6 +176,28 @@ export function ProdutosPage() {
         </div>
       </div>
 
+      <div className={styles.searchPanel}>
+        <label className={styles.searchLabelNome}>
+          Buscar por produto
+          <input
+            className={styles.searchInputNome}
+            value={nomeBusca}
+            onChange={(e) => setNomeBusca(e.target.value)}
+            placeholder="Digite parte do nome"
+            autoComplete="off"
+          />
+          {buscaNomeCurta && (
+            <span className={styles.searchHint}>
+              Filtrando na página atual — digite {NOME_BUSCA_MIN_API} ou mais letras para buscar no
+              servidor.
+            </span>
+          )}
+          {refreshing && buscaNomeNoServidor && (
+            <span className={styles.searchHint}>Buscando no servidor…</span>
+          )}
+        </label>
+      </div>
+
       <label className={styles.filter}>
         <input
           type="checkbox"
@@ -148,17 +210,21 @@ export function ProdutosPage() {
         Incluir produtos inativos
       </label>
 
-      {loading && <p className={styles.status}>Carregando…</p>}
-      {error && <p className={styles.error}>{error}</p>}
+      {initialLoading && <p className={styles.status}>Carregando…</p>}
+      {loadError && <p className={styles.error}>{loadError}</p>}
 
-      {!loading && !error && page && (
+      {listaPronta && !loadError && (
         <>
-          {page.empty ? (
-            <p className={styles.status}>Nenhum produto encontrado.</p>
+          {produtosExibidos.length === 0 ? (
+            <p className={styles.status}>
+              {buscaPorNomeAtiva
+                ? 'Nenhum produto encontrado com este nome.'
+                : 'Nenhum produto encontrado.'}
+            </p>
           ) : (
             <>
               <div className={styles.cardList}>
-                {page.content.map((produto) => (
+                {produtosExibidos.map((produto) => (
                   <article
                     key={produto.id}
                     className={`${styles.card}${!produto.ativo ? ` ${styles.cardInactive}` : ''}`}
@@ -209,7 +275,7 @@ export function ProdutosPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {page.content.map((produto) => (
+                    {produtosExibidos.map((produto) => (
                       <tr
                         key={produto.id}
                         className={!produto.ativo ? styles.inactiveRow : undefined}
@@ -239,25 +305,32 @@ export function ProdutosPage() {
             </>
           )}
 
-          {page.totalPages > 1 && (
+          {page && (
             <div className={styles.pagination}>
-              <button
-                type="button"
-                disabled={page.first}
-                onClick={() => setPageNumber((n) => n - 1)}
-              >
-                Anterior
-              </button>
-              <span>
+              {page.totalPages > 1 && (
+                <button
+                  type="button"
+                  disabled={page.first}
+                  onClick={() => setPageNumber((n) => n - 1)}
+                >
+                  Anterior
+                </button>
+              )}
+              <span className={styles.paginationInfo}>
                 Página {page.number + 1} de {page.totalPages}
+                {' · '}
+                {page.totalElements}{' '}
+                {page.totalElements === 1 ? 'item no total' : 'itens no total'}
               </span>
-              <button
-                type="button"
-                disabled={page.last}
-                onClick={() => setPageNumber((n) => n + 1)}
-              >
-                Próxima
-              </button>
+              {page.totalPages > 1 && (
+                <button
+                  type="button"
+                  disabled={page.last}
+                  onClick={() => setPageNumber((n) => n + 1)}
+                >
+                  Próxima
+                </button>
+              )}
             </div>
           )}
         </>

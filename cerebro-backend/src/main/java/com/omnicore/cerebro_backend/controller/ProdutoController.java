@@ -60,8 +60,9 @@ public class ProdutoController {
     public ResponseEntity<Page<Produto>> listar(
         @ParameterObject 
         @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable,         
-        @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos) {
-        Page<Produto> produtosPaginados = produtoService.listarTodos(pageable, incluirInativos);
+        @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos,
+        @RequestParam(value = "nome", required = false) String nome) {
+        Page<Produto> produtosPaginados = produtoService.listarTodos(pageable, incluirInativos, nome);
         return ResponseEntity.ok(produtosPaginados);
     }   
 

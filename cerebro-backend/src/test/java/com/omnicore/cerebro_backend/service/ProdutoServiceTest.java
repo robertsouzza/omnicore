@@ -76,7 +76,7 @@ public class ProdutoServiceTest {
         when(produtoRepository.findByAtivo(true, pageable)).thenReturn(paginaMock);
 
         // Act
-        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false);
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, null);
 
         // Assert
         assertNotNull(resultado);
@@ -94,12 +94,40 @@ public class ProdutoServiceTest {
         when(produtoRepository.findAll(pageable)).thenReturn(paginaMock);
 
         // Act
-        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, true);
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, true, null);
 
         // Assert
         assertNotNull(resultado);
         verify(produtoRepository, times(1)).findAll(pageable);
         verify(produtoRepository, never()).findByAtivo(anyBoolean(), any());
+    }
+
+    @Test
+    @DisplayName("Deve listar produtos filtrando por nome")
+    void deveListarProdutosPorNome() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        org.springframework.data.domain.Page<Produto> paginaMock = new org.springframework.data.domain.PageImpl<>(java.util.List.of(new Produto()));
+
+        when(produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, "Coca", pageable))
+                .thenReturn(paginaMock);
+
+        org.springframework.data.domain.Page<Produto> resultado = produtoService.listarTodos(pageable, false, "Coca");
+
+        assertNotNull(resultado);
+        verify(produtoRepository).findByAtivoAndNomeContainingIgnoreCase(true, "Coca", pageable);
+    }
+
+    @Test
+    @DisplayName("Deve ignorar busca por nome com menos de 3 caracteres")
+    void deveIgnorarBuscaPorNomeCurta() {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        when(produtoRepository.findByAtivo(true, pageable))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(java.util.List.of()));
+
+        produtoService.listarTodos(pageable, false, "Co");
+
+        verify(produtoRepository).findByAtivo(true, pageable);
+        verify(produtoRepository, never()).findByAtivoAndNomeContainingIgnoreCase(anyBoolean(), any(), any());
     }
 
     @Test

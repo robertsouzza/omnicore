@@ -15,5 +15,9 @@ public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
     // Busca paginada filtrando apenas pelo status da coluna 'ativo'
     Page<Produto> findByAtivo(boolean ativo, Pageable pageable);
+
+    Page<Produto> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
+
+    Page<Produto> findByAtivoAndNomeContainingIgnoreCase(boolean ativo, String nome, Pageable pageable);
     
 }
