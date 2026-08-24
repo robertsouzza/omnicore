@@ -66,7 +66,7 @@
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
-| **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `PLACEHOLDER` |
+| **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `c0ae1d9` |
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ **próximo** | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
@@ -81,7 +81,7 @@
 |--------|--------|-------------------|
 | ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
 | ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
-| ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `PLACEHOLDER` |
+| ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `c0ae1d9` |
 | **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`; `onlyDigits` único | **próximo** |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
@@ -319,4 +319,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 24/ago/2026 — Sessão 11 vendas ✅ (`PLACEHOLDER`); próximo: 10.5 hooks ou 12 PWA.*
+*Última atualização: 24/ago/2026 — Sessão 11 vendas ✅ (`c0ae1d9`); próximo: 10.5 hooks ou 12 PWA.*
