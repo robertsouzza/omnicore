@@ -67,7 +67,11 @@
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ **próximo** | — |
+| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ planejado | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
+| **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
+| **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ planejado | — |
+| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
@@ -78,7 +82,11 @@
 | ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
 | ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
 | **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
+| **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`; `onlyDigits` único | após Sessão 11 |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
+| **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
+| **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | após Sessão 12 |
+| **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | pré-SaaS / robustez |
 
 ### Sessão 7.2 — busca e paginação de produtos (paridade clientes)
 
@@ -144,6 +152,23 @@
 | **Momento sugerido — fornecedor + NF-e** | **Fase 6 / Sessão 13+** (Compras + integração fiscal), amarrando estoque e custo na entrada da nota |
 
 **Decisão vigente (Roberto + PDF):** cadastro simples **não bloqueia** Sessão 10; visão multissetorial exige evoluir catálogo + compras + formação de preço **depois** do core operacional (estoque + vendas no frontend).
+
+### Roadmap — Evolução arquitetura frontend (futuro)
+
+**Situação atual (Sessão 10):** frontend **organizado para MVP** — camadas `api/`, `types/`, `pages/`, `auth/`, `utils/`, CSS Modules, TypeScript. **Não é bagunça**; há duplicação controlada (`handleUnauthorized`, debounce de busca, paginação) repetida em Produtos/Clientes/Estoque.
+
+**Princípio:** refatorar **depois que o padrão se repetir 3+ vezes** — **não bloqueia Sessão 11**. Disparar **10.5** se a listagem de vendas copiar o mesmo boilerplate.
+
+| Sessão | Nome | Entregáveis | Momento |
+|--------|------|-------------|---------|
+| **10.5** | Hooks compartilhados | `src/hooks/`: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` centralizado em `utils/strings.ts` | **Após Sessão 11** |
+| **11.5** | Upload imagem (opcional) | Ver débito técnico imagem | Entre 11 e 12 |
+| **12.5** | UI kit mínimo | `components/ui/`: Button, TextField, TextArea, SearchPanel, PaginationBar, StatusMessage, PageHeader; `styles/tokens.css` | **Após Sessão 12** |
+| **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | **Pré-SaaS / robustez** |
+
+**Não fazer ainda:** pastas `features/` (só com 20+ telas), Redux/Zustand, micro-frontends, refatorar todo CSS de uma vez.
+
+**Ordem acordada:** `11 Vendas` → `10.5 Hooks` → `12 PWA` → `12.5 UI kit` → `13-FE Query+Testes` (11.5 upload opcional entre 11 e 12).
 
 ### Sessão 9 — entregue (`7490a01`)
 
@@ -243,6 +268,7 @@ npm run build
 - **Clientes estrangeiros (9.1):** passaporte/doc. estrangeiro OK; entrega **somente Brasil** — endereço BR obrigatório para não-CPF (Fase B = entrega internacional, ver débito técnico)
 - **Imagem do produto:** MVP = **só URL opcional** (`urlImagem`); upload de arquivo + Object Storage = débito técnico (ver seção acima)
 - **Catálogo / precificação / compras:** MVP = cadastro enxuto + `precoVenda` livre; estoque **separado** do cadastro (entrada manual → Sessão 10); fornecedor, NF-e entrada, custo/margem/preço sugerido = débito técnico (ver seção acima)
+- **Frontend arquitetura:** MVP saudável (`api/` + `types/` + pages); evolução planejada **10.5 hooks → 12.5 UI kit → 13-FE Query+testes** — ver roadmap no CONTEXTO; **não bloqueia Sessão 11**
 
 ---
 
@@ -279,4 +305,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 24/ago/2026 — Sessão 10 estoque no frontend (`51d409e`); próximo: Sessão 11 vendas.*
+*Última atualização: 24/ago/2026 — roadmap evolução frontend (10.5, 12.5, 13-FE); próximo: Sessão 11 vendas.*

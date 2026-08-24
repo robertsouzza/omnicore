@@ -173,6 +173,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional no cadastro (sem upload) | **Após Sessão 11**, antes da **12** (upload + Object Storage) |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
+| Evolução frontend (arquitetura) | MVP organizado (`api/`, `types/`, CSS Modules); duplicação em listagens | **10.5** hooks pós-11 · **12.5** UI kit pós-12 · **13-FE** Query+Vitest pré-SaaS |
 
 ---
 
