@@ -65,7 +65,7 @@
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
-| **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | *(este commit)* |
+| **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
 | 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ **próximo** | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
