@@ -160,8 +160,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
-| Estoque | — | ⬜ **próximo** (Sessão 10) |
-| Vendas | — | ⬜ |
+| Estoque (saldo, entrada/saída, histórico) | `/estoque`, `/estoque/:produtoId` | ✅ |
+| Vendas | — | ⬜ **próximo** (Sessão 11) |
 | PWA salão (código de barras) | — | ⬜ |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
@@ -209,8 +209,8 @@ npm run build
 | Frontend: login | ✅ |
 | Frontend: produtos (CRUD, kits, busca nome/EAN, imagem na listagem) | ✅ |
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
-| Frontend: estoque | ⬜ **próximo** |
-| Frontend: vendas + PWA salão | ⬜ |
+| Frontend: estoque (saldo, movimentação manual, histórico) | ✅ |
+| Frontend: vendas + PWA salão | ⬜ **próximo** |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

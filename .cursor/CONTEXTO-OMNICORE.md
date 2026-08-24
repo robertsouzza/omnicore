@@ -32,7 +32,7 @@
 │   └── rules/
 │       └── omnicore-projeto.mdc  ← regra alwaysApply do Agent
 ├── cerebro-backend/              ← API Spring Boot (backend core pronto)
-├── frontend-app/                 ← React (Sessões 6–9 ✅ — login, produtos, kits, clientes)
+├── frontend-app/                 ← React (Sessões 6–10 ✅ — login, produtos, kits, clientes, estoque)
 ├── docker-compose.yml            ← Postgres (NÃO commitar alterações locais sem pedir)
 ├── CONTEXTO-OMNICORE.md          ← atalho na raiz → aponta para .cursor/
 └── omnicore.code-workspace
@@ -65,8 +65,8 @@
 | **8** | **Frontend: composição de pacotes (kits)** | ✅ testado browser | `07c89c2`, `6834f88`, `d11f099` |
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
-| **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ⬜ **próximo** | — |
-| 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ | — |
+| **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | *(este commit)* |
+| 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ **próximo** | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
@@ -76,7 +76,7 @@
 | Sessão | Escopo | APIs já prontas |
 |--------|--------|-------------------|
 | ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
-| **10** | Saldo, movimentação manual, histórico paginado por produto | `/api/estoque/*` |
+| ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
 | **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
 
@@ -89,6 +89,12 @@
 ### Sessão 7.3 — imagem na listagem de produtos — entregue
 
 **Frontend:** coluna/campo **Imagem** na listagem (tabela desktop + cards mobile); miniaturas 80×80 (mobile) / 96×96 (desktop); placeholder com inicial quando sem URL ou erro de carga; clique abre **lightbox** centralizado (×, Esc ou clique fora para fechar); conversão automática de URLs GitHub `/blob/` para `raw.githubusercontent.com`.
+
+### Sessão 10 — estoque no frontend — entregue
+
+**Frontend:** rotas `/estoque` (listagem de produtos ativos com saldo via `GET /api/estoque/saldo/{id}`) e `/estoque/:produtoId` (saldo em destaque, abas entrada/saída manual, histórico paginado); busca por nome/EAN (paridade produtos); link **Estoque** no menu; `api/estoque.ts` + `types/estoque.ts`; `apiFetch` trata respostas 201/204 sem body.
+
+**Teste validado (24/ago):** produto id 8 (Biscoito Recheado Chocolate) — entrada +20, saída −3 (Avaria), saldo 17 — banco, API e UI conferidos.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -149,9 +155,9 @@
 
 ```
 Fase 1 – Infra & base          ~95% ✅
-Fase 2 – Cadastro & Estoque    ~90% ✅ (backend); frontend ~35% 🔄
-Fase 3 – Vendas & Regras       ~65% 🔄 (backend ok; falta UI)
-Fase 4–5 – React               ~40% 🔄 (Sessões 6–9 feitas)
+Fase 2 – Cadastro & Estoque    ~95% ✅ (backend); frontend ~50% 🔄 (estoque UI ok)
+Fase 3 – Vendas & Regras       ~65% 🔄 (backend ok; falta UI vendas)
+Fase 4–5 – React               ~50% 🔄 (Sessões 6–10 feitas)
 Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 ```
 
@@ -242,11 +248,11 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 10 — Estoque (frontend)** em `frontend-app/`:
+**Sessão 11 — Vendas (frontend)** em `frontend-app/`:
 
-1. Consultar saldo por produto → `/api/estoque/*`
-2. Entrada/saída manual de estoque
-3. Histórico paginado por produto
+1. Carrinho simples → `POST /api/vendas`
+2. Listagem de vendas com filtros
+3. Cancelamento de venda
 
 ---
 
@@ -267,10 +273,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 10 — estoque no frontend.
+Próximo: Sessão 11 — vendas no frontend.
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 24/ago/2026 — débito técnico catálogo/precificação/fornecedor/NF-e; próximo: Sessão 10 estoque.*
+*Última atualização: 24/ago/2026 — Sessão 10 estoque no frontend; próximo: Sessão 11 vendas.*

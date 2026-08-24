@@ -4,6 +4,8 @@ import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ClienteFormPage } from './pages/ClienteFormPage'
 import { ClientesPage } from './pages/ClientesPage'
+import { EstoquePage } from './pages/EstoquePage'
+import { EstoqueProdutoPage } from './pages/EstoqueProdutoPage'
 import { LoginPage } from './pages/LoginPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutoKitPage } from './pages/ProdutoKitPage'
@@ -25,6 +27,8 @@ export default function App() {
               <Route path="/clientes" element={<ClientesPage />} />
               <Route path="/clientes/novo" element={<ClienteFormPage />} />
               <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
+              <Route path="/estoque" element={<EstoquePage />} />
+              <Route path="/estoque/:produtoId" element={<EstoqueProdutoPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/produtos" replace />} />
