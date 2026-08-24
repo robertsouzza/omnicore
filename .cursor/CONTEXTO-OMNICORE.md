@@ -32,7 +32,7 @@
 │   └── rules/
 │       └── omnicore-projeto.mdc  ← regra alwaysApply do Agent
 ├── cerebro-backend/              ← API Spring Boot (backend core pronto)
-├── frontend-app/                 ← React (Sessões 6–10 ✅ — login, produtos, kits, clientes, estoque)
+├── frontend-app/                 ← React (Sessões 6–11 ✅ — login, produtos, kits, clientes, estoque, vendas)
 ├── docker-compose.yml            ← Postgres (NÃO commitar alterações locais sem pedir)
 ├── CONTEXTO-OMNICORE.md          ← atalho na raiz → aponta para .cursor/
 └── omnicore.code-workspace
@@ -66,8 +66,8 @@
 | **9** | **Frontend + backend: clientes (CRUD, CEP, telefone internacional)** | ✅ testado browser | `7490a01` |
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
-| 11 | Frontend: vendas (nova venda, listagem, cancelamento) | ⬜ **próximo** | — |
-| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ planejado | — |
+| **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `PLACEHOLDER` |
+| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ **próximo** | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ planejado | — |
@@ -81,8 +81,8 @@
 |--------|--------|-------------------|
 | ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
 | ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
-| **11** | Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda | `/api/vendas` |
-| **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`; `onlyDigits` único | após Sessão 11 |
+| ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `PLACEHOLDER` |
+| **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`; `onlyDigits` único | **próximo** |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
 | **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | após Sessão 12 |
@@ -103,6 +103,18 @@
 **Frontend:** rotas `/estoque` (listagem de produtos ativos com saldo via `GET /api/estoque/saldo/{id}`) e `/estoque/:produtoId` (saldo em destaque, abas entrada/saída manual, histórico paginado); busca por nome/EAN (paridade produtos); link **Estoque** no menu; `api/estoque.ts` + `types/estoque.ts`; `apiFetch` trata respostas 201/204 sem body.
 
 **Teste validado (24/ago):** produto id 8 (Biscoito Recheado Chocolate) — entrada +20, saída −3 (Avaria), saldo 17 — banco, API e UI conferidos.
+
+### Sessão 11 — vendas no frontend — entregue
+
+**Frontend — vendas:** rotas `/vendas` (listagem paginada, filtro por status, cancelamento), `/vendas/nova` (carrinho, busca produto por nome/EAN, busca cliente por documento CPF/passaporte/doc. estrangeiro, status PENDENTE ou PAGA na criação), `/vendas/:id` (detalhe + cancelar); link **Vendas** no menu; `api/vendas.ts` + `types/venda.ts`.
+
+**Frontend — regras de estoque na venda:** `utils/produtoEstoque.ts` — só produtos com saldo disponível; kits (PACOTE) com disponibilidade = mínimo montável pelos componentes (espelha `VendaService`); label “Kits disp.” vs “Estoque”.
+
+**Frontend — ajustes estoque/kit (pós-teste):** `/estoque` lista só **unitários** (kits não aparecem para movimentação manual); `/estoque/:id` em produto PACOTE exibe aviso + link para composição do kit; composição de kit só permite adicionar unitários com **saldo > 0**.
+
+**Teste validado (24/ago):** Venda #5 — Rafael Castro, 10× Fanta R$ 9,50 = R$ 95,00; criada PENDENTE (sem baixa); simulação de pagamento no banco → PAGA + saída −10 (saldo Fanta 90) — UI estoque/histórico conferidos.
+
+**Débito técnico — pagamento / caixa (futuro):** não há endpoint `PUT /vendas/{id}/pagar` nem tela para PENDENTE → PAGA após criação; forma de pagamento (Pix, cartão…) = Sessão 12+ / fiscal.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -274,11 +286,13 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 11 — Vendas (frontend)** em `frontend-app/`:
+**Sessão 10.5 — Hooks compartilhados (frontend)** em `frontend-app/`:
 
-1. Carrinho simples → `POST /api/vendas`
-2. Listagem de vendas com filtros
-3. Cancelamento de venda
+1. `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`
+2. `onlyDigits` centralizado em `utils/strings.ts`
+3. Refatorar listagens (produtos, clientes, estoque, vendas) quando o padrão se repetir
+
+Alternativa imediata: **Sessão 12** (PWA salão + código de barras) — ver cronograma.
 
 ---
 
@@ -299,10 +313,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 11 — vendas no frontend.
+Próximo: Sessão 10.5 — hooks compartilhados no frontend (ou Sessão 12 PWA).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 24/ago/2026 — roadmap evolução frontend (10.5, 12.5, 13-FE); próximo: Sessão 11 vendas.*
+*Última atualização: 24/ago/2026 — Sessão 11 vendas ✅ (`PLACEHOLDER`); próximo: 10.5 hooks ou 12 PWA.*

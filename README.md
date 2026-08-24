@@ -160,9 +160,9 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
-| Estoque (saldo, entrada/saída, histórico) | `/estoque`, `/estoque/:produtoId` | ✅ |
-| Vendas | — | ⬜ **próximo** (Sessão 11) |
-| PWA salão (código de barras) | — | ⬜ |
+| Estoque (saldo, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
+| Vendas (nova, listagem, detalhe, cancelamento) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
+| PWA salão (código de barras) | — | ⬜ **próximo** (Sessão 12) |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -171,9 +171,10 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Item | MVP atual | Quando implementar |
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
-| Imagem do produto | URL opcional no cadastro (sem upload) | **Após Sessão 11**, antes da **12** (upload + Object Storage) |
+| Imagem do produto | URL opcional no cadastro (sem upload) | **Sessão 11.5** (upload + Object Storage, antes da 12) |
+| Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
-| Evolução frontend (arquitetura) | MVP organizado (`api/`, `types/`, CSS Modules); duplicação em listagens | **10.5** hooks pós-11 · **12.5** UI kit pós-12 · **13-FE** Query+Vitest pré-SaaS |
+| Evolução frontend (arquitetura) | MVP organizado (`api/`, `types/`, CSS Modules); duplicação em listagens | **10.5** hooks **próximo** · **12.5** UI kit pós-12 · **13-FE** Query+Vitest pré-SaaS |
 
 ---
 
@@ -210,8 +211,9 @@ npm run build
 | Frontend: login | ✅ |
 | Frontend: produtos (CRUD, kits, busca nome/EAN, imagem na listagem) | ✅ |
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
-| Frontend: estoque (saldo, movimentação manual, histórico) | ✅ |
-| Frontend: vendas + PWA salão | ⬜ **próximo** |
+| Frontend: estoque (saldo, movimentação manual, histórico; só unitários) | ✅ |
+| Frontend: vendas (carrinho, listagem, cancelamento; kits na busca) | ✅ |
+| Frontend: hooks DRY + PWA salão | ⬜ **próximo** (10.5 ou 12) |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

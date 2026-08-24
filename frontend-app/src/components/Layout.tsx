@@ -22,6 +22,9 @@ export function Layout() {
           <Link to="/estoque" className={styles.navLink}>
             Estoque
           </Link>
+          <Link to="/vendas" className={styles.navLink}>
+            Vendas
+          </Link>
         </nav>
         <div className={styles.userInfo}>
           <span className={styles.userName}>{session?.nome}</span>

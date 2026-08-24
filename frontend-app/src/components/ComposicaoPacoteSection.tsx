@@ -1,5 +1,6 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { adicionarComponente, listarComposicao, removerComponente } from '../api/composicao'
+import { obterSaldo } from '../api/estoque'
 import { listarProdutos } from '../api/produtos'
 import type { ComposicaoPacote } from '../types/composicao'
 import type { Produto } from '../types/produto'
@@ -21,6 +22,7 @@ export function ComposicaoPacoteSection({
 }: ComposicaoPacoteSectionProps) {
   const [composicao, setComposicao] = useState<ComposicaoPacote[]>([])
   const [unitarios, setUnitarios] = useState<Produto[]>([])
+  const [saldosUnitarios, setSaldosUnitarios] = useState<Record<number, number>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [produtoFilhoId, setProdutoFilhoId] = useState('')
@@ -40,11 +42,23 @@ export function ComposicaoPacoteSection({
       ])
 
       setComposicao(itens)
-      setUnitarios(
-        produtosPage.content.filter(
-          (p) => p.tipoProduto === 'UNITARIO' && p.ativo && p.id !== pacoteId,
-        ),
+      const candidatos = produtosPage.content.filter(
+        (p) => p.tipoProduto === 'UNITARIO' && p.ativo && p.id !== pacoteId,
       )
+
+      const saldos = await Promise.all(
+        candidatos.map(async (produto) => {
+          try {
+            const saldo = await obterSaldo(token, produto.id)
+            return [produto.id, saldo] as const
+          } catch {
+            return [produto.id, 0] as const
+          }
+        }),
+      )
+
+      setUnitarios(candidatos)
+      setSaldosUnitarios(Object.fromEntries(saldos))
     } catch (err) {
       if (onUnauthorized(err)) return
       setError(getErrorMessage(err, 'Erro ao carregar composição do pacote.'))
@@ -101,7 +115,9 @@ export function ComposicaoPacoteSection({
   }
 
   const idsNaComposicao = new Set(composicao.map((c) => c.produtoFilho.id))
-  const opcoesFilho = unitarios.filter((p) => !idsNaComposicao.has(p.id))
+  const opcoesFilho = unitarios.filter(
+    (p) => !idsNaComposicao.has(p.id) && (saldosUnitarios[p.id] ?? 0) > 0,
+  )
 
   return (
     <section className={styles.section}>
@@ -109,7 +125,8 @@ export function ComposicaoPacoteSection({
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Composição do kit</h2>
           <p className={styles.sectionSubtitle}>
-            Produtos unitários consumidos por cada unidade vendida deste pacote.
+            Produtos unitários com estoque disponível (&gt; 0) consumidos por cada unidade vendida
+            deste pacote.
           </p>
         </div>
       )}
@@ -131,12 +148,12 @@ export function ComposicaoPacoteSection({
               >
                 <option value="">
                   {opcoesFilho.length === 0
-                    ? 'Nenhum unitário disponível'
+                    ? 'Nenhum unitário com estoque disponível'
                     : 'Selecione um produto…'}
                 </option>
                 {opcoesFilho.map((produto) => (
                   <option key={produto.id} value={produto.id}>
-                    {produto.nome} ({produto.codigoBarras})
+                    {produto.nome} ({produto.codigoBarras}) — estoque: {saldosUnitarios[produto.id]}
                   </option>
                 ))}
               </select>

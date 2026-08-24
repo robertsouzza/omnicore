@@ -207,6 +207,23 @@ export function EstoqueProdutoPage() {
             </div>
           </header>
 
+          {produto.tipoProduto === 'PACOTE' ? (
+            <div className={styles.kitNotice}>
+              <p>
+                Este produto é um <strong>kit (pacote)</strong>. No OmniCore, o estoque físico fica nos{' '}
+                <strong>produtos unitários</strong> que compõem o kit — na venda, a baixa é feita nos
+                componentes, não neste item.
+              </p>
+              <p>
+                Para repor estoque, movimente cada unitário na tela de Estoque. Para montar a receita
+                do kit, use a composição em Produtos.
+              </p>
+              <Link to={`/produtos/${produto.id}/kit`} className={styles.kitLink}>
+                Abrir composição do kit →
+              </Link>
+            </div>
+          ) : (
+            <>
           {!produto.ativo && (
             <p className={styles.warning}>
               Produto inativo — movimentações manuais não são permitidas pela API.
@@ -379,6 +396,8 @@ export function EstoqueProdutoPage() {
               )}
             </section>
           </div>
+            </>
+          )}
         </>
       )}
     </section>

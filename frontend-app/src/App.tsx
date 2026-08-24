@@ -7,9 +7,12 @@ import { ClientesPage } from './pages/ClientesPage'
 import { EstoquePage } from './pages/EstoquePage'
 import { EstoqueProdutoPage } from './pages/EstoqueProdutoPage'
 import { LoginPage } from './pages/LoginPage'
+import { NovaVendaPage } from './pages/NovaVendaPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutoKitPage } from './pages/ProdutoKitPage'
 import { ProdutosPage } from './pages/ProdutosPage'
+import { VendaDetalhePage } from './pages/VendaDetalhePage'
+import { VendasPage } from './pages/VendasPage'
 
 export default function App() {
   return (
@@ -29,6 +32,9 @@ export default function App() {
               <Route path="/clientes/:id/editar" element={<ClienteFormPage />} />
               <Route path="/estoque" element={<EstoquePage />} />
               <Route path="/estoque/:produtoId" element={<EstoqueProdutoPage />} />
+              <Route path="/vendas" element={<VendasPage />} />
+              <Route path="/vendas/nova" element={<NovaVendaPage />} />
+              <Route path="/vendas/:id" element={<VendaDetalhePage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/produtos" replace />} />

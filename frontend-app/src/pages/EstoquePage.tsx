@@ -119,6 +119,7 @@ export function EstoquePage() {
     const base = page?.content ?? []
 
     return base.filter((produto) => {
+      if (produto.tipoProduto !== 'UNITARIO') return false
       const matchNome = !termoNome || produto.nome.toLowerCase().includes(termoNome)
       const matchCodigo = !termoCodigo || produto.codigoBarras.includes(termoCodigo)
       return matchNome && matchCodigo
@@ -181,14 +182,15 @@ export function EstoquePage() {
         <div>
           <h1 className={styles.title}>Estoque</h1>
           <p className={styles.subtitle}>
-            Consulte saldos e registre entradas ou saídas por produto
+            Movimentação de produtos unitários. Kits (pacotes) usam o estoque dos componentes —
+            configure em Produtos → Kit.
           </p>
         </div>
-        {page && (
-          <span className={styles.count}>
-            {page.totalElements} {page.totalElements === 1 ? 'produto' : 'produtos'}
-          </span>
-        )}
+          {page && (
+            <span className={styles.count}>
+              {produtosExibidos.length} unitário{produtosExibidos.length === 1 ? '' : 's'} na página
+            </span>
+          )}
       </div>
 
       <div className={styles.searchPanel}>
@@ -234,8 +236,8 @@ export function EstoquePage() {
           {produtosExibidos.length === 0 ? (
             <p className={styles.status}>
               {buscaAtiva
-                ? 'Nenhum produto encontrado para os filtros informados.'
-                : 'Nenhum produto ativo encontrado.'}
+                ? 'Nenhum produto unitário encontrado para os filtros informados.'
+                : 'Nenhum produto unitário ativo encontrado.'}
             </p>
           ) : (
             <>
