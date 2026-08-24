@@ -279,4 +279,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 24/ago/2026 — Sessão 10 estoque no frontend; próximo: Sessão 11 vendas.*
+*Última atualização: 24/ago/2026 — Sessão 10 estoque no frontend (`51d409e`); próximo: Sessão 11 vendas.*
