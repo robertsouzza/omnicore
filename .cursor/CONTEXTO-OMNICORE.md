@@ -123,6 +123,22 @@
 
 **Decisão vigente (PDF Gemini):** preparar o model com `url_imagem`; **upload + nuvem ficam para sessão dedicada** quando o cadastro deixar de ser só operação interna e virar catálogo que cliente/vendedor enxerga — **ideal: entre Vendas (11) e PWA/E-commerce (12)**. Pode adiar até Fase 4–6 se produtos continuarem sendo seedados por dev com URL do Git.
 
+### Débito técnico — Catálogo, precificação, fornecedor e NF-e (futuro)
+
+| Item | Descrição |
+|------|-----------|
+| **MVP atual (entregue)** | `Produto` enxuto: EAN, nome, descrição, `precoVenda` livre, categoria (texto), `tipoProduto`, `indicadorTamanho`, `urlImagem` — **propositalmente simples** para a fase engine (Sessões 1–10) |
+| **Cadastro ≠ estoque** | Criar produto (`POST /api/produtos`) **não** define quantidade; saldo inicia em 0 e vem de **movimentações** (`POST /api/estoque/entrada`) — Sessão 10 expõe isso no frontend |
+| **Precificação hoje** | Só `precoVenda` manual; **sem** `precoCusto`, margem, markup, custo médio ponderado nem alerta de preço abaixo do custo |
+| **Precificação alvo** | `precoCusto` (última compra ou médio), margem mínima por categoria, `precoSugerido` (ex.: custo ÷ (1 − margem%)); gerente pode manter preço livre com aviso se violar margem |
+| **Fornecedores** | Produto pode ser comprado de **N fornecedores** (tabela Produto↔Fornecedor: código no fornecedor, preço compra, prazo, preferencial) — **não implementado** |
+| **NF-e de entrada** | Compra gera NF-e → entrada automática no estoque + atualização de custo — módulo **Compras + Fiscal** (Fase 6+) — **não implementado**; hoje simula-se com entrada manual + justificativa |
+| **Multissetorial (PDF)** | Grade Pai/Filho (moda), unidade KG/L + peso decimal (supermercado), marca/garantia (eletro), validade/perecível — evoluções futuras sobre o mesmo catálogo |
+| **Momento sugerido — precificação básica** | **Após Sessão 11** (vendas UI ok): `precoCusto` + margem + sugestão, ainda sem NF-e |
+| **Momento sugerido — fornecedor + NF-e** | **Fase 6 / Sessão 13+** (Compras + integração fiscal), amarrando estoque e custo na entrada da nota |
+
+**Decisão vigente (Roberto + PDF):** cadastro simples **não bloqueia** Sessão 10; visão multissetorial exige evoluir catálogo + compras + formação de preço **depois** do core operacional (estoque + vendas no frontend).
+
 ### Sessão 9 — entregue (`7490a01`)
 
 **Backend:** endereço estruturado (cep, logradouro, numero, bairro, cidade, estado); `codigoPais` ISO (BR); validação celular com libphonenumber; `GET /api/cep/{cep}` (ViaCEP).
@@ -220,6 +236,7 @@ npm run build
 - **Fechar sessão:** sempre atualizar `.cursor/CONTEXTO-OMNICORE.md`, **`README.md` (raiz)**, `omnicore-projeto.mdc` e atalho `CONTEXTO-OMNICORE.md` (idealmente no mesmo commit da sessão)
 - **Clientes estrangeiros (9.1):** passaporte/doc. estrangeiro OK; entrega **somente Brasil** — endereço BR obrigatório para não-CPF (Fase B = entrega internacional, ver débito técnico)
 - **Imagem do produto:** MVP = **só URL opcional** (`urlImagem`); upload de arquivo + Object Storage = débito técnico (ver seção acima)
+- **Catálogo / precificação / compras:** MVP = cadastro enxuto + `precoVenda` livre; estoque **separado** do cadastro (entrada manual → Sessão 10); fornecedor, NF-e entrada, custo/margem/preço sugerido = débito técnico (ver seção acima)
 
 ---
 
@@ -256,4 +273,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 23/ago/2026 — Sessão 7.3 imagem na listagem (`c852fb4`); próximo: Sessão 10 estoque.*
+*Última atualização: 24/ago/2026 — débito técnico catálogo/precificação/fornecedor/NF-e; próximo: Sessão 10 estoque.*

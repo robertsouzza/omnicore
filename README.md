@@ -172,6 +172,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional no cadastro (sem upload) | **Após Sessão 11**, antes da **12** (upload + Object Storage) |
+| Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 
 ---
 
