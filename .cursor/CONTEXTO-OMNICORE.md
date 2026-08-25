@@ -68,7 +68,7 @@
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
 | **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `c0ae1d9` |
 | **11.1** | **Cancelamento venda paga: autorização gerente + motivo (backend + modal frontend)** | ✅ testado browser | `09f36d6` |
-| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `PLACEHOLDER` |
+| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `7e259ba` |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ **próximo** | — |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ planejado | — |
@@ -350,4 +350,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 25/ago/2026 — Sessão 10.5 hooks ✅ (`PLACEHOLDER`); próximo: 12 PWA.*
+*Última atualização: 25/ago/2026 — Sessão 10.5 hooks ✅ (`7e259ba`); próximo: 12 PWA.*
