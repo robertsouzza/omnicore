@@ -1,30 +1,20 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { buscarProduto } from '../api/produtos'
 import { useAuth } from '../auth/AuthContext'
 import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
+import { useUnauthorizedHandler } from '../hooks'
 import type { Produto } from '../types/produto'
 import { getErrorMessage } from '../utils/validation'
 import styles from './ProdutoKitPage.module.css'
 
 export function ProdutoKitPage() {
   const { id } = useParams()
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
+  const handleUnauthorized = useUnauthorizedHandler()
   const [produto, setProduto] = useState<Produto | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
 
   useEffect(() => {
     if (!session || !id) return

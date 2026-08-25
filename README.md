@@ -175,7 +175,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
-| Evolução frontend (arquitetura) | MVP organizado (`api/`, `types/`, CSS Modules); duplicação em listagens | **10.5** hooks **próximo** · **12.5** UI kit pós-12 · **13-FE** Query+Vitest pré-SaaS |
+| Evolução frontend (arquitetura) | ~~duplicação em listagens~~ hooks ✅ (10.5) | **12** PWA **próximo** · **12.5** UI kit · **13-FE** Query+Vitest |
 
 ---
 
@@ -214,7 +214,7 @@ npm run build
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
 | Frontend: estoque (saldo, movimentação manual, histórico; só unitários) | ✅ |
 | Frontend: vendas (carrinho, listagem, cancelamento; kits na busca) | ✅ |
-| Frontend: hooks DRY + PWA salão | ⬜ **próximo** (10.5 ou 12) |
+| Frontend: PWA salão | ⬜ **próximo** (12) |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

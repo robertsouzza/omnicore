@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { cancelarVenda, listarVendas } from '../api/vendas'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { useAuth } from '../auth/AuthContext'
-import type { CancelarVendaRequest, Page, StatusVenda, Venda } from '../types/venda'
+import { useAsyncAction, usePaginatedResource } from '../hooks'
+import type { CancelarVendaRequest, StatusVenda, Venda } from '../types/venda'
 import {
   STATUS_VENDA,
   formatDataHoraVenda,
@@ -13,7 +13,6 @@ import {
   resumoClienteVenda,
   vendaPodeCancelar,
 } from '../types/venda'
-import { getErrorMessage } from '../utils/validation'
 import styles from './VendasPage.module.css'
 
 function StatusBadge({ status }: { status: StatusVenda }) {
@@ -30,58 +29,37 @@ function StatusBadge({ status }: { status: StatusVenda }) {
 }
 
 export function VendasPage() {
-  const { session, logout } = useAuth()
-  const [page, setPage] = useState<Page<Venda> | null>(null)
-  const [pageNumber, setPageNumber] = useState(0)
+  const { session } = useAuth()
   const [statusFiltro, setStatusFiltro] = useState<StatusVenda | ''>('')
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [actionId, setActionId] = useState<number | null>(null)
   const [vendaParaCancelar, setVendaParaCancelar] = useState<Venda | null>(null)
   const [cancelError, setCancelError] = useState<string | null>(null)
-  const hasLoadedOnce = useRef(false)
 
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
-
-  const load = useCallback(async () => {
-    if (!session) return
-
-    if (!hasLoadedOnce.current) {
-      setInitialLoading(true)
-    } else {
-      setRefreshing(true)
-    }
-    setLoadError(null)
-
-    try {
-      const data = await listarVendas(session.token, {
-        page: pageNumber,
+  const fetchPage = useCallback(
+    (page: number) => {
+      if (!session) throw new Error('Sem sessão')
+      return listarVendas(session.token, {
+        page,
         status: statusFiltro || undefined,
       })
-      setPage(data)
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Erro ao carregar vendas.'))
-    } finally {
-      hasLoadedOnce.current = true
-      setInitialLoading(false)
-      setRefreshing(false)
-    }
-  }, [session, pageNumber, statusFiltro, handleUnauthorized])
+    },
+    [session, statusFiltro],
+  )
 
-  useEffect(() => {
-    void load()
-  }, [load])
+  const {
+    page,
+    setPageNumber,
+    initialLoading,
+    refreshing,
+    loadError,
+    setLoadError,
+    load,
+    listaPronta,
+  } = usePaginatedResource(fetchPage, {
+    enabled: !!session,
+    errorMessage: 'Erro ao carregar vendas.',
+  })
+
+  const { actionKey, execute } = useAsyncAction()
 
   function abrirCancelamento(venda: Venda) {
     if (!vendaPodeCancelar(venda)) return
@@ -92,23 +70,18 @@ export function VendasPage() {
   async function confirmarCancelamento(payload: CancelarVendaRequest) {
     if (!session || !vendaParaCancelar) return
 
-    setActionId(vendaParaCancelar.id)
-    setCancelError(null)
     setLoadError(null)
-
-    try {
-      await cancelarVenda(session.token, vendaParaCancelar.id, payload)
-      setVendaParaCancelar(null)
-      await load()
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setCancelError(getErrorMessage(err, 'Não foi possível cancelar a venda.'))
-    } finally {
-      setActionId(null)
-    }
+    await execute(
+      vendaParaCancelar.id,
+      async () => {
+        await cancelarVenda(session.token, vendaParaCancelar.id, payload)
+        setVendaParaCancelar(null)
+        await load()
+      },
+      setCancelError,
+      'Não foi possível cancelar a venda.',
+    )
   }
-
-  const listaPronta = page !== null && !initialLoading
 
   return (
     <section className={styles.page}>
@@ -154,7 +127,7 @@ export function VendasPage() {
       {initialLoading && <p className={styles.status}>Carregando…</p>}
       {loadError && <p className={styles.error}>{loadError}</p>}
 
-      {listaPronta && !loadError && (
+      {listaPronta && !loadError && page && (
         <>
           {page.content.length === 0 ? (
             <p className={styles.status}>
@@ -196,10 +169,10 @@ export function VendasPage() {
                         <button
                           type="button"
                           className={styles.dangerBtn}
-                          disabled={actionId === venda.id}
+                          disabled={actionKey === venda.id}
                           onClick={() => abrirCancelamento(venda)}
                         >
-                          {actionId === venda.id ? 'Cancelando…' : 'Cancelar'}
+                          {actionKey === venda.id ? 'Cancelando…' : 'Cancelar'}
                         </button>
                       )}
                     </div>
@@ -240,10 +213,10 @@ export function VendasPage() {
                               <button
                                 type="button"
                                 className={styles.dangerBtn}
-                                disabled={actionId === venda.id}
+                                disabled={actionKey === venda.id}
                                 onClick={() => abrirCancelamento(venda)}
                               >
-                                {actionId === venda.id ? 'Cancelando…' : 'Cancelar'}
+                                {actionKey === venda.id ? 'Cancelando…' : 'Cancelar'}
                               </button>
                             )}
                           </div>
@@ -292,10 +265,10 @@ export function VendasPage() {
           venda={vendaParaCancelar}
           perfilLogado={session.perfil}
           open
-          submitting={actionId === vendaParaCancelar.id}
+          submitting={actionKey === vendaParaCancelar.id}
           error={cancelError}
           onClose={() => {
-            if (actionId !== null) return
+            if (actionKey !== null) return
             setVendaParaCancelar(null)
             setCancelError(null)
           }}

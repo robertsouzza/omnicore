@@ -1,9 +1,9 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { consultarCep } from '../api/cep'
-import { ApiError } from '../api/client'
 import { atualizarCliente, buscarCliente, criarCliente } from '../api/clientes'
 import { useAuth } from '../auth/AuthContext'
+import { useUnauthorizedHandler } from '../hooks'
 import { PAISES_TELEFONE, PAIS_PADRAO, TIPOS_DOCUMENTO, TIPO_DOCUMENTO_PADRAO, type ClienteRequest, type TipoDocumento } from '../types/cliente'
 import { cepToDigits, formatCep, maskCepInput } from '../utils/cep'
 import { isCpfValido, onlyDigits } from '../utils/cpf'
@@ -114,8 +114,9 @@ function fromCliente(cliente: {
 export function ClienteFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
   const isEditing = Boolean(id)
+  const handleUnauthorized = useUnauthorizedHandler()
 
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -123,17 +124,6 @@ export function ClienteFormPage() {
   const [loading, setLoading] = useState(isEditing)
   const [submitting, setSubmitting] = useState(false)
   const [buscandoCep, setBuscandoCep] = useState(false)
-
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
 
   useEffect(() => {
     if (!isEditing || !session || !id) return

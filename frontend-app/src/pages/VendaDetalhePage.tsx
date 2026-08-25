@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { buscarCliente } from '../api/clientes'
 import { buscarVenda, cancelarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
+import { useUnauthorizedHandler } from '../hooks'
 import type { CancelarVendaRequest, Venda } from '../types/venda'
 import {
   formatDataHoraVenda,
@@ -30,7 +30,8 @@ export function VendaDetalhePage() {
   const { id: idParam } = useParams()
   const id = Number(idParam)
   const navigate = useNavigate()
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
+  const handleUnauthorized = useUnauthorizedHandler()
 
   const [venda, setVenda] = useState<Venda | null>(null)
   const [clienteNome, setClienteNome] = useState<string | null>(null)
@@ -39,17 +40,6 @@ export function VendaDetalhePage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
-
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
 
   const load = useCallback(async () => {
     if (!session || !Number.isFinite(id)) return

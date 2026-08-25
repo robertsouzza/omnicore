@@ -1,10 +1,10 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { buscarClientePorDocumento, listarClientes } from '../api/clientes'
 import { listarProdutos } from '../api/produtos'
 import { criarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
+import { useDebouncedSearch, useUnauthorizedHandler } from '../hooks'
 import type { Cliente } from '../types/cliente'
 import { TIPO_DOCUMENTO_PADRAO, TIPOS_DOCUMENTO } from '../types/cliente'
 import type { ItemVendaRequest, StatusVenda } from '../types/venda'
@@ -23,14 +23,11 @@ import {
 } from '../utils/documento'
 import type { ProdutoComSaldo } from '../utils/produtoEstoque'
 import { filtrarProdutosComSaldoPositivo, rotuloSaldoProduto } from '../utils/produtoEstoque'
+import { onlyDigits } from '../utils/strings'
 import { getErrorMessage } from '../utils/validation'
 import styles from './NovaVendaPage.module.css'
 
 const BUSCA_MIN_API = 3
-
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
 
 interface CartLine {
   key: string
@@ -59,21 +56,20 @@ function toItemRequest(line: CartLine): ItemVendaRequest {
 
 export function NovaVendaPage() {
   const navigate = useNavigate()
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
+  const handleUnauthorized = useUnauthorizedHandler()
 
   const [status, setStatus] = useState<StatusVenda>('PENDENTE')
   const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
   const [nomeOcasional, setNomeOcasional] = useState('')
-  const [clienteBusca, setClienteBusca] = useState('')
-  const [clienteBuscaDebounced, setClienteBuscaDebounced] = useState('')
+  const clienteSearch = useDebouncedSearch({ minLength: BUSCA_MIN_API })
+  const produtoSearch = useDebouncedSearch({ minLength: BUSCA_MIN_API })
   const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([])
   const [tipoDocumentoBusca, setTipoDocumentoBusca] = useState<TipoDocumento>(TIPO_DOCUMENTO_PADRAO)
   const [documentoBusca, setDocumentoBusca] = useState('')
   const [clienteNotice, setClienteNotice] = useState<string | null>(null)
   const [buscandoDocumento, setBuscandoDocumento] = useState(false)
 
-  const [produtoBusca, setProdutoBusca] = useState('')
-  const [produtoBuscaDebounced, setProdutoBuscaDebounced] = useState('')
   const [produtosSugeridos, setProdutosSugeridos] = useState<ProdutoComSaldo[]>([])
   const [buscandoProdutos, setBuscandoProdutos] = useState(false)
   const [produtoNotice, setProdutoNotice] = useState<string | null>(null)
@@ -82,35 +78,8 @@ export function NovaVendaPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
-
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const termo = clienteBusca.trim()
-      setClienteBuscaDebounced(termo.length >= BUSCA_MIN_API ? termo : '')
-    }, 300)
-    return () => window.clearTimeout(timer)
-  }, [clienteBusca])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const termo = produtoBusca.trim()
-      setProdutoBuscaDebounced(termo.length >= BUSCA_MIN_API ? termo : '')
-    }, 300)
-    return () => window.clearTimeout(timer)
-  }, [produtoBusca])
-
-  useEffect(() => {
-    if (!session || clienteBuscaDebounced.length < BUSCA_MIN_API) {
+    if (!session || clienteSearch.debouncedValue.length < BUSCA_MIN_API) {
       setClientesSugeridos([])
       return
     }
@@ -122,7 +91,7 @@ export function NovaVendaPage() {
         const data = await listarClientes(session.token, {
           page: 0,
           size: 8,
-          nome: clienteBuscaDebounced,
+          nome: clienteSearch.debouncedValue,
         })
         if (!cancelled) setClientesSugeridos(data.content)
       } catch (err) {
@@ -133,10 +102,10 @@ export function NovaVendaPage() {
     return () => {
       cancelled = true
     }
-  }, [session, clienteBuscaDebounced, handleUnauthorized])
+  }, [session, clienteSearch.debouncedValue, handleUnauthorized])
 
   useEffect(() => {
-    if (!session || produtoBuscaDebounced.length < BUSCA_MIN_API) {
+    if (!session || produtoSearch.debouncedValue.length < BUSCA_MIN_API) {
       setProdutosSugeridos([])
       setProdutoNotice(null)
       return
@@ -148,14 +117,14 @@ export function NovaVendaPage() {
 
     void (async () => {
       try {
-        const trimmed = produtoBuscaDebounced.trim()
+        const trimmed = produtoSearch.debouncedValue.trim()
         const digits = onlyDigits(trimmed)
         const buscaPorCodigo = digits.length >= BUSCA_MIN_API && /^\d+$/.test(trimmed)
 
         const data = await listarProdutos(session.token, {
           page: 0,
           size: 20,
-          nome: buscaPorCodigo ? undefined : produtoBuscaDebounced,
+          nome: buscaPorCodigo ? undefined : produtoSearch.debouncedValue,
           codigoBarras: buscaPorCodigo ? digits : undefined,
         })
 
@@ -183,7 +152,7 @@ export function NovaVendaPage() {
     return () => {
       cancelled = true
     }
-  }, [session, produtoBuscaDebounced, handleUnauthorized])
+  }, [session, produtoSearch.debouncedValue, handleUnauthorized])
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
@@ -192,7 +161,7 @@ export function NovaVendaPage() {
 
   function selecionarCliente(cliente: Cliente) {
     setClienteSelecionado(cliente)
-    setClienteBusca('')
+    clienteSearch.setValue('')
     setClientesSugeridos([])
     setDocumentoBusca('')
     setClienteNotice(null)
@@ -248,7 +217,7 @@ export function NovaVendaPage() {
         desconto: 0,
       },
     ])
-    setProdutoBusca('')
+    produtoSearch.setValue('')
     setProdutosSugeridos([])
     setProdutoNotice(null)
     setError(null)
@@ -347,9 +316,9 @@ export function NovaVendaPage() {
             Buscar cliente por nome
             <input
               className={styles.input}
-              value={clienteBusca}
+              value={clienteSearch.value}
               onChange={(e) => {
-                setClienteBusca(e.target.value)
+                clienteSearch.setValue(e.target.value)
                 setClienteNotice(null)
               }}
               placeholder="Digite parte do nome (3+ letras)"
@@ -483,9 +452,9 @@ export function NovaVendaPage() {
             Buscar produto
             <input
               className={styles.input}
-              value={produtoBusca}
+              value={produtoSearch.value}
               onChange={(e) => {
-                setProdutoBusca(e.target.value)
+                produtoSearch.setValue(e.target.value)
                 setProdutoNotice(null)
               }}
               placeholder="Nome ou código de barras (3+ caracteres)"

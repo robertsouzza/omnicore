@@ -68,8 +68,8 @@
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
 | **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `c0ae1d9` |
 | **11.1** | **Cancelamento venda paga: autorização gerente + motivo (backend + modal frontend)** | ✅ testado browser | `09f36d6` |
-| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ **próximo** | — |
-| 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
+| **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `PLACEHOLDER` |
+| 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ **próximo** | — |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ planejado | — |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
@@ -83,8 +83,8 @@
 | ~~**9**~~ | ~~CRUD clientes; busca por CPF; endereço via CEP; telefone internacional~~ | ✅ `7490a01` |
 | ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
 | ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `c0ae1d9` |
-| **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`; `onlyDigits` único | **próximo** |
-| **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | reutiliza produtos + vendas |
+| **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` em `utils/strings.ts` | ✅ |
+| **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | **próximo** |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
 | **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | após Sessão 12 |
 | **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | pré-SaaS / robustez |
@@ -130,6 +130,22 @@
 **Teste validado (25/ago):** Venda #5 cancelada por Carlos (vendedor) com autorização Ana (gerente), motivo “Produto com defeito”, estorno +10 Fanta (saldo 100) — banco e UI conferidos.
 
 **Débito técnico — devolução completa (futuro):** estorno financeiro (Pix/cartão/dinheiro), NFC-e, cancelamento parcial, prazo por canal — distinto desta regra operacional de autorização.
+
+### Sessão 10.5 — hooks compartilhados (frontend) — entregue
+
+**Objetivo:** DRY do boilerplate repetido em listagens/forms após Sessões 6–11 (401, debounce de busca, paginação, ações com loading).
+
+**Novos módulos em `frontend-app/src/hooks/`:**
+- `useUnauthorizedHandler` — 401 → logout
+- `useDebouncedSearch` — busca com debounce 300 ms, flags `isShort` / `isServerSearch`
+- `usePaginatedResource` — `initialLoading`, `refreshing`, `loadError`, `load()`, paginação
+- `useAsyncAction` — `actionKey` + `execute()` para inativar/cancelar
+
+**Util:** `utils/strings.ts` — `onlyDigits` (reexportado em `utils/cpf.ts` para compat).
+
+**Páginas refatoradas:** Produtos, Clientes, Estoque, Vendas, Nova Venda; forms/detalhe usam `useUnauthorizedHandler`.
+
+**Build:** `npm run build` + `npm run lint` OK.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -301,13 +317,13 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 10.5 — Hooks compartilhados (frontend)** em `frontend-app/`:
+**Sessão 12 — PWA salão + código de barras** em `frontend-app/`:
 
-1. `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`
-2. `onlyDigits` centralizado em `utils/strings.ts`
-3. Refatorar listagens (produtos, clientes, estoque, vendas) quando o padrão se repetir
+1. `vite-plugin-pwa` (manifest, service worker básico)
+2. Layout mobile vendedor; input/scan código de barras
+3. Reutiliza produtos + vendas já prontos
 
-Alternativa imediata: **Sessão 12** (PWA salão + código de barras) — ver cronograma.
+Alternativa: **Sessão 11.5** (upload imagem) — ver débito técnico imagem.
 
 ---
 
@@ -334,4 +350,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 25/ago/2026 — Sessão 11.1 cancelamento com gerente ✅ (`09f36d6`); próximo: 10.5 hooks ou 12 PWA.*
+*Última atualização: 25/ago/2026 — Sessão 10.5 hooks ✅ (`PLACEHOLDER`); próximo: 12 PWA.*

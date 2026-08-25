@@ -1,13 +1,13 @@
-import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type FormEvent, useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import {
   buscarClientePorDocumento,
   inativarCliente,
   listarClientes,
 } from '../api/clientes'
 import { useAuth } from '../auth/AuthContext'
-import type { Cliente, Page, TipoDocumento } from '../types/cliente'
+import { useAsyncAction, useDebouncedSearch, usePaginatedResource, useUnauthorizedHandler } from '../hooks'
+import type { Cliente, TipoDocumento } from '../types/cliente'
 import { TIPOS_DOCUMENTO, TIPO_DOCUMENTO_PADRAO } from '../types/cliente'
 import { formatEnderecoResumo } from '../utils/cep'
 import { isCpfValido } from '../utils/cpf'
@@ -141,75 +141,54 @@ function ClienteTableRow({
 }
 
 export function ClientesPage() {
-  const { session, logout } = useAuth()
-  const [page, setPage] = useState<Page<Cliente> | null>(null)
+  const { session } = useAuth()
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
   const [searchNotice, setSearchNotice] = useState<string | null>(null)
-  const [actionId, setActionId] = useState<number | null>(null)
-  const [nomeBusca, setNomeBusca] = useState('')
-  const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
   const [tipoDocumentoBusca, setTipoDocumentoBusca] = useState<TipoDocumento>(TIPO_DOCUMENTO_PADRAO)
   const [documentoBusca, setDocumentoBusca] = useState('')
   const [clientePorDocumento, setClientePorDocumento] = useState<Cliente | null>(null)
   const [buscandoDocumento, setBuscandoDocumento] = useState(false)
-  const hasLoadedOnce = useRef(false)
 
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
+  const handleUnauthorized = useUnauthorizedHandler()
+  const resetPage = useCallback(() => setPageNumber(0), [])
+
+  const nomeSearch = useDebouncedSearch({
+    minLength: NOME_BUSCA_MIN_API,
+    onDebouncedChange: () => {
+      resetPage()
+      setClientePorDocumento(null)
     },
-    [logout],
+  })
+
+  const fetchPage = useCallback(
+    (page: number) => {
+      if (!session) throw new Error('Sem sessão')
+      return listarClientes(session.token, {
+        page,
+        incluirInativos,
+        nome: nomeSearch.debouncedValue || undefined,
+      })
+    },
+    [session, incluirInativos, nomeSearch.debouncedValue],
   )
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const termo = nomeBusca.trim()
-      setNomeBuscaDebounced(termo.length >= NOME_BUSCA_MIN_API ? termo : '')
-      setPageNumber(0)
-      setClientePorDocumento(null)
-    }, 300)
+  const {
+    page,
+    initialLoading,
+    refreshing,
+    loadError,
+    setLoadError,
+    load,
+    listaPronta,
+  } = usePaginatedResource(fetchPage, {
+    enabled: !!session,
+    errorMessage: 'Erro ao carregar clientes.',
+    pageNumber,
+    setPageNumber,
+  })
 
-    return () => window.clearTimeout(timer)
-  }, [nomeBusca])
-
-  const load = useCallback(async () => {
-    if (!session) return
-
-    if (!hasLoadedOnce.current) {
-      setInitialLoading(true)
-    } else {
-      setRefreshing(true)
-    }
-    setLoadError(null)
-
-    try {
-      const data = await listarClientes(session.token, {
-        page: pageNumber,
-        incluirInativos,
-        nome: nomeBuscaDebounced || undefined,
-      })
-      setPage(data)
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Erro ao carregar clientes.'))
-    } finally {
-      hasLoadedOnce.current = true
-      setInitialLoading(false)
-      setRefreshing(false)
-    }
-  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, handleUnauthorized])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const { actionKey, execute } = useAsyncAction()
 
   async function handleBuscarDocumento(event: FormEvent) {
     event.preventDefault()
@@ -265,21 +244,19 @@ export function ClientesPage() {
     )
     if (!confirmed) return
 
-    setActionId(cliente.id)
     setLoadError(null)
-
-    try {
-      await inativarCliente(session.token, cliente.id)
-      if (clientePorDocumento?.id === cliente.id) {
-        setClientePorDocumento({ ...clientePorDocumento, ativo: false })
-      }
-      await load()
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Não foi possível inativar o cliente.'))
-    } finally {
-      setActionId(null)
-    }
+    await execute(
+      cliente.id,
+      async () => {
+        await inativarCliente(session.token, cliente.id)
+        if (clientePorDocumento?.id === cliente.id) {
+          setClientePorDocumento({ ...clientePorDocumento, ativo: false })
+        }
+        await load()
+      },
+      setLoadError,
+      'Não foi possível inativar o cliente.',
+    )
   }
 
   const clientesExibidos = useMemo(() => {
@@ -287,7 +264,7 @@ export function ClientesPage() {
       return [clientePorDocumento]
     }
 
-    const termo = nomeBusca.trim().toLowerCase()
+    const termo = nomeSearch.normalized.toLowerCase()
     const base = page?.content ?? []
 
     if (!termo) {
@@ -295,14 +272,9 @@ export function ClientesPage() {
     }
 
     return base.filter((cliente) => cliente.nomeCompleto.toLowerCase().includes(termo))
-  }, [clientePorDocumento, page, nomeBusca])
+  }, [clientePorDocumento, page, nomeSearch.normalized])
 
   const totalExibido = clientePorDocumento ? 1 : (page?.totalElements ?? 0)
-  const buscaPorNomeAtiva = nomeBusca.trim().length > 0
-  const buscaNomeCurta =
-    buscaPorNomeAtiva && nomeBusca.trim().length < NOME_BUSCA_MIN_API
-  const buscaNomeNoServidor = nomeBuscaDebounced.length >= NOME_BUSCA_MIN_API
-  const listaPronta = page !== null && !initialLoading
 
   return (
     <section className={styles.page}>
@@ -328,22 +300,22 @@ export function ClientesPage() {
           Buscar por cliente
           <input
             className={styles.searchInputNome}
-            value={nomeBusca}
+            value={nomeSearch.value}
             onChange={(e) => {
-              setNomeBusca(e.target.value)
+              nomeSearch.setValue(e.target.value)
               setClientePorDocumento(null)
               setSearchNotice(null)
             }}
             placeholder="Digite parte do nome"
             autoComplete="off"
           />
-          {buscaNomeCurta && (
+          {nomeSearch.isShort && (
             <span className={styles.searchHint}>
               Filtrando na página atual — digite {NOME_BUSCA_MIN_API} ou mais letras para buscar no
               servidor.
             </span>
           )}
-          {refreshing && buscaNomeNoServidor && (
+          {refreshing && nomeSearch.isServerSearch && (
             <span className={styles.searchHint}>Buscando no servidor…</span>
           )}
         </label>
@@ -419,7 +391,7 @@ export function ClientesPage() {
             <p className={styles.status}>
               {clientePorDocumento
                 ? 'Nenhum cliente encontrado para este documento.'
-                : buscaPorNomeAtiva
+                : nomeSearch.isActive
                   ? 'Nenhum cliente encontrado com este nome.'
                   : 'Nenhum cliente encontrado.'}
             </p>
@@ -431,7 +403,7 @@ export function ClientesPage() {
                     key={cliente.id}
                     cliente={cliente}
                     incluirInativos={incluirInativos || !!clientePorDocumento}
-                    actionId={actionId}
+                    actionId={actionKey as number | null}
                     onInativar={(c) => void handleInativar(c)}
                   />
                 ))}
@@ -455,7 +427,7 @@ export function ClientesPage() {
                         key={cliente.id}
                         cliente={cliente}
                         incluirInativos={incluirInativos || !!clientePorDocumento}
-                        actionId={actionId}
+                        actionId={actionKey as number | null}
                         onInativar={(c) => void handleInativar(c)}
                       />
                     ))}

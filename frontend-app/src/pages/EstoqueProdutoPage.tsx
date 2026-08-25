@@ -1,6 +1,5 @@
 import { type FormEvent, useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import {
   listarHistorico,
   obterSaldo,
@@ -9,6 +8,7 @@ import {
 } from '../api/estoque'
 import { buscarProduto } from '../api/produtos'
 import { useAuth } from '../auth/AuthContext'
+import { useUnauthorizedHandler } from '../hooks'
 import type { MovimentacaoEstoque, Page } from '../types/estoque'
 import type { Produto } from '../types/produto'
 import { getErrorMessage } from '../utils/validation'
@@ -49,7 +49,8 @@ function TipoBadge({ tipo }: { tipo: MovimentacaoEstoque['tipo'] }) {
 export function EstoqueProdutoPage() {
   const { produtoId } = useParams()
   const id = Number(produtoId)
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
+  const handleUnauthorized = useUnauthorizedHandler()
 
   const [produto, setProduto] = useState<Produto | null>(null)
   const [saldo, setSaldo] = useState<number | null>(null)
@@ -63,17 +64,6 @@ export function EstoqueProdutoPage() {
   const [form, setForm] = useState<MovimentacaoFormState>(INITIAL_FORM)
   const [formError, setFormError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
 
   const loadProduto = useCallback(async () => {
     if (!session || !Number.isFinite(id)) return

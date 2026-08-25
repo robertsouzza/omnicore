@@ -1,9 +1,9 @@
-import { type FormEvent, useCallback, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { atualizarProduto, buscarProduto, criarProduto } from '../api/produtos'
 import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
 import { useAuth } from '../auth/AuthContext'
+import { useUnauthorizedHandler } from '../hooks'
 import {
   INDICADORES_TAMANHO,
   TIPOS_PRODUTO,
@@ -74,25 +74,15 @@ function fromProduto(produto: {
 export function ProdutoFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { session, logout } = useAuth()
+  const { session } = useAuth()
   const isEditing = Boolean(id)
+  const handleUnauthorized = useUnauthorizedHandler()
 
   const [form, setForm] = useState<FormState>(INITIAL_FORM)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(isEditing)
   const [submitting, setSubmitting] = useState(false)
-
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
-    },
-    [logout],
-  )
 
   useEffect(() => {
     if (!isEditing || !session || !id) return

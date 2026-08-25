@@ -1,18 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { inativarProduto, listarProdutos } from '../api/produtos'
 import { useAuth } from '../auth/AuthContext'
-import type { Page, Produto } from '../types/produto'
-import { getErrorMessage } from '../utils/validation'
+import { useAsyncAction, useDebouncedSearch, usePaginatedResource } from '../hooks'
+import type { Produto } from '../types/produto'
+import { onlyDigits } from '../utils/strings'
 import styles from './ProdutosPage.module.css'
 
 /** Mínimo de caracteres para disparar busca no servidor (escala). */
 const BUSCA_MIN_API = 3
-
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
 
 function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -178,83 +174,52 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
 }
 
 export function ProdutosPage() {
-  const { session, logout } = useAuth()
-  const [page, setPage] = useState<Page<Produto> | null>(null)
+  const { session } = useAuth()
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [actionId, setActionId] = useState<number | null>(null)
-  const [nomeBusca, setNomeBusca] = useState('')
-  const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
-  const [codigoBarrasBusca, setCodigoBarrasBusca] = useState('')
-  const [codigoBarrasDebounced, setCodigoBarrasDebounced] = useState('')
   const [previewProduto, setPreviewProduto] = useState<Produto | null>(null)
-  const hasLoadedOnce = useRef(false)
 
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
+  const resetPage = useCallback(() => setPageNumber(0), [])
+
+  const nomeSearch = useDebouncedSearch({
+    minLength: BUSCA_MIN_API,
+    onDebouncedChange: resetPage,
+  })
+  const codigoSearch = useDebouncedSearch({
+    minLength: BUSCA_MIN_API,
+    normalize: onlyDigits,
+    onDebouncedChange: resetPage,
+  })
+
+  const fetchPage = useCallback(
+    (page: number) => {
+      if (!session) throw new Error('Sem sessão')
+      return listarProdutos(session.token, {
+        page,
+        incluirInativos,
+        nome: nomeSearch.debouncedValue || undefined,
+        codigoBarras: codigoSearch.debouncedValue || undefined,
+      })
     },
-    [logout],
+    [session, incluirInativos, nomeSearch.debouncedValue, codigoSearch.debouncedValue],
   )
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const termo = nomeBusca.trim()
-      setNomeBuscaDebounced(termo.length >= BUSCA_MIN_API ? termo : '')
-      setPageNumber(0)
-    }, 300)
+  const {
+    page,
+    initialLoading,
+    refreshing,
+    loadError,
+    setLoadError,
+    load,
+    listaPronta,
+  } = usePaginatedResource(fetchPage, {
+    enabled: !!session,
+    errorMessage: 'Erro ao carregar produtos.',
+    pageNumber,
+    setPageNumber,
+  })
 
-    return () => window.clearTimeout(timer)
-  }, [nomeBusca])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const digits = onlyDigits(codigoBarrasBusca)
-      setCodigoBarrasDebounced(digits.length >= BUSCA_MIN_API ? digits : '')
-      setPageNumber(0)
-    }, 300)
-
-    return () => window.clearTimeout(timer)
-  }, [codigoBarrasBusca])
-
-  const load = useCallback(async () => {
-    if (!session) return
-
-    if (!hasLoadedOnce.current) {
-      setInitialLoading(true)
-    } else {
-      setRefreshing(true)
-    }
-    setLoadError(null)
-
-    try {
-      const data = await listarProdutos(session.token, {
-        page: pageNumber,
-        incluirInativos,
-        nome: nomeBuscaDebounced || undefined,
-        codigoBarras: codigoBarrasDebounced || undefined,
-      })
-      setPage(data)
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Erro ao carregar produtos.'))
-    } finally {
-      hasLoadedOnce.current = true
-      setInitialLoading(false)
-      setRefreshing(false)
-    }
-  }, [session, pageNumber, incluirInativos, nomeBuscaDebounced, codigoBarrasDebounced, handleUnauthorized])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const { actionKey, execute } = useAsyncAction()
 
   async function handleInativar(produto: Produto) {
     if (!session || !produto.ativo) return
@@ -264,23 +229,21 @@ export function ProdutosPage() {
     )
     if (!confirmed) return
 
-    setActionId(produto.id)
     setLoadError(null)
-
-    try {
-      await inativarProduto(session.token, produto.id)
-      await load()
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Não foi possível inativar o produto.'))
-    } finally {
-      setActionId(null)
-    }
+    await execute(
+      produto.id,
+      async () => {
+        await inativarProduto(session.token, produto.id)
+        await load()
+      },
+      setLoadError,
+      'Não foi possível inativar o produto.',
+    )
   }
 
   const produtosExibidos = useMemo(() => {
-    const termoNome = nomeBusca.trim().toLowerCase()
-    const termoCodigo = onlyDigits(codigoBarrasBusca)
+    const termoNome = nomeSearch.normalized.toLowerCase()
+    const termoCodigo = codigoSearch.normalized
     const base = page?.content ?? []
 
     return base.filter((produto) => {
@@ -288,16 +251,10 @@ export function ProdutosPage() {
       const matchCodigo = !termoCodigo || produto.codigoBarras.includes(termoCodigo)
       return matchNome && matchCodigo
     })
-  }, [page, nomeBusca, codigoBarrasBusca])
+  }, [page, nomeSearch.normalized, codigoSearch.normalized])
 
-  const buscaPorNomeAtiva = nomeBusca.trim().length > 0
-  const buscaPorCodigoAtiva = onlyDigits(codigoBarrasBusca).length > 0
-  const buscaAtiva = buscaPorNomeAtiva || buscaPorCodigoAtiva
-  const buscaNomeCurta = buscaPorNomeAtiva && nomeBusca.trim().length < BUSCA_MIN_API
-  const buscaCodigoCurta = buscaPorCodigoAtiva && onlyDigits(codigoBarrasBusca).length < BUSCA_MIN_API
-  const buscaNoServidor =
-    nomeBuscaDebounced.length >= BUSCA_MIN_API || codigoBarrasDebounced.length >= BUSCA_MIN_API
-  const listaPronta = page !== null && !initialLoading
+  const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
+  const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
 
   return (
     <section className={styles.page}>
@@ -323,8 +280,8 @@ export function ProdutosPage() {
           Buscar por produto
           <input
             className={styles.searchInputNome}
-            value={nomeBusca}
-            onChange={(e) => setNomeBusca(e.target.value)}
+            value={nomeSearch.value}
+            onChange={(e) => nomeSearch.setValue(e.target.value)}
             placeholder="Digite parte do nome"
             autoComplete="off"
           />
@@ -334,15 +291,15 @@ export function ProdutosPage() {
           Código de barras
           <input
             className={styles.searchInputCodigo}
-            value={codigoBarrasBusca}
-            onChange={(e) => setCodigoBarrasBusca(onlyDigits(e.target.value))}
+            value={codigoSearch.value}
+            onChange={(e) => codigoSearch.setValue(onlyDigits(e.target.value))}
             placeholder="Digite o código (EAN)"
             inputMode="numeric"
             autoComplete="off"
           />
         </label>
 
-        {(buscaNomeCurta || buscaCodigoCurta) && (
+        {(nomeSearch.isShort || codigoSearch.isShort) && (
           <span className={styles.searchHint}>
             Filtrando na página atual — informe {BUSCA_MIN_API} ou mais caracteres para buscar no
             servidor.
@@ -411,7 +368,7 @@ export function ProdutosPage() {
                     </dl>
                     <ProdutoActions
                       produto={produto}
-                      actionId={actionId}
+                      actionId={actionKey as number | null}
                       onInativar={(p) => void handleInativar(p)}
                       className={styles.cardActions}
                     />
@@ -455,7 +412,7 @@ export function ProdutosPage() {
                         <td>
                           <ProdutoActions
                             produto={produto}
-                            actionId={actionId}
+                            actionId={actionKey as number | null}
                             onInativar={(p) => void handleInativar(p)}
                           />
                         </td>

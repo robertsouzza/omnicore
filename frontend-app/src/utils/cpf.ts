@@ -1,6 +1,6 @@
-export function onlyDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
+import { onlyDigits } from './strings'
+
+export { onlyDigits } from './strings'
 
 export function formatCpf(value: string): string {
   const digits = onlyDigits(value).slice(0, 11)

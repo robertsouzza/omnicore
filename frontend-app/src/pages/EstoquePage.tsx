@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ApiError } from '../api/client'
 import { obterSaldo } from '../api/estoque'
 import { listarProdutos } from '../api/produtos'
 import { useAuth } from '../auth/AuthContext'
-import type { Page, Produto } from '../types/produto'
-import { getErrorMessage } from '../utils/validation'
+import { useDebouncedSearch, usePaginatedResource, useUnauthorizedHandler } from '../hooks'
+import { onlyDigits } from '../utils/strings'
 import styles from './EstoquePage.module.css'
 
 const BUSCA_MIN_API = 3
-
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, '')
-}
 
 type SaldoStatus =
   | { state: 'idle' }
@@ -38,84 +33,51 @@ function SaldoCell({ status }: { status: SaldoStatus }) {
 }
 
 export function EstoquePage() {
-  const { session, logout } = useAuth()
-  const [page, setPage] = useState<Page<Produto> | null>(null)
+  const { session } = useAuth()
   const [pageNumber, setPageNumber] = useState(0)
-  const [initialLoading, setInitialLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [nomeBusca, setNomeBusca] = useState('')
-  const [nomeBuscaDebounced, setNomeBuscaDebounced] = useState('')
-  const [codigoBarrasBusca, setCodigoBarrasBusca] = useState('')
-  const [codigoBarrasDebounced, setCodigoBarrasDebounced] = useState('')
   const [saldos, setSaldos] = useState<Record<number, SaldoStatus>>({})
-  const hasLoadedOnce = useRef(false)
+  const handleUnauthorized = useUnauthorizedHandler()
 
-  const handleUnauthorized = useCallback(
-    (err: unknown) => {
-      if (err instanceof ApiError && err.status === 401) {
-        logout()
-        return true
-      }
-      return false
+  const resetPage = useCallback(() => setPageNumber(0), [])
+
+  const nomeSearch = useDebouncedSearch({
+    minLength: BUSCA_MIN_API,
+    onDebouncedChange: resetPage,
+  })
+  const codigoSearch = useDebouncedSearch({
+    minLength: BUSCA_MIN_API,
+    normalize: onlyDigits,
+    onDebouncedChange: resetPage,
+  })
+
+  const fetchPage = useCallback(
+    (page: number) => {
+      if (!session) throw new Error('Sem sessão')
+      return listarProdutos(session.token, {
+        page,
+        nome: nomeSearch.debouncedValue || undefined,
+        codigoBarras: codigoSearch.debouncedValue || undefined,
+      })
     },
-    [logout],
+    [session, nomeSearch.debouncedValue, codigoSearch.debouncedValue],
   )
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const termo = nomeBusca.trim()
-      setNomeBuscaDebounced(termo.length >= BUSCA_MIN_API ? termo : '')
-      setPageNumber(0)
-    }, 300)
-
-    return () => window.clearTimeout(timer)
-  }, [nomeBusca])
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      const digits = onlyDigits(codigoBarrasBusca)
-      setCodigoBarrasDebounced(digits.length >= BUSCA_MIN_API ? digits : '')
-      setPageNumber(0)
-    }, 300)
-
-    return () => window.clearTimeout(timer)
-  }, [codigoBarrasBusca])
-
-  const load = useCallback(async () => {
-    if (!session) return
-
-    if (!hasLoadedOnce.current) {
-      setInitialLoading(true)
-    } else {
-      setRefreshing(true)
-    }
-    setLoadError(null)
-
-    try {
-      const data = await listarProdutos(session.token, {
-        page: pageNumber,
-        nome: nomeBuscaDebounced || undefined,
-        codigoBarras: codigoBarrasDebounced || undefined,
-      })
-      setPage(data)
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Erro ao carregar produtos.'))
-    } finally {
-      hasLoadedOnce.current = true
-      setInitialLoading(false)
-      setRefreshing(false)
-    }
-  }, [session, pageNumber, nomeBuscaDebounced, codigoBarrasDebounced, handleUnauthorized])
-
-  useEffect(() => {
-    void load()
-  }, [load])
+  const {
+    page,
+    initialLoading,
+    refreshing,
+    loadError,
+    listaPronta,
+  } = usePaginatedResource(fetchPage, {
+    enabled: !!session,
+    errorMessage: 'Erro ao carregar produtos.',
+    pageNumber,
+    setPageNumber,
+  })
 
   const produtosExibidos = useMemo(() => {
-    const termoNome = nomeBusca.trim().toLowerCase()
-    const termoCodigo = onlyDigits(codigoBarrasBusca)
+    const termoNome = nomeSearch.normalized.toLowerCase()
+    const termoCodigo = codigoSearch.normalized
     const base = page?.content ?? []
 
     return base.filter((produto) => {
@@ -124,7 +86,7 @@ export function EstoquePage() {
       const matchCodigo = !termoCodigo || produto.codigoBarras.includes(termoCodigo)
       return matchNome && matchCodigo
     })
-  }, [page, nomeBusca, codigoBarrasBusca])
+  }, [page, nomeSearch.normalized, codigoSearch.normalized])
 
   useEffect(() => {
     if (!session || produtosExibidos.length === 0) return
@@ -163,14 +125,8 @@ export function EstoquePage() {
     }
   }, [session, produtosExibidos, handleUnauthorized])
 
-  const buscaPorNomeAtiva = nomeBusca.trim().length > 0
-  const buscaPorCodigoAtiva = onlyDigits(codigoBarrasBusca).length > 0
-  const buscaAtiva = buscaPorNomeAtiva || buscaPorCodigoAtiva
-  const buscaNomeCurta = buscaPorNomeAtiva && nomeBusca.trim().length < BUSCA_MIN_API
-  const buscaCodigoCurta = buscaPorCodigoAtiva && onlyDigits(codigoBarrasBusca).length < BUSCA_MIN_API
-  const buscaNoServidor =
-    nomeBuscaDebounced.length >= BUSCA_MIN_API || codigoBarrasDebounced.length >= BUSCA_MIN_API
-  const listaPronta = page !== null && !initialLoading
+  const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
+  const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
 
   function saldoFor(produtoId: number): SaldoStatus {
     return saldos[produtoId] ?? { state: 'loading' }
@@ -198,8 +154,8 @@ export function EstoquePage() {
           Buscar por produto
           <input
             className={styles.searchInputNome}
-            value={nomeBusca}
-            onChange={(e) => setNomeBusca(e.target.value)}
+            value={nomeSearch.value}
+            onChange={(e) => nomeSearch.setValue(e.target.value)}
             placeholder="Digite parte do nome"
             autoComplete="off"
           />
@@ -209,15 +165,15 @@ export function EstoquePage() {
           Código de barras
           <input
             className={styles.searchInputCodigo}
-            value={codigoBarrasBusca}
-            onChange={(e) => setCodigoBarrasBusca(onlyDigits(e.target.value))}
+            value={codigoSearch.value}
+            onChange={(e) => codigoSearch.setValue(onlyDigits(e.target.value))}
             placeholder="Digite o código (EAN)"
             inputMode="numeric"
             autoComplete="off"
           />
         </label>
 
-        {(buscaNomeCurta || buscaCodigoCurta) && (
+        {(nomeSearch.isShort || codigoSearch.isShort) && (
           <span className={styles.searchHint}>
             Filtrando na página atual — informe {BUSCA_MIN_API} ou mais caracteres para buscar no
             servidor.
