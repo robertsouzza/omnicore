@@ -1,5 +1,7 @@
 import { apiFetch } from './client'
 import type { Page, Produto, ProdutoRequest } from '../types/produto'
+import { filtrarProdutosComSaldoPositivo, type ProdutoComSaldo } from '../utils/produtoEstoque'
+import { onlyDigits } from '../utils/strings'
 
 export interface ListarProdutosParams {
   page?: number
@@ -57,4 +59,19 @@ export function atualizarProduto(
 
 export function inativarProduto(token: string, id: number): Promise<void> {
   return apiFetch<void>(`/api/produtos/${id}`, { method: 'DELETE' }, token)
+}
+
+/** Busca produto vendável por EAN (primeiro com estoque > 0). */
+export async function buscarProdutoPorCodigoBarras(
+  token: string,
+  codigo: string,
+): Promise<ProdutoComSaldo | null> {
+  const digits = onlyDigits(codigo)
+  if (digits.length < 3) return null
+
+  const page = await listarProdutos(token, { page: 0, size: 5, codigoBarras: digits })
+  if (page.content.length === 0) return null
+
+  const comEstoque = await filtrarProdutosComSaldoPositivo(token, page.content)
+  return comEstoque[0] ?? null
 }

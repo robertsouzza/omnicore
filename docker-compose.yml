@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 
 services:
   omnicore-db:
@@ -8,6 +8,8 @@ services:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: omnicore_secret_pass
       POSTGRES_DB: omnicore_management
+      TZ: America/Manaus
+      PGTZ: America/Manaus
     ports:
       - "5432:5432"
     volumes:

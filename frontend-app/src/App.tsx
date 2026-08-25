@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { SalaoLayout } from './components/SalaoLayout'
 import { ClienteFormPage } from './pages/ClienteFormPage'
 import { ClientesPage } from './pages/ClientesPage'
 import { EstoquePage } from './pages/EstoquePage'
@@ -11,6 +12,8 @@ import { NovaVendaPage } from './pages/NovaVendaPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutoKitPage } from './pages/ProdutoKitPage'
 import { ProdutosPage } from './pages/ProdutosPage'
+import { SalaoVendaPage } from './pages/SalaoVendaPage'
+import { SalaoVendasPage } from './pages/SalaoVendasPage'
 import { VendaDetalhePage } from './pages/VendaDetalhePage'
 import { VendasPage } from './pages/VendasPage'
 
@@ -21,6 +24,10 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route element={<SalaoLayout />}>
+              <Route path="/salao" element={<SalaoVendaPage />} />
+              <Route path="/salao/vendas" element={<SalaoVendasPage />} />
+            </Route>
             <Route element={<Layout />}>
               <Route index element={<Navigate to="/produtos" replace />} />
               <Route path="/produtos" element={<ProdutosPage />} />

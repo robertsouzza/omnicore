@@ -8,8 +8,8 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 12 — PWA salão + código de barras.
-Sessão 10.5 (hooks DRY) ✅ entregue.
+Próximo: Sessão 12.5 — UI kit mínimo (ou 13-FE Query+Vitest).
+Sessão 12 (PWA salão) ✅ entregue — /salao.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

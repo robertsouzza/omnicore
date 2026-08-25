@@ -1,5 +1,6 @@
 import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { OfflineBanner } from './OfflineBanner'
 import styles from './Layout.module.css'
 
 export function Layout() {
@@ -13,6 +14,9 @@ export function Layout() {
           <span className={styles.subtitle}>Cerebro · Varejo híbrido</span>
         </div>
         <nav className={styles.nav}>
+          <Link to="/salao" className={styles.navLink}>
+            Salão
+          </Link>
           <Link to="/produtos" className={styles.navLink}>
             Produtos
           </Link>
@@ -34,6 +38,7 @@ export function Layout() {
           Sair
         </button>
       </header>
+      <OfflineBanner />
       <main className={styles.main}>
         <Outlet />
       </main>

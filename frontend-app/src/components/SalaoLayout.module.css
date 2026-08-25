@@ -1,0 +1,133 @@
+.shell {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #f4f6f8;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem 1rem;
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0));
+  background: #0f2744;
+  color: #fff;
+  box-shadow: 0 2px 8px rgb(15 39 68 / 25%);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.logo {
+  font-size: 1.0625rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 0.6875rem;
+  color: #94b4d4;
+}
+
+.userBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  max-width: min(11rem, 42vw);
+}
+
+.userMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+  width: 100%;
+}
+
+.userName {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: right;
+  word-break: break-word;
+}
+
+.userPerfil {
+  font-size: 0.625rem;
+  color: #94b4d4;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logoutBtn {
+  border: 1px solid rgb(255 255 255 / 25%);
+  background: transparent;
+  color: #fff;
+  font-size: 0.6875rem;
+  padding: 0.375rem 0.625rem;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.logoutBtn:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: 5rem;
+}
+
+.bottomNav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -4px 16px rgb(15 39 68 / 8%);
+  z-index: 50;
+}
+
+.navItem,
+.navItemActive {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  padding: 0.625rem 0.5rem;
+  text-decoration: none;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.navItemActive {
+  color: #0f2744;
+}
+
+.navIcon {
+  font-size: 1.125rem;
+  line-height: 1;
+}

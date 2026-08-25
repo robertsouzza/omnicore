@@ -1,3 +1,5 @@
+export { useClienteBusca } from './useClienteBusca'
+export type { ClienteBusca } from './useClienteBusca'
 export { useAsyncAction } from './useAsyncAction'
 export { useDebouncedSearch } from './useDebouncedSearch'
 export { usePaginatedResource } from './usePaginatedResource'

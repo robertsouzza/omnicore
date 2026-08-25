@@ -69,9 +69,9 @@
 | **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `c0ae1d9` |
 | **11.1** | **Cancelamento venda paga: autorização gerente + motivo (backend + modal frontend)** | ✅ testado browser | `09f36d6` |
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `7e259ba` |
-| 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ **próximo** | — |
+| 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `PLACEHOLDER` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
-| **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ planejado | — |
+| **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ **próximo** | — |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
@@ -84,9 +84,9 @@
 | ~~**10**~~ | ~~Saldo, movimentação manual, histórico paginado por produto~~ | ✅ |
 | ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `c0ae1d9` |
 | **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` em `utils/strings.ts` | ✅ |
-| **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | **próximo** |
+| **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | ✅ |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
-| **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | após Sessão 12 |
+| **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | **próximo** |
 | **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | pré-SaaS / robustez |
 
 ### Sessão 7.2 — busca e paginação de produtos (paridade clientes)
@@ -146,6 +146,22 @@
 **Páginas refatoradas:** Produtos, Clientes, Estoque, Vendas, Nova Venda; forms/detalhe usam `useUnauthorizedHandler`.
 
 **Build:** `npm run build` + `npm run lint` OK.
+
+### Sessão 12 — PWA salão (frontend) — entregue
+
+**PWA:** `vite-plugin-pwa` — manifest (`start_url: /salao`, standalone, theme `#0f2744`), service worker com precache do shell + `NetworkFirst` para `/api/*`; registro em `main.tsx`; banner offline (`OfflineBanner`).
+
+**Modo salão:** rotas `/salao` (venda rápida) e `/salao/vendas` (lista mobile) com `SalaoLayout` — header compacto, navegação inferior (Vender · Vendas · Admin).
+
+**Código de barras:** `BarcodeField` (input leitor USB + botão Câmera); `BarcodeScannerModal` via `BarcodeDetector` nativo (fallback: digitar); lookup `buscarProdutoPorCodigoBarras` → carrinho com +/- ; venda **PENDENTE** por padrão.
+
+**Shared:** `utils/carrinhoVenda.ts`, `useClienteBusca` + `ClienteBuscaSection` (salão e Nova Venda).
+
+**Admin:** link **Salão** no menu principal (`Layout`).
+
+**Pós-teste (25/ago):** busca cliente completa no salão (nome/documento/ocasional); header salão (nome + Sair sem cortar); **Venda #8** testada (Rafael Castro · Fanta ×10 + Biscoito ×3) — simulação PAGA no banco OK; Postgres Docker `TZ/PGTZ=America/Manaus`; script `simular-pagamento-venda-dev.sql`.
+
+**Teste sugerido:** login → `/salao` → EAN → registrar venda; Add to Home Screen (PWA).
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -317,13 +333,7 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 12 — PWA salão + código de barras** em `frontend-app/`:
-
-1. `vite-plugin-pwa` (manifest, service worker básico)
-2. Layout mobile vendedor; input/scan código de barras
-3. Reutiliza produtos + vendas já prontos
-
-Alternativa: **Sessão 11.5** (upload imagem) — ver débito técnico imagem.
+**Sessão 12.5 — UI kit mínimo** ou **11.5 upload imagem** — ver cronograma.
 
 ---
 
@@ -344,10 +354,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 10.5 — hooks compartilhados no frontend (ou Sessão 12 PWA).
+Próximo: Sessão 12.5 — UI kit mínimo (ou 13-FE Query+Vitest).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 25/ago/2026 — Sessão 10.5 hooks ✅ (`7e259ba`); próximo: 12 PWA.*
+*Última atualização: 25/ago/2026 — Sessão 12 PWA salão ✅ (`PLACEHOLDER`); próximo: 12.5 UI kit.*

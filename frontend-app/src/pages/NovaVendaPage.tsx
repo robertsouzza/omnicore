@@ -1,75 +1,40 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { buscarClientePorDocumento, listarClientes } from '../api/clientes'
 import { listarProdutos } from '../api/produtos'
 import { criarVenda } from '../api/vendas'
+import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
 import { useAuth } from '../auth/AuthContext'
-import { useDebouncedSearch, useUnauthorizedHandler } from '../hooks'
-import type { Cliente } from '../types/cliente'
-import { TIPO_DOCUMENTO_PADRAO, TIPOS_DOCUMENTO } from '../types/cliente'
-import type { ItemVendaRequest, StatusVenda } from '../types/venda'
+import { useClienteBusca, useDebouncedSearch, useUnauthorizedHandler } from '../hooks'
+import type { StatusVenda } from '../types/venda'
 import {
   STATUS_NOVA_VENDA,
   calcularSubtotalItem,
   calcularTotalItens,
   formatPreco,
 } from '../types/venda'
-import { isCpfValido } from '../utils/cpf'
-import {
-  formatDocumentoDisplay,
-  maskDocumentoInput,
-  normalizeNumeroDocumento,
-  type TipoDocumento,
-} from '../utils/documento'
 import type { ProdutoComSaldo } from '../utils/produtoEstoque'
 import { filtrarProdutosComSaldoPositivo, rotuloSaldoProduto } from '../utils/produtoEstoque'
 import { onlyDigits } from '../utils/strings'
 import { getErrorMessage } from '../utils/validation'
 import styles from './NovaVendaPage.module.css'
 
+import {
+  type CartLine,
+  nextCartKey,
+  toItemRequest,
+  validarCarrinho,
+} from '../utils/carrinhoVenda'
+
 const BUSCA_MIN_API = 3
-
-interface CartLine {
-  key: string
-  produtoId: number
-  produtoNome: string
-  quantidade: number
-  precoUnitario: number
-  desconto: number
-}
-
-let cartKeyCounter = 0
-
-function nextCartKey(): string {
-  cartKeyCounter += 1
-  return `line-${cartKeyCounter}`
-}
-
-function toItemRequest(line: CartLine): ItemVendaRequest {
-  return {
-    produtoId: line.produtoId,
-    quantidade: line.quantidade,
-    precoUnitario: line.precoUnitario,
-    desconto: line.desconto > 0 ? line.desconto : null,
-  }
-}
 
 export function NovaVendaPage() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const handleUnauthorized = useUnauthorizedHandler()
+  const clienteBusca = useClienteBusca()
 
   const [status, setStatus] = useState<StatusVenda>('PENDENTE')
-  const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
-  const [nomeOcasional, setNomeOcasional] = useState('')
-  const clienteSearch = useDebouncedSearch({ minLength: BUSCA_MIN_API })
   const produtoSearch = useDebouncedSearch({ minLength: BUSCA_MIN_API })
-  const [clientesSugeridos, setClientesSugeridos] = useState<Cliente[]>([])
-  const [tipoDocumentoBusca, setTipoDocumentoBusca] = useState<TipoDocumento>(TIPO_DOCUMENTO_PADRAO)
-  const [documentoBusca, setDocumentoBusca] = useState('')
-  const [clienteNotice, setClienteNotice] = useState<string | null>(null)
-  const [buscandoDocumento, setBuscandoDocumento] = useState(false)
-
   const [produtosSugeridos, setProdutosSugeridos] = useState<ProdutoComSaldo[]>([])
   const [buscandoProdutos, setBuscandoProdutos] = useState(false)
   const [produtoNotice, setProdutoNotice] = useState<string | null>(null)
@@ -77,32 +42,6 @@ export function NovaVendaPage() {
   const [cart, setCart] = useState<CartLine[]>([])
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    if (!session || clienteSearch.debouncedValue.length < BUSCA_MIN_API) {
-      setClientesSugeridos([])
-      return
-    }
-
-    let cancelled = false
-
-    void (async () => {
-      try {
-        const data = await listarClientes(session.token, {
-          page: 0,
-          size: 8,
-          nome: clienteSearch.debouncedValue,
-        })
-        if (!cancelled) setClientesSugeridos(data.content)
-      } catch (err) {
-        if (handleUnauthorized(err)) return
-      }
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [session, clienteSearch.debouncedValue, handleUnauthorized])
 
   useEffect(() => {
     if (!session || produtoSearch.debouncedValue.length < BUSCA_MIN_API) {
@@ -159,52 +98,6 @@ export function NovaVendaPage() {
 
   const statusHint = STATUS_NOVA_VENDA.find((s) => s.value === status)?.hint ?? ''
 
-  function selecionarCliente(cliente: Cliente) {
-    setClienteSelecionado(cliente)
-    clienteSearch.setValue('')
-    setClientesSugeridos([])
-    setDocumentoBusca('')
-    setClienteNotice(null)
-    setNomeOcasional('')
-  }
-
-  function limparClienteSelecionado() {
-    setClienteSelecionado(null)
-  }
-
-  async function handleBuscarDocumento() {
-    if (!session) return
-
-    const numero = normalizeNumeroDocumento(tipoDocumentoBusca, documentoBusca)
-
-    if (tipoDocumentoBusca === 'CPF') {
-      if (numero.length < 11) {
-        setClienteNotice('Informe um CPF com 11 dígitos para buscar.')
-        return
-      }
-      if (!isCpfValido(numero)) {
-        setClienteNotice('Informe um CPF válido para buscar.')
-        return
-      }
-    } else if (numero.length < 3) {
-      setClienteNotice('Informe pelo menos 3 caracteres do documento para buscar.')
-      return
-    }
-
-    setBuscandoDocumento(true)
-    setClienteNotice(null)
-
-    try {
-      const cliente = await buscarClientePorDocumento(session.token, tipoDocumentoBusca, numero)
-      selecionarCliente(cliente)
-    } catch (err) {
-      if (handleUnauthorized(err)) return
-      setClienteNotice(getErrorMessage(err, 'Nenhum cliente encontrado para este documento.'))
-    } finally {
-      setBuscandoDocumento(false)
-    }
-  }
-
   function addProduto(produto: ProdutoComSaldo) {
     setCart((prev) => [
       ...prev,
@@ -235,24 +128,10 @@ export function NovaVendaPage() {
     event.preventDefault()
     if (!session) return
 
-    if (cart.length === 0) {
-      setError('Adicione ao menos um produto ao carrinho.')
+    const validationError = validarCarrinho(cart)
+    if (validationError) {
+      setError(validationError)
       return
-    }
-
-    for (const line of cart) {
-      if (line.quantidade < 1) {
-        setError('Quantidade deve ser maior que zero em todos os itens.')
-        return
-      }
-      if (line.precoUnitario < 0) {
-        setError('Preço unitário inválido.')
-        return
-      }
-      if (line.desconto < 0 || line.desconto > line.precoUnitario) {
-        setError('Desconto inválido em um dos itens.')
-        return
-      }
     }
 
     setSubmitting(true)
@@ -262,8 +141,11 @@ export function NovaVendaPage() {
       const venda = await criarVenda(session.token, {
         status,
         vendedorId: session.colaboradorId,
-        clienteId: clienteSelecionado?.id ?? null,
-        nomeClienteOcasional: !clienteSelecionado && nomeOcasional.trim() ? nomeOcasional.trim() : null,
+        clienteId: clienteBusca.clienteSelecionado?.id ?? null,
+        nomeClienteOcasional:
+          !clienteBusca.clienteSelecionado && clienteBusca.nomeOcasional.trim()
+            ? clienteBusca.nomeOcasional.trim()
+            : null,
         itens: itensRequest,
       })
       navigate(`/vendas/${venda.id}`)
@@ -312,137 +194,7 @@ export function NovaVendaPage() {
             <input className={styles.input} value={session?.nome ?? ''} disabled readOnly />
           </label>
 
-          <label className={styles.field}>
-            Buscar cliente por nome
-            <input
-              className={styles.input}
-              value={clienteSearch.value}
-              onChange={(e) => {
-                clienteSearch.setValue(e.target.value)
-                setClienteNotice(null)
-              }}
-              placeholder="Digite parte do nome (3+ letras)"
-              disabled={submitting || Boolean(clienteSelecionado)}
-              autoComplete="off"
-            />
-          </label>
-
-          {clienteSelecionado ? (
-            <div className={styles.selectedChip}>
-              <span>
-                {clienteSelecionado.nomeCompleto}
-                {' · '}
-                {formatDocumentoDisplay(
-                  clienteSelecionado.tipoDocumento,
-                  clienteSelecionado.numeroDocumento,
-                )}
-              </span>
-              <button
-                type="button"
-                className={styles.chipRemove}
-                onClick={limparClienteSelecionado}
-                disabled={submitting}
-              >
-                ×
-              </button>
-            </div>
-          ) : (
-            <>
-              {clientesSugeridos.length > 0 && (
-                <ul className={styles.suggestions}>
-                  {clientesSugeridos.map((cliente) => (
-                    <li key={cliente.id}>
-                      <button
-                        type="button"
-                        className={styles.suggestionBtn}
-                        onClick={() => selecionarCliente(cliente)}
-                      >
-                        <span>{cliente.nomeCompleto}</span>
-                        <span className={styles.suggestionMeta}>
-                          {formatDocumentoDisplay(cliente.tipoDocumento, cliente.numeroDocumento)}
-                        </span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <div className={styles.documentoBusca}>
-                <span className={styles.documentoLabel}>Ou buscar por documento</span>
-                <div className={styles.documentoForm}>
-                  <label className={styles.documentoField}>
-                    Tipo
-                    <select
-                      className={styles.selectSmall}
-                      value={tipoDocumentoBusca}
-                      onChange={(e) => {
-                        setTipoDocumentoBusca(e.target.value as TipoDocumento)
-                        setDocumentoBusca('')
-                        setClienteNotice(null)
-                      }}
-                      disabled={submitting}
-                    >
-                      {TIPOS_DOCUMENTO.map((tipo) => (
-                        <option key={tipo.value} value={tipo.value}>
-                          {tipo.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className={styles.documentoFieldGrow}>
-                    Documento
-                    <input
-                      className={styles.input}
-                      value={documentoBusca}
-                      onChange={(e) => {
-                        setDocumentoBusca(maskDocumentoInput(tipoDocumentoBusca, e.target.value))
-                        setClienteNotice(null)
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          void handleBuscarDocumento()
-                        }
-                      }}
-                      placeholder={
-                        tipoDocumentoBusca === 'CPF'
-                          ? '000.000.000-00'
-                          : 'Número do documento'
-                      }
-                      inputMode={tipoDocumentoBusca === 'CPF' ? 'numeric' : 'text'}
-                      maxLength={tipoDocumentoBusca === 'CPF' ? 14 : 30}
-                      disabled={submitting}
-                      autoComplete="off"
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    className={styles.searchDocBtn}
-                    disabled={submitting || buscandoDocumento}
-                    onClick={() => void handleBuscarDocumento()}
-                  >
-                    {buscandoDocumento ? 'Buscando…' : 'Buscar'}
-                  </button>
-                </div>
-              </div>
-
-              {clienteNotice && <p className={styles.notice}>{clienteNotice}</p>}
-            </>
-          )}
-
-          {!clienteSelecionado && (
-            <label className={styles.field}>
-              Cliente ocasional <span className={styles.optional}>(opcional)</span>
-              <input
-                className={styles.input}
-                value={nomeOcasional}
-                onChange={(e) => setNomeOcasional(e.target.value)}
-                placeholder="Nome rápido, sem cadastro"
-                maxLength={100}
-                disabled={submitting}
-              />
-            </label>
-          )}
+          <ClienteBuscaSection busca={clienteBusca} disabled={submitting} />
         </section>
 
         <section className={styles.panel}>
