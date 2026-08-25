@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { cancelarVenda, listarVendas } from '../api/vendas'
+import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { useAuth } from '../auth/AuthContext'
-import type { Page, StatusVenda, Venda } from '../types/venda'
+import type { CancelarVendaRequest, Page, StatusVenda, Venda } from '../types/venda'
 import {
   STATUS_VENDA,
   formatDataHoraVenda,
@@ -37,6 +38,8 @@ export function VendasPage() {
   const [refreshing, setRefreshing] = useState(false)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionId, setActionId] = useState<number | null>(null)
+  const [vendaParaCancelar, setVendaParaCancelar] = useState<Venda | null>(null)
+  const [cancelError, setCancelError] = useState<string | null>(null)
   const hasLoadedOnce = useRef(false)
 
   const handleUnauthorized = useCallback(
@@ -80,23 +83,26 @@ export function VendasPage() {
     void load()
   }, [load])
 
-  async function handleCancelar(venda: Venda) {
-    if (!session || !vendaPodeCancelar(venda)) return
+  function abrirCancelamento(venda: Venda) {
+    if (!vendaPodeCancelar(venda)) return
+    setCancelError(null)
+    setVendaParaCancelar(venda)
+  }
 
-    const confirmed = window.confirm(
-      `Cancelar venda #${venda.id}?\n\nValor: ${formatPreco(venda.valorTotal)}\n\nVendas pagas/concluídas terão estoque estornado automaticamente.`,
-    )
-    if (!confirmed) return
+  async function confirmarCancelamento(payload: CancelarVendaRequest) {
+    if (!session || !vendaParaCancelar) return
 
-    setActionId(venda.id)
+    setActionId(vendaParaCancelar.id)
+    setCancelError(null)
     setLoadError(null)
 
     try {
-      await cancelarVenda(session.token, venda.id)
+      await cancelarVenda(session.token, vendaParaCancelar.id, payload)
+      setVendaParaCancelar(null)
       await load()
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setLoadError(getErrorMessage(err, 'Não foi possível cancelar a venda.'))
+      setCancelError(getErrorMessage(err, 'Não foi possível cancelar a venda.'))
     } finally {
       setActionId(null)
     }
@@ -191,7 +197,7 @@ export function VendasPage() {
                           type="button"
                           className={styles.dangerBtn}
                           disabled={actionId === venda.id}
-                          onClick={() => void handleCancelar(venda)}
+                          onClick={() => abrirCancelamento(venda)}
                         >
                           {actionId === venda.id ? 'Cancelando…' : 'Cancelar'}
                         </button>
@@ -235,7 +241,7 @@ export function VendasPage() {
                                 type="button"
                                 className={styles.dangerBtn}
                                 disabled={actionId === venda.id}
-                                onClick={() => void handleCancelar(venda)}
+                                onClick={() => abrirCancelamento(venda)}
                               >
                                 {actionId === venda.id ? 'Cancelando…' : 'Cancelar'}
                               </button>
@@ -279,6 +285,22 @@ export function VendasPage() {
             </div>
           )}
         </>
+      )}
+
+      {session && vendaParaCancelar && (
+        <CancelarVendaModal
+          venda={vendaParaCancelar}
+          perfilLogado={session.perfil}
+          open
+          submitting={actionId === vendaParaCancelar.id}
+          error={cancelError}
+          onClose={() => {
+            if (actionId !== null) return
+            setVendaParaCancelar(null)
+            setCancelError(null)
+          }}
+          onConfirm={confirmarCancelamento}
+        />
       )}
     </section>
   )

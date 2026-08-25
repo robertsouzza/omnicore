@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { buscarCliente } from '../api/clientes'
 import { buscarVenda, cancelarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
-import type { Venda } from '../types/venda'
+import type { CancelarVendaRequest, Venda } from '../types/venda'
 import {
   formatDataHoraVenda,
   formatPreco,
@@ -37,6 +38,7 @@ export function VendaDetalhePage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
 
   const handleUnauthorized = useCallback(
     (err: unknown) => {
@@ -81,20 +83,16 @@ export function VendaDetalhePage() {
     void load()
   }, [load])
 
-  async function handleCancelar() {
-    if (!session || !venda || !vendaPodeCancelar(venda)) return
-
-    const confirmed = window.confirm(
-      `Cancelar venda #${venda.id}?\n\nValor: ${formatPreco(venda.valorTotal)}\n\nVendas pagas/concluídas terão estoque estornado automaticamente.`,
-    )
-    if (!confirmed) return
+  async function confirmarCancelamento(payload: CancelarVendaRequest) {
+    if (!session || !venda) return
 
     setCancelling(true)
     setActionError(null)
 
     try {
-      const atualizada = await cancelarVenda(session.token, venda.id)
+      const atualizada = await cancelarVenda(session.token, venda.id, payload)
       setVenda(atualizada)
+      setModalCancelarAberto(false)
     } catch (err) {
       if (handleUnauthorized(err)) return
       setActionError(getErrorMessage(err, 'Não foi possível cancelar a venda.'))
@@ -206,23 +204,48 @@ export function VendaDetalhePage() {
             </div>
           </section>
 
-          {actionError && <p className={styles.error}>{actionError}</p>}
-
           {vendaPodeCancelar(venda) && (
             <button
               type="button"
               className={styles.cancelBtn}
               disabled={cancelling}
-              onClick={() => void handleCancelar()}
+              onClick={() => {
+                setActionError(null)
+                setModalCancelarAberto(true)
+              }}
             >
-              {cancelling ? 'Cancelando…' : 'Cancelar venda'}
+              Cancelar venda
             </button>
           )}
 
           {venda.status === 'CANCELADA' && (
-            <p className={styles.cancelledNote}>Esta venda foi cancelada.</p>
+            <p className={styles.cancelledNote}>
+              Esta venda foi cancelada.
+              {venda.motivoCancelamento && (
+                <>
+                  {' '}
+                  Motivo: <em>{venda.motivoCancelamento}</em>
+                </>
+              )}
+            </p>
           )}
         </>
+      )}
+
+      {session && venda && modalCancelarAberto && (
+        <CancelarVendaModal
+          venda={venda}
+          perfilLogado={session.perfil}
+          open
+          submitting={cancelling}
+          error={actionError}
+          onClose={() => {
+            if (cancelling) return
+            setModalCancelarAberto(false)
+            setActionError(null)
+          }}
+          onConfirm={confirmarCancelamento}
+        />
       )}
 
       {!loading && !loadError && !venda && (

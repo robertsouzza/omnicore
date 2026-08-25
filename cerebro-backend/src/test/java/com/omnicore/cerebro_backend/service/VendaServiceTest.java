@@ -1,7 +1,9 @@
 package com.omnicore.cerebro_backend.service;
 
+import com.omnicore.cerebro_backend.dto.CancelarVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.ItemVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
+import com.omnicore.cerebro_backend.enums.PerfilColaborador;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
@@ -15,6 +17,7 @@ import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import com.omnicore.cerebro_backend.repository.VendaRepository;
+import com.omnicore.cerebro_backend.security.AuthenticatedColaborador;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +43,13 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
-public class VendaServiceTest {
+class VendaServiceTest {
+
+    private static final AuthenticatedColaborador VENDEDOR =
+            new AuthenticatedColaborador(1L, "Carlos", "carlos@loja.com", PerfilColaborador.VENDEDOR);
+
+    private static final AuthenticatedColaborador GERENTE =
+            new AuthenticatedColaborador(2L, "Ana", "ana@loja.com", PerfilColaborador.GERENTE);
 
     @Mock
     private VendaRepository vendaRepository;
@@ -60,14 +69,22 @@ public class VendaServiceTest {
     @Mock
     private ColaboradorService colaboradorService;
 
-    private VendaService vendaService;
+    @Mock
+    private AuthService authService;
 
+    private VendaService vendaService;
     private Produto produtoMock;
 
     @BeforeEach
     void setUp() {
-        vendaService = new VendaService(vendaRepository, produtoRepository, movimentacaoEstoqueRepository,
-                composicaoPacoteRepository, clienteService, colaboradorService);
+        vendaService = new VendaService(
+                vendaRepository,
+                produtoRepository,
+                movimentacaoEstoqueRepository,
+                composicaoPacoteRepository,
+                clienteService,
+                colaboradorService,
+                authService);
 
         produtoMock = new Produto();
         produtoMock.setId(1L);
@@ -154,7 +171,6 @@ public class VendaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve cancelar venda PAGA e gerar ENTRADA de estorno no estoque")
     void deveCancelarVendaPagaComEstorno() {
         ItemVenda item = ItemVenda.builder()
                 .produto(produtoMock)
@@ -177,9 +193,13 @@ public class VendaServiceTest {
                         .quantidade(2)
                         .build()));
 
-        Venda cancelada = vendaService.cancelar(1L);
+        Venda cancelada = vendaService.cancelar(
+                1L,
+                new CancelarVendaRequestDTO("Produto com defeito", null, null),
+                GERENTE);
 
         assertEquals(StatusVenda.CANCELADA, cancelada.getStatus());
+        assertEquals("Produto com defeito", cancelada.getMotivoCancelamento());
 
         ArgumentCaptor<MovimentacaoEstoque> captor = ArgumentCaptor.forClass(MovimentacaoEstoque.class);
         verify(movimentacaoEstoqueRepository).save(captor.capture());
@@ -188,7 +208,6 @@ public class VendaServiceTest {
     }
 
     @Test
-    @DisplayName("Deve cancelar venda PENDENTE sem gerar movimentação de estorno")
     void deveCancelarVendaPendenteSemEstorno() {
         Venda venda = Venda.builder()
                 .id(2L)
@@ -199,24 +218,35 @@ public class VendaServiceTest {
         when(vendaRepository.findById(2L)).thenReturn(Optional.of(venda));
         when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        Venda cancelada = vendaService.cancelar(2L);
+        Venda cancelada = vendaService.cancelar(2L, null, VENDEDOR);
 
         assertEquals(StatusVenda.CANCELADA, cancelada.getStatus());
         verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));
     }
 
     @Test
-    @DisplayName("Deve lançar BusinessException ao cancelar venda já cancelada")
     void deveRejeitarCancelamentoDuplicado() {
         Venda venda = Venda.builder().id(3L).status(StatusVenda.CANCELADA).build();
         when(vendaRepository.findById(3L)).thenReturn(Optional.of(venda));
 
-        assertThrows(BusinessException.class, () -> vendaService.cancelar(3L));
+        assertThrows(BusinessException.class, () -> vendaService.cancelar(3L, null, VENDEDOR));
         verify(vendaRepository, never()).save(any(Venda.class));
     }
 
     @Test
-    @DisplayName("Deve rejeitar venda de produto inativo")
+    void deveRejeitarCancelamentoPagoSemGerente() {
+        Venda venda = Venda.builder()
+                .id(4L)
+                .status(StatusVenda.PAGA)
+                .valorTotal(new BigDecimal("10.00"))
+                .build();
+
+        when(vendaRepository.findById(4L)).thenReturn(Optional.of(venda));
+
+        assertThrows(BusinessException.class, () -> vendaService.cancelar(4L, null, VENDEDOR));
+    }
+
+    @Test
     void deveRejeitarVendaDeProdutoInativo() {
         produtoMock.setAtivo(false);
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 1, new BigDecimal("5.00"), BigDecimal.ZERO);

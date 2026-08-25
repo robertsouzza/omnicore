@@ -26,7 +26,16 @@ export interface Venda {
   vendedorId: number | null
   clienteId: number | null
   nomeClienteOcasional: string | null
+  motivoCancelamento: string | null
+  canceladoPorColaboradorId: number | null
+  autorizadoPorColaboradorId: number | null
   itens: ItemVenda[]
+}
+
+export interface CancelarVendaRequest {
+  motivo?: string
+  autorizadorEmail?: string
+  autorizadorSenha?: string
 }
 
 export interface ItemVendaRequest {
@@ -103,4 +112,8 @@ export function resumoClienteVenda(venda: Venda): string {
 
 export function vendaPodeCancelar(venda: Venda): boolean {
   return venda.status !== 'CANCELADA'
+}
+
+export function vendaExigeAutorizacaoGerente(status: Venda['status']): boolean {
+  return status === 'PAGA' || status === 'CONCLUIDA'
 }

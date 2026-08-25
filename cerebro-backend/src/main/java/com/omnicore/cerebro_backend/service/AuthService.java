@@ -50,4 +50,28 @@ public class AuthService {
                 colaborador.getEmail(),
                 colaborador.getPerfil());
     }
+
+    @Transactional(readOnly = true)
+    public Colaborador validarCredenciaisGerente(String email, String senha) {
+        if (email == null || email.isBlank() || senha == null || senha.isBlank()) {
+            throw new BusinessException("Informe e-mail e senha do gerente para autorizar o cancelamento.");
+        }
+
+        Colaborador colaborador = colaboradorRepository.findByEmail(email.trim())
+                .orElseThrow(() -> new BusinessException("Credenciais de gerente inválidas."));
+
+        if (!colaborador.getPerfil().podeAutorizarCancelamentoVendaPaga()) {
+            throw new BusinessException("Apenas gerentes podem autorizar cancelamento de vendas pagas ou concluídas.");
+        }
+
+        if (Boolean.FALSE.equals(colaborador.getAtivo())) {
+            throw new BusinessException("O gerente '" + colaborador.getNome() + "' está inativo.");
+        }
+
+        if (!passwordEncoder.matches(senha, colaborador.getSenhaHash())) {
+            throw new BusinessException("Credenciais de gerente inválidas.");
+        }
+
+        return colaborador;
+    }
 }

@@ -12,12 +12,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.omnicore.cerebro_backend.dto.CancelarVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.ItemVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.model.Colaborador;
 import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.ItemVenda;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
@@ -27,6 +29,7 @@ import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import com.omnicore.cerebro_backend.repository.VendaRepository;
+import com.omnicore.cerebro_backend.security.AuthenticatedColaborador;
 
 import jakarta.persistence.criteria.Predicate;
 
@@ -40,19 +43,22 @@ public class VendaService {
     private final ComposicaoPacoteRepository composicaoPacoteRepository;
     private final ClienteService clienteService;
     private final ColaboradorService colaboradorService;
+    private final AuthService authService;
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoRepository produtoRepository,
                         MovimentacaoEstoqueRepository movimentacaoEstoqueRepository,
                         ComposicaoPacoteRepository composicaoPacoteRepository,
                         ClienteService clienteService,
-                        ColaboradorService colaboradorService) {
+                        ColaboradorService colaboradorService,
+                        AuthService authService) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
         this.composicaoPacoteRepository = composicaoPacoteRepository;
         this.clienteService = clienteService;
         this.colaboradorService = colaboradorService;
+        this.authService = authService;
     }
 
     @Transactional
@@ -156,12 +162,20 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda cancelar(Long id) {
+    public Venda cancelar(Long id, CancelarVendaRequestDTO dto, AuthenticatedColaborador solicitante) {
+        if (solicitante == null) {
+            throw new BusinessException("Colaborador autenticado não identificado.");
+        }
+
         Venda venda = buscarPorId(id);
 
         if (venda.getStatus() == StatusVenda.CANCELADA) {
             throw new BusinessException("A venda #" + id + " já se encontra cancelada.");
         }
+
+        validarAutorizacaoCancelamento(venda, dto, solicitante);
+
+        venda.setCanceladoPorColaboradorId(solicitante.id());
 
         if (deveDebitarEstoque(venda.getStatus())) {
             estornarMovimentacoesDaVenda(venda);
@@ -169,6 +183,37 @@ public class VendaService {
 
         venda.setStatus(StatusVenda.CANCELADA);
         return vendaRepository.save(venda);
+    }
+
+    private void validarAutorizacaoCancelamento(Venda venda, CancelarVendaRequestDTO dto,
+                                                AuthenticatedColaborador solicitante) {
+        if (!exigeAutorizacaoGerente(venda.getStatus())) {
+            return;
+        }
+
+        CancelarVendaRequestDTO request = dto != null ? dto : new CancelarVendaRequestDTO(null, null, null);
+        String motivo = request.motivo() != null ? request.motivo().trim() : "";
+
+        if (motivo.length() < 3) {
+            throw new BusinessException("Informe o motivo do cancelamento (mínimo 3 caracteres).");
+        }
+
+        Long autorizadoPorId;
+
+        if (solicitante.perfil().podeAutorizarCancelamentoVendaPaga()) {
+            autorizadoPorId = solicitante.id();
+        } else {
+            Colaborador gerente = authService.validarCredenciaisGerente(
+                    request.autorizadorEmail(), request.autorizadorSenha());
+            autorizadoPorId = gerente.getId();
+        }
+
+        venda.setMotivoCancelamento(motivo);
+        venda.setAutorizadoPorColaboradorId(autorizadoPorId);
+    }
+
+    private boolean exigeAutorizacaoGerente(StatusVenda status) {
+        return status == StatusVenda.PAGA || status == StatusVenda.CONCLUIDA;
     }
 
     private boolean deveDebitarEstoque(StatusVenda status) {

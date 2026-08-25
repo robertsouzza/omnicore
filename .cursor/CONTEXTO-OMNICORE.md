@@ -67,6 +67,7 @@
 | **9.1** | **Clientes estrangeiros: tipo documento, busca, CPF válido, UX listagem** | ✅ | `cd60244` |
 | **10** | Frontend: estoque (saldo, entrada/saída, histórico) | ✅ testado browser | `51d409e` |
 | **11** | **Frontend: vendas (nova venda, listagem, cancelamento) + ajustes estoque/kit** | ✅ testado browser | `c0ae1d9` |
+| **11.1** | **Cancelamento venda paga: autorização gerente + motivo (backend + modal frontend)** | ✅ testado browser | `PLACEHOLDER` |
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ⬜ **próximo** | — |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ⬜ | — |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
@@ -115,6 +116,20 @@
 **Teste validado (24/ago):** Venda #5 — Rafael Castro, 10× Fanta R$ 9,50 = R$ 95,00; criada PENDENTE (sem baixa); simulação de pagamento no banco → PAGA + saída −10 (saldo Fanta 90) — UI estoque/histórico conferidos.
 
 **Débito técnico — pagamento / caixa (futuro):** não há endpoint `PUT /vendas/{id}/pagar` nem tela para PENDENTE → PAGA após criação; forma de pagamento (Pix, cartão…) = Sessão 12+ / fiscal.
+
+### Sessão 11.1 — cancelamento com autorização de gerente — entregue
+
+**Regra de negócio (não era débito técnico — era lacuna de segurança/perfil na Sessão 11):** venda **PENDENTE** → vendedor cancela sem fricção; venda **PAGA/CONCLUÍDA** → exige **motivo** + credenciais de **GERENTE** (vendedor/caixa/conferente solicita; gerente logado só informa motivo). Estorno de estoque automático mantido.
+
+**Backend:** `PUT /api/vendas/{id}/cancelar` aceita `CancelarVendaRequestDTO` (motivo, autorizadorEmail, autorizadorSenha); `AuthService.validarCredenciaisGerente`; auditoria em `tb_venda` (`motivo_cancelamento`, `cancelado_por_colaborador_id`, `autorizado_por_colaborador_id`).
+
+**Frontend:** modal `CancelarVendaModal` na listagem e detalhe; motivo exibido em venda cancelada.
+
+**Dev:** gerente seed via Swagger ou `cerebro-backend/scripts/seed-gerente-dev.sh` — ex.: `ana.gerente@omnicore.local` / `senha123`.
+
+**Teste validado (25/ago):** Venda #5 cancelada por Carlos (vendedor) com autorização Ana (gerente), motivo “Produto com defeito”, estorno +10 Fanta (saldo 100) — banco e UI conferidos.
+
+**Débito técnico — devolução completa (futuro):** estorno financeiro (Pix/cartão/dinheiro), NFC-e, cancelamento parcial, prazo por canal — distinto desta regra operacional de autorização.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
@@ -319,4 +334,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 24/ago/2026 — Sessão 11 vendas ✅ (`c0ae1d9`); próximo: 10.5 hooks ou 12 PWA.*
+*Última atualização: 25/ago/2026 — Sessão 11.1 cancelamento com gerente ✅ (`PLACEHOLDER`); próximo: 10.5 hooks ou 12 PWA.*

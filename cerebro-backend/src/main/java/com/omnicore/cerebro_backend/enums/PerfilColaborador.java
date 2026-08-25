@@ -4,5 +4,9 @@ public enum PerfilColaborador {
     VENDEDOR,
     CAIXA,
     CONFERENTE,
-    GERENTE
+    GERENTE;
+
+    public boolean podeAutorizarCancelamentoVendaPaga() {
+        return this == GERENTE;
+    }
 }

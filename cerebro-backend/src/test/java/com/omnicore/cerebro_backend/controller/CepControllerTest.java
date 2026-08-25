@@ -22,7 +22,6 @@ import com.omnicore.cerebro_backend.service.CepService;
 @WebMvcTest(controllers = CepController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @ActiveProfiles("test")
 @Import(GlobalExceptionHandler.class)
-@SuppressWarnings("null")
 class CepControllerTest {
 
     @Autowired

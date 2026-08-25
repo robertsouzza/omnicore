@@ -16,21 +16,26 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.omnicore.cerebro_backend.enums.PerfilColaborador;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.Venda;
+import com.omnicore.cerebro_backend.security.AuthenticatedColaborador;
 import com.omnicore.cerebro_backend.service.VendaService;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @WebMvcTest(controllers = VendaController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @ActiveProfiles("test")
@@ -43,6 +48,9 @@ public class VendaControllerTest {
 
     @MockitoBean
     private VendaService vendaService;
+
+    private static final AuthenticatedColaborador GERENTE_AUTH = new AuthenticatedColaborador(
+            2L, "Ana Gerente", "ana@loja.com", PerfilColaborador.GERENTE);
 
     private static final String PAYLOAD_VALIDO = """
             {
@@ -167,9 +175,13 @@ public class VendaControllerTest {
                 .valorTotal(new BigDecimal("59.80"))
                 .build();
 
-        when(vendaService.cancelar(1L)).thenReturn(vendaCancelada);
+        when(vendaService.cancelar(eq(1L), any(), any())).thenReturn(vendaCancelada);
 
-        mockMvc.perform(put("/api/vendas/{id}/cancelar", 1L))
+        mockMvc.perform(put("/api/vendas/{id}/cancelar", 1L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(
+                        GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"motivo\":\"Cliente desistiu\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status").value("CANCELADA"));
@@ -178,10 +190,14 @@ public class VendaControllerTest {
     @Test
     @DisplayName("PUT /api/vendas/{id}/cancelar deve retornar 400 Bad Request se a venda já estiver cancelada")
     void deveRetornar400AoCancelarVendaJaCancelada() throws Exception {
-        when(vendaService.cancelar(1L))
+        when(vendaService.cancelar(eq(1L), any(), any()))
                 .thenThrow(new BusinessException("A venda #1 já se encontra cancelada."));
 
-        mockMvc.perform(put("/api/vendas/{id}/cancelar", 1L))
+        mockMvc.perform(put("/api/vendas/{id}/cancelar", 1L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(
+                        GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("A venda #1 já se encontra cancelada."));
     }

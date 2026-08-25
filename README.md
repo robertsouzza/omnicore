@@ -173,6 +173,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional no cadastro (sem upload) | **Sessão 11.5** (upload + Object Storage, antes da 12) |
 | Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
+| Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Evolução frontend (arquitetura) | MVP organizado (`api/`, `types/`, CSS Modules); duplicação em listagens | **10.5** hooks **próximo** · **12.5** UI kit pós-12 · **13-FE** Query+Vitest pré-SaaS |
 

@@ -57,6 +57,15 @@ public class Venda {
     @Column(length = 100)
     private String nomeClienteOcasional; // Para cadastros rápidos ou vendas diretas
 
+    @Column(name = "motivo_cancelamento", length = 255)
+    private String motivoCancelamento;
+
+    @Column(name = "cancelado_por_colaborador_id")
+    private Long canceladoPorColaboradorId;
+
+    @Column(name = "autorizado_por_colaborador_id")
+    private Long autorizadoPorColaboradorId;
+
     @OneToMany(mappedBy = "venda", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ItemVenda> itens = new ArrayList<>();
