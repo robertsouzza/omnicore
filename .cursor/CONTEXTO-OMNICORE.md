@@ -71,7 +71,7 @@
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `7e259ba` |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `c853b62` |
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
-| 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `PLACEHOLDER` |
+| 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ **próximo** | — |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
@@ -378,4 +378,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 27/ago/2026 — indicador visual estoque ✅ (`647c384`); próximo: 12.5 UI kit.*
+*Última atualização: 27/ago/2026 — barcode/QR produto ✅ (`2b164e6`); próximo: 12.5 UI kit.*
