@@ -1,0 +1,71 @@
+.saldoWrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-width: 2.5rem;
+}
+
+.saldoBase {
+  font-weight: 700;
+  font-size: 1.0625rem;
+  text-align: center;
+  min-width: 1.5rem;
+}
+
+.saldoValue {
+  composes: saldoBase;
+  color: #0f2744;
+}
+
+.saldoCheio {
+  composes: saldoBase;
+  color: #16a34a;
+}
+
+.saldoMedio {
+  composes: saldoBase;
+  color: #2563eb;
+}
+
+.saldoBaixo {
+  composes: saldoBase;
+  color: #ea580c;
+}
+
+.saldoCritico {
+  composes: saldoBase;
+  color: #db2777;
+  animation: saldoPiscar 1.1s ease-in-out infinite;
+}
+
+.saldoZerado {
+  composes: saldoBase;
+  color: #dc2626;
+}
+
+@keyframes saldoPiscar {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.saldoLoading {
+  color: #94a3b8;
+  text-align: center;
+}
+
+.saldoError {
+  color: #b91c1c;
+  text-align: center;
+}
+
+.saldoKit {
+  color: #cbd5e1;
+  font-weight: 500;
+}

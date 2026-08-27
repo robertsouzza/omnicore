@@ -70,6 +70,7 @@
 | **11.1** | **Cancelamento venda paga: autorização gerente + motivo (backend + modal frontend)** | ✅ testado browser | `09f36d6` |
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `7e259ba` |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `c853b62` |
+| 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `PLACEHOLDER` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ **próximo** | — |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
@@ -162,6 +163,14 @@
 **Pós-teste (25/ago):** busca cliente completa no salão (nome/documento/ocasional); header salão (nome + Sair sem cortar); **Venda #8** testada (Rafael Castro · Fanta ×10 + Biscoito ×3) — simulação PAGA no banco OK; Postgres Docker `TZ/PGTZ=America/Manaus`; script `simular-pagamento-venda-dev.sql`.
 
 **Teste sugerido:** login → `/salao` → EAN → registrar venda; Add to Home Screen (PWA).
+
+### Pós-12 — indicador visual de estoque (27/ago) — entregue
+
+**Backend:** `GET /api/estoque/saldo/{id}/indicador` — saldo + **referência** (pico histórico de movimentações).
+
+**Frontend:** coluna **Estoque** em `/produtos` (unitários; kits com `—`); `SaldoCell` + `useProdutoSaldos` + faixas de cor (verde 100% · azul ≥50% · laranja ≥25% · rosa piscando &lt;25% · vermelho 0) em **Produtos** e **Estoque**; tooltip com % do pico.
+
+**Testado:** vendas #10 (Fanta → laranja) e #11 (Biscoito → rosa) após simulação PAGA.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueRequestDTO;
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.service.EstoqueService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +51,15 @@ public class EstoqueController {
     public ResponseEntity<Integer> obterSaldo(@PathVariable Long produtoId) {
         Integer saldo = estoqueService.consultarSaldo(produtoId);
         return ResponseEntity.ok(saldo);
+    }
+
+    @GetMapping("/saldo/{produtoId}/indicador")
+    @Operation(
+            summary = "Consultar saldo com referência",
+            description = "Retorna saldo atual e pico histórico (referência 100%) para indicador visual."
+    )
+    public ResponseEntity<SaldoIndicadorResponseDTO> obterSaldoIndicador(@PathVariable Long produtoId) {
+        return ResponseEntity.ok(estoqueService.consultarSaldoIndicador(produtoId));
     }
 
     @GetMapping("/historico/{produtoId}")

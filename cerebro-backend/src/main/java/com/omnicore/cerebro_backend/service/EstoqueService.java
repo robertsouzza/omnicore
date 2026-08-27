@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueRequestDTO;
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
@@ -67,6 +68,17 @@ public class EstoqueService {
     }
 
     @Transactional(readOnly = true)
+    public SaldoIndicadorResponseDTO consultarSaldoIndicador(Long produtoId) {
+        if (!produtoRepository.existsById(produtoId)) {
+            throw new BusinessException("Produto com ID " + produtoId + " não encontrado.");
+        }
+        int saldo = obterSaldoAtual(produtoId);
+        int picoHistorico = obterPicoHistorico(produtoId);
+        int referencia = Math.max(picoHistorico, saldo);
+        return new SaldoIndicadorResponseDTO(saldo, referencia);
+    }
+
+    @Transactional(readOnly = true)
     public Page<MovimentacaoEstoqueResponseDTO> listarHistorico(Long produtoId, Pageable pageable) {
         if (pageable == null) {
             throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
@@ -93,6 +105,11 @@ public class EstoqueService {
     private int obterSaldoAtual(Long produtoId) {
         Integer saldoConsultado = movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(produtoId);
         return saldoConsultado != null ? saldoConsultado : 0;
+    }
+
+    private int obterPicoHistorico(Long produtoId) {
+        Integer pico = movimentacaoEstoqueRepository.getPicoSaldoHistoricoPorProdutoId(produtoId);
+        return pico != null ? pico : 0;
     }
 
     private MovimentacaoEstoque salvarMovimentacao(Produto produto, TipoMovimentacaoEstoque tipo, Integer quantidade,

@@ -33,6 +33,25 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
        """)
     Integer getSaldoEstoquePorProdutoId(@Param("produtoId") Long produtoId);
 
+    /**
+     * Maior saldo acumulado já registrado no histórico de movimentações (pico de reposição).
+     */
+    @Query(value = """
+            WITH mov AS (
+                SELECT CASE WHEN tipo = 'ENTRADA' THEN quantidade ELSE -quantidade END AS delta,
+                       data_hora,
+                       id
+                FROM tb_movimentacao_estoque
+                WHERE produto_id = :produtoId
+            ),
+            running AS (
+                SELECT SUM(delta) OVER (ORDER BY data_hora ASC, id ASC ROWS UNBOUNDED PRECEDING) AS saldo
+                FROM mov
+            )
+            SELECT COALESCE(MAX(saldo), 0) FROM running
+            """, nativeQuery = true)
+    Integer getPicoSaldoHistoricoPorProdutoId(@Param("produtoId") Long produtoId);
+
     List<MovimentacaoEstoque> findByVendaIdAndTipo(Long vendaId, TipoMovimentacaoEstoque tipo);
 
 }

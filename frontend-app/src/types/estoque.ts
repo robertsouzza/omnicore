@@ -19,3 +19,8 @@ export interface MovimentacaoEstoque {
   justificativa: string | null
   vendaId: number | null
 }
+
+export interface SaldoIndicador {
+  saldo: number
+  referencia: number
+}

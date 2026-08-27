@@ -410,6 +410,16 @@
   white-space: nowrap;
 }
 
+.saldoCol {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table th.saldoCol {
+  text-align: center;
+}
+
+
 .pagination {
   display: flex;
   flex-wrap: wrap;

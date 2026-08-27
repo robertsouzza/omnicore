@@ -1,42 +1,17 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { obterSaldo } from '../api/estoque'
 import { listarProdutos } from '../api/produtos'
+import { SaldoCell } from '../components/SaldoCell'
 import { useAuth } from '../auth/AuthContext'
-import { useDebouncedSearch, usePaginatedResource, useUnauthorizedHandler } from '../hooks'
+import { useDebouncedSearch, usePaginatedResource, useProdutoSaldos } from '../hooks'
 import { onlyDigits } from '../utils/strings'
 import styles from './EstoquePage.module.css'
 
 const BUSCA_MIN_API = 3
 
-type SaldoStatus =
-  | { state: 'idle' }
-  | { state: 'loading' }
-  | { state: 'loaded'; saldo: number }
-  | { state: 'error' }
-
-function SaldoCell({ status }: { status: SaldoStatus }) {
-  if (status.state === 'loading') {
-    return <span className={styles.saldoLoading}>…</span>
-  }
-  if (status.state === 'error') {
-    return <span className={styles.saldoError}>—</span>
-  }
-  if (status.state === 'loaded') {
-    return (
-      <span className={status.saldo === 0 ? styles.saldoZero : styles.saldoValue}>
-        {status.saldo}
-      </span>
-    )
-  }
-  return <span className={styles.saldoLoading}>…</span>
-}
-
 export function EstoquePage() {
   const { session } = useAuth()
   const [pageNumber, setPageNumber] = useState(0)
-  const [saldos, setSaldos] = useState<Record<number, SaldoStatus>>({})
-  const handleUnauthorized = useUnauthorizedHandler()
 
   const resetPage = useCallback(() => setPageNumber(0), [])
 
@@ -88,49 +63,11 @@ export function EstoquePage() {
     })
   }, [page, nomeSearch.normalized, codigoSearch.normalized])
 
-  useEffect(() => {
-    if (!session || produtosExibidos.length === 0) return
-
-    const produtoIds = produtosExibidos.map((p) => p.id)
-    setSaldos((prev) => {
-      const next = { ...prev }
-      for (const id of produtoIds) {
-        next[id] = { state: 'loading' }
-      }
-      return next
-    })
-
-    let cancelled = false
-
-    void (async () => {
-      await Promise.all(
-        produtoIds.map(async (id) => {
-          try {
-            const saldo = await obterSaldo(session.token, id)
-            if (!cancelled) {
-              setSaldos((prev) => ({ ...prev, [id]: { state: 'loaded', saldo } }))
-            }
-          } catch (err) {
-            if (handleUnauthorized(err)) return
-            if (!cancelled) {
-              setSaldos((prev) => ({ ...prev, [id]: { state: 'error' } }))
-            }
-          }
-        }),
-      )
-    })()
-
-    return () => {
-      cancelled = true
-    }
-  }, [session, produtosExibidos, handleUnauthorized])
+  const produtoIds = useMemo(() => produtosExibidos.map((p) => p.id), [produtosExibidos])
+  const { saldoFor } = useProdutoSaldos(produtoIds, { comIndicador: true })
 
   const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
   const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
-
-  function saldoFor(produtoId: number): SaldoStatus {
-    return saldos[produtoId] ?? { state: 'loading' }
-  }
 
   return (
     <section className={styles.page}>
@@ -202,7 +139,7 @@ export function EstoquePage() {
                   <article key={produto.id} className={styles.card}>
                     <div className={styles.cardTop}>
                       <h2 className={styles.cardTitle}>{produto.nome}</h2>
-                      <SaldoCell status={saldoFor(produto.id)} />
+                      <SaldoCell status={saldoFor(produto.id)} indicador />
                     </div>
                     <dl className={styles.cardMeta}>
                       <div>
@@ -228,7 +165,7 @@ export function EstoquePage() {
                       <th>Código</th>
                       <th>Produto</th>
                       <th>Categoria</th>
-                      <th>Saldo</th>
+                      <th className={styles.saldoCol}>Saldo</th>
                       <th>Ações</th>
                     </tr>
                   </thead>
@@ -238,8 +175,8 @@ export function EstoquePage() {
                         <td className={styles.mono}>{produto.codigoBarras}</td>
                         <td>{produto.nome}</td>
                         <td>{produto.categoria}</td>
-                        <td>
-                          <SaldoCell status={saldoFor(produto.id)} />
+                        <td className={styles.saldoCol}>
+                          <SaldoCell status={saldoFor(produto.id)} indicador />
                         </td>
                         <td>
                           <Link to={`/estoque/${produto.id}`} className={styles.linkBtn}>

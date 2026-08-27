@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { inativarProduto, listarProdutos } from '../api/produtos'
+import { SaldoCell, SaldoKitPlaceholder } from '../components/SaldoCell'
 import { useAuth } from '../auth/AuthContext'
-import { useAsyncAction, useDebouncedSearch, usePaginatedResource } from '../hooks'
+import { useAsyncAction, useDebouncedSearch, usePaginatedResource, useProdutoSaldos } from '../hooks'
 import type { Produto } from '../types/produto'
 import { onlyDigits } from '../utils/strings'
 import styles from './ProdutosPage.module.css'
@@ -253,6 +254,19 @@ export function ProdutosPage() {
     })
   }, [page, nomeSearch.normalized, codigoSearch.normalized])
 
+  const unitarioIds = useMemo(
+    () => produtosExibidos.filter((p) => p.tipoProduto === 'UNITARIO').map((p) => p.id),
+    [produtosExibidos],
+  )
+  const { saldoFor } = useProdutoSaldos(unitarioIds, { comIndicador: true })
+
+  function estoqueCell(produto: Produto) {
+    if (produto.tipoProduto !== 'UNITARIO') {
+      return <SaldoKitPlaceholder />
+    }
+    return <SaldoCell status={saldoFor(produto.id)} indicador />
+  }
+
   const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
   const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
 
@@ -358,6 +372,10 @@ export function ProdutosPage() {
                         <dd className={styles.cardPreco}>{formatPreco(produto.precoVenda)}</dd>
                       </div>
                       <div>
+                        <dt>Estoque</dt>
+                        <dd>{estoqueCell(produto)}</dd>
+                      </div>
+                      <div>
                         <dt>Categoria</dt>
                         <dd>{produto.categoria}</dd>
                       </div>
@@ -386,6 +404,7 @@ export function ProdutosPage() {
                       <th>Categoria</th>
                       <th>Tipo</th>
                       <th>Preço</th>
+                      <th className={styles.saldoCol}>Estoque</th>
                       {incluirInativos && <th>Status</th>}
                       <th>Ações</th>
                     </tr>
@@ -404,6 +423,7 @@ export function ProdutosPage() {
                         <td>{produto.categoria}</td>
                         <td>{produto.tipoProduto}</td>
                         <td className={styles.preco}>{formatPreco(produto.precoVenda)}</td>
+                        <td className={styles.saldoCol}>{estoqueCell(produto)}</td>
                         {incluirInativos && (
                           <td>
                             <StatusBadge ativo={produto.ativo} />

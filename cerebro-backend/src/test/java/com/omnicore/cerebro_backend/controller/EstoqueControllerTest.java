@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
@@ -129,6 +130,18 @@ public class EstoqueControllerTest {
         mockMvc.perform(get("/api/estoque/saldo/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("45"));
+    }
+
+    @Test
+    @DisplayName("GET /api/estoque/saldo/{id}/indicador - Deve retornar saldo e referência")
+    void deveRetornarSaldoIndicador() throws Exception {
+        when(estoqueService.consultarSaldoIndicador(1L)).thenReturn(new SaldoIndicadorResponseDTO(14, 100));
+
+        mockMvc.perform(get("/api/estoque/saldo/1/indicador"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {"saldo":14,"referencia":100}
+                        """));
     }
 
     @Test

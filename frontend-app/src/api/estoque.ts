@@ -3,6 +3,7 @@ import type {
   MovimentacaoEstoque,
   MovimentacaoEstoqueRequest,
   Page,
+  SaldoIndicador,
 } from '../types/estoque'
 
 export interface ListarHistoricoParams {
@@ -34,6 +35,10 @@ export function registrarSaida(
 
 export function obterSaldo(token: string, produtoId: number): Promise<number> {
   return apiFetch<number>(`/api/estoque/saldo/${produtoId}`, {}, token)
+}
+
+export function obterSaldoIndicador(token: string, produtoId: number): Promise<SaldoIndicador> {
+  return apiFetch<SaldoIndicador>(`/api/estoque/saldo/${produtoId}/indicador`, {}, token)
 }
 
 export function listarHistorico(

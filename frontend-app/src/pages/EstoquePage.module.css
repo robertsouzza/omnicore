@@ -91,25 +91,6 @@
   border-radius: 8px;
 }
 
-.saldoValue {
-  font-weight: 700;
-  font-size: 1.0625rem;
-  color: #0f2744;
-}
-
-.saldoZero {
-  font-weight: 600;
-  color: #94a3b8;
-}
-
-.saldoLoading {
-  color: #94a3b8;
-}
-
-.saldoError {
-  color: #b91c1c;
-}
-
 .cardList {
   display: flex;
   flex-direction: column;
@@ -223,6 +204,15 @@
   font-family: ui-monospace, monospace;
   font-size: 0.8125rem;
   color: #475569;
+}
+
+.saldoCol {
+  text-align: center;
+  white-space: nowrap;
+}
+
+.table th.saldoCol {
+  text-align: center;
 }
 
 .linkBtn {

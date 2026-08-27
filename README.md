@@ -141,7 +141,7 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Autenticação | `/api/auth` | Login JWT |
 | Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca por `nome` e `codigoBarras` |
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
-| Estoque | `/api/estoque` | Entrada, saída, saldo, histórico |
+| Estoque | `/api/estoque` | Entrada, saída, saldo, saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
 | Vendas | `/api/vendas` | Criar, listar com filtros, cancelar com estorno |
@@ -155,12 +155,12 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Tela | Rota | Status |
 |------|------|--------|
 | Login | `/login` | ✅ |
-| Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox) | `/produtos` | ✅ |
+| Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox, **coluna estoque colorida**) | `/produtos` | ✅ |
 | Cadastro / edição de produtos | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
-| Estoque (saldo, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
+| Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
 | PWA salão (código de barras) | — | ✅ Sessão 12 — `/salao`, manifest, SW |
 
@@ -210,9 +210,9 @@ npm run build
 | Auth JWT + Swagger Authorize | ✅ |
 | CI GitHub Actions (backend) | ✅ |
 | Frontend: login | ✅ |
-| Frontend: produtos (CRUD, kits, busca nome/EAN, imagem na listagem) | ✅ |
+| Frontend: produtos (CRUD, kits, busca nome/EAN, imagem, **coluna estoque**) | ✅ |
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
-| Frontend: estoque (saldo, movimentação manual, histórico; só unitários) | ✅ |
+| Frontend: estoque (saldo, movimentação manual, histórico; indicador colorido; só unitários) | ✅ |
 | Frontend: vendas (carrinho, listagem, cancelamento; kits na busca) | ✅ |
 | Frontend: UI kit / TanStack Query | ⬜ **próximo** (12.5 ou 13-FE) |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
