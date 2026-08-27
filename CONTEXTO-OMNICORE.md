@@ -8,8 +8,8 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 13-FE — TanStack Query + Vitest (ou 11.5 upload imagem).
-Sessão 12.5 (UI kit) ✅ entregue — tokens + components/ui; Login e Estoque migrados.
+Próximo: 11.5 upload imagem (opcional) ou backend 13+.
+Sessão 13-FE (Query+Vitest) ✅ entregue — Produtos piloto, npm run test (33 testes).
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

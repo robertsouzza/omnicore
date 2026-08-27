@@ -74,7 +74,7 @@
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
-| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ **próximo** | — |
+| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | *(pendente commit)* |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
@@ -89,7 +89,7 @@
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | ✅ |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
 | **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | ✅ |
-| **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | **próximo** |
+| **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | ✅ |
 
 ### Sessão 7.2 — busca e paginação de produtos (paridade clientes)
 
@@ -200,6 +200,16 @@
 
 **Build:** `npm run lint` + `npm run build` OK.
 
+### Sessão 13-FE — TanStack Query + Vitest (frontend) — entregue
+
+**TanStack Query:** `@tanstack/react-query`; `QueryProvider` no `App`; `src/lib/queryClient.ts` + `queryKeys.ts`; `src/queries/produtos.ts` (`useProdutosListQuery`, `useInativarProdutoMutation` com invalidação `produtos` + `estoque`).
+
+**Piloto:** `ProdutosPage` migrada de `usePaginatedResource` para Query; hook `useQueryUnauthorized` (401 → logout).
+
+**Vitest:** `vitest.config.ts`, `src/test/setup.ts`, script `npm run test` — **33 testes** em `api/client`, utils (`strings`, `estoqueIndicador`, `validation`, `cpf`), `queryKeys`, `useDebouncedSearch`.
+
+**Demais listagens** (Clientes, Estoque, Vendas) podem migrar gradualmente; `usePaginatedResource` permanece disponível.
+
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
 **Backend:** `tipoDocumento` (CPF, PASSAPORTE, DOCUMENTO_ESTRANGEIRO) + `numeroDocumento` único por tipo; `GET /api/clientes/documento?tipo=&numero=`; atalho `/cpf/{cpf}` mantido; `GET /api/clientes?nome=` (mín. 3 letras, paginado). Estrangeiro exige **endereço de entrega no Brasil**. Validação **CPF com dígitos verificadores** (`CpfValidator`); celular 4–15 dígitos + libphonenumber. `GlobalExceptionHandler`: mensagens amigáveis (409/500).
@@ -260,7 +270,7 @@
 | **10.5** | Hooks compartilhados | `src/hooks/`: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` centralizado em `utils/strings.ts` | **Após Sessão 11** |
 | **11.5** | Upload imagem (opcional) | Ver débito técnico imagem | Entre 11 e 12 |
 | **12.5** | UI kit mínimo | `components/ui/`: Button, TextField, TextArea, SearchPanel, PaginationBar, StatusMessage, PageHeader; `styles/tokens.css` | ✅ |
-| **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | **Próximo** |
+| **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | ✅ |
 
 **Não fazer ainda:** pastas `features/` (só com 20+ telas), Redux/Zustand, micro-frontends, refatorar todo CSS de uma vez.
 
@@ -370,7 +380,7 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 13-FE — TanStack Query + Vitest** (ou **11.5 upload imagem** opcional) — ver cronograma.
+**Próximo passo acordado:** **11.5 upload imagem** (opcional) ou evoluções **13+** backend — ver cronograma.
 
 ---
 
@@ -391,10 +401,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 13-FE — TanStack Query + Vitest (ou 11.5 upload imagem).
+Próximo: 11.5 upload imagem (opcional) ou backend 13+.
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 12.5 UI kit ✅ (`f76cb01`); próximo: 13-FE Query+Vitest.*
+*Última atualização: 27/ago/2026 — Sessão 13-FE Query+Vitest ✅ (local, pendente commit); próximo: 11.5 ou 13+.*

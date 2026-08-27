@@ -11,11 +11,11 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
-- Próximo foco: **Sessão 13-FE — TanStack Query + Vitest** ou **11.5 upload imagem**
+- Próximo foco: **11.5 upload imagem** (opcional) ou **13+ backend**
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
 - Imagem produto: MVP = só URL (`urlImagem`); upload + Object Storage = débito técnico — **momento sugerido: após Sessão 11, antes da 12 (sessão 11.5)**
 - Catálogo/precificação/compras: cadastro enxuto + preço livre; estoque separado do cadastro (Sessão 10); fornecedor/NF-e/custo/margem = débito técnico — **precificação pós-11; NF-e Fase 6**
-- Frontend roadmap: **10.5** hooks ✅ · **12.5** UI kit ✅ · **13-FE** TanStack Query + Vitest (próximo)
+- Frontend roadmap: **10.5** hooks ✅ · **12.5** UI kit ✅ · **13-FE** Query+Vitest ✅
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
@@ -39,4 +39,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `f76cb01` — feat(frontend): Sessão 12.5 UI kit mínimo + design tokens
+Último commit relevante: `bee9f35` — docs hash 12.5 · **13-FE Query+Vitest pendente commit**

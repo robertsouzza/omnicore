@@ -3,6 +3,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SalaoLayout } from './components/SalaoLayout'
+import { QueryProvider } from './providers/QueryProvider'
 import { ClienteFormPage } from './pages/ClienteFormPage'
 import { ClientesPage } from './pages/ClientesPage'
 import { EstoquePage } from './pages/EstoquePage'
@@ -19,8 +20,9 @@ import { VendasPage } from './pages/VendasPage'
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <QueryProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
@@ -48,5 +50,6 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </QueryProvider>
   )
 }

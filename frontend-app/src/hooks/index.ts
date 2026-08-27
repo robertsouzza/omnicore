@@ -1,3 +1,4 @@
+export { useQueryUnauthorized } from './useQueryUnauthorized'
 export { useClienteBusca } from './useClienteBusca'
 export type { ClienteBusca } from './useClienteBusca'
 export { useAsyncAction } from './useAsyncAction'

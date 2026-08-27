@@ -1,9 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { inativarProduto, listarProdutos } from '../api/produtos'
-import { SaldoCell, SaldoKitPlaceholder } from '../components/SaldoCell'
 import { useAuth } from '../auth/AuthContext'
-import { useAsyncAction, useDebouncedSearch, usePaginatedResource, useProdutoSaldos } from '../hooks'
+import { SaldoCell, SaldoKitPlaceholder } from '../components/SaldoCell'
+import { useDebouncedSearch, useProdutoSaldos, useQueryUnauthorized } from '../hooks'
+import {
+  getInativarProdutoErrorMessage,
+  getProdutosQueryErrorMessage,
+  useInativarProdutoMutation,
+  useProdutosListQuery,
+} from '../queries/produtos'
 import type { Produto } from '../types/produto'
 import { onlyDigits } from '../utils/strings'
 import styles from './ProdutosPage.module.css'
@@ -179,6 +184,7 @@ export function ProdutosPage() {
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
   const [previewProduto, setPreviewProduto] = useState<Produto | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const resetPage = useCallback(() => setPageNumber(0), [])
 
@@ -192,35 +198,30 @@ export function ProdutosPage() {
     onDebouncedChange: resetPage,
   })
 
-  const fetchPage = useCallback(
-    (page: number) => {
-      if (!session) throw new Error('Sem sessão')
-      return listarProdutos(session.token, {
-        page,
-        incluirInativos,
-        nome: nomeSearch.debouncedValue || undefined,
-        codigoBarras: codigoSearch.debouncedValue || undefined,
-      })
-    },
-    [session, incluirInativos, nomeSearch.debouncedValue, codigoSearch.debouncedValue],
+  const listFilters = useMemo(
+    () => ({
+      page: pageNumber,
+      incluirInativos,
+      nome: nomeSearch.debouncedValue || undefined,
+      codigoBarras: codigoSearch.debouncedValue || undefined,
+    }),
+    [pageNumber, incluirInativos, nomeSearch.debouncedValue, codigoSearch.debouncedValue],
   )
 
-  const {
-    page,
-    initialLoading,
-    refreshing,
-    loadError,
-    setLoadError,
-    load,
-    listaPronta,
-  } = usePaginatedResource(fetchPage, {
-    enabled: !!session,
-    errorMessage: 'Erro ao carregar produtos.',
-    pageNumber,
-    setPageNumber,
-  })
+  const produtosQuery = useProdutosListQuery(session?.token, listFilters)
+  useQueryUnauthorized(produtosQuery.error)
 
-  const { actionKey, execute } = useAsyncAction()
+  const inativarMutation = useInativarProdutoMutation(session?.token)
+  useQueryUnauthorized(inativarMutation.error)
+
+  const page = produtosQuery.data ?? null
+  const initialLoading = produtosQuery.isPending
+  const refreshing = produtosQuery.isFetching && !produtosQuery.isPending
+  const loadError = produtosQuery.error
+    ? getProdutosQueryErrorMessage(produtosQuery.error)
+    : actionError
+  const listaPronta = produtosQuery.isSuccess
+  const actionId = inativarMutation.isPending ? (inativarMutation.variables ?? null) : null
 
   async function handleInativar(produto: Produto) {
     if (!session || !produto.ativo) return
@@ -230,16 +231,12 @@ export function ProdutosPage() {
     )
     if (!confirmed) return
 
-    setLoadError(null)
-    await execute(
-      produto.id,
-      async () => {
-        await inativarProduto(session.token, produto.id)
-        await load()
-      },
-      setLoadError,
-      'Não foi possível inativar o produto.',
-    )
+    setActionError(null)
+    try {
+      await inativarMutation.mutateAsync(produto.id)
+    } catch (err) {
+      setActionError(getInativarProdutoErrorMessage(err))
+    }
   }
 
   const produtosExibidos = useMemo(() => {
@@ -386,7 +383,7 @@ export function ProdutosPage() {
                     </dl>
                     <ProdutoActions
                       produto={produto}
-                      actionId={actionKey as number | null}
+                      actionId={actionId}
                       onInativar={(p) => void handleInativar(p)}
                       className={styles.cardActions}
                     />
@@ -432,7 +429,7 @@ export function ProdutosPage() {
                         <td>
                           <ProdutoActions
                             produto={produto}
-                            actionId={actionKey as number | null}
+                            actionId={actionId}
                             onInativar={(p) => void handleInativar(p)}
                           />
                         </td>
