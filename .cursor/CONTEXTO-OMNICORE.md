@@ -181,6 +181,15 @@
 
 **Testado:** produtos #1 (Coca-Cola) e #8 (Biscoito) com imagens salvas.
 
+### Débito técnico — Etiqueta e QR do produto (futuro — pós-12.5)
+
+| Item | MVP atual (27/ago) | Quando / observação |
+|------|-------------------|---------------------|
+| **Impressão de etiqueta** | Gerar PNG, salvar no banco, **Baixar PNG** | **Pós-12.5** — layout para impressora comum ou térmica (Zebra/Elgin); Roberto precisa de impressora (ou validar só layout via PDF) para testar na loja |
+| **QR simples (só EAN)** | QR em JSON (`id`, nome, preço, categoria…) | Opcional futuro — QR contendo só o EAN para leitura fácil com câmera genérica do celular |
+
+**Decisão (27/ago):** impressão de etiqueta **não bloqueia** Sessão 12.5; cadastro + leitor USB já atendidos.
+
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
 **Backend:** `tipoDocumento` (CPF, PASSAPORTE, DOCUMENTO_ESTRANGEIRO) + `numeroDocumento` único por tipo; `GET /api/clientes/documento?tipo=&numero=`; atalho `/cpf/{cpf}` mantido; `GET /api/clientes?nome=` (mín. 3 letras, paginado). Estrangeiro exige **endereço de entrega no Brasil**. Validação **CPF com dígitos verificadores** (`CpfValidator`); celular 4–15 dígitos + libphonenumber. `GlobalExceptionHandler`: mensagens amigáveis (409/500).

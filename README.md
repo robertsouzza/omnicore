@@ -175,6 +175,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
+| Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
 | Evolução frontend (arquitetura) | hooks ✅ (10.5) · PWA salão ✅ (12) | **12.5** UI kit **próximo** · **13-FE** Query+Vitest |
 
 ---
