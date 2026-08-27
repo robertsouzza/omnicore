@@ -74,7 +74,7 @@
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
-| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | *(pendente commit)* |
+| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
@@ -407,4 +407,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 13-FE Query+Vitest ✅ (local, pendente commit); próximo: 11.5 ou 13+.*
+*Última atualização: 27/ago/2026 — Sessão 13-FE Query+Vitest ✅ (`abab2c9`); próximo: 11.5 ou 13+.*
