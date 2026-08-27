@@ -8,8 +8,8 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 12.5 — UI kit mínimo (ou 13-FE Query+Vitest).
-Sessão 12 (PWA salão) ✅ entregue — /salao.
+Próximo: Sessão 13-FE — TanStack Query + Vitest (ou 11.5 upload imagem).
+Sessão 12.5 (UI kit) ✅ entregue — tokens + components/ui; Login e Estoque migrados.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

@@ -2,6 +2,13 @@ import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarProdutos } from '../api/produtos'
 import { SaldoCell } from '../components/SaldoCell'
+import {
+  PageHeader,
+  PaginationBar,
+  SearchPanel,
+  StatusMessage,
+  TextField,
+} from '../components/ui'
 import { useAuth } from '../auth/AuthContext'
 import { useDebouncedSearch, usePaginatedResource, useProdutoSaldos } from '../hooks'
 import { onlyDigits } from '../utils/strings'
@@ -69,69 +76,62 @@ export function EstoquePage() {
   const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
   const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
 
+  const searchHints = (
+    <>
+      {(nomeSearch.isShort || codigoSearch.isShort) && (
+        <StatusMessage variant="hint">
+          Filtrando na página atual — informe {BUSCA_MIN_API} ou mais caracteres para buscar no
+          servidor.
+        </StatusMessage>
+      )}
+      {refreshing && buscaNoServidor && (
+        <StatusMessage variant="hint">Buscando no servidor…</StatusMessage>
+      )}
+    </>
+  )
+
   return (
     <section className={styles.page}>
-      <div className={styles.pageHeader}>
-        <div>
-          <h1 className={styles.title}>Estoque</h1>
-          <p className={styles.subtitle}>
-            Movimentação de produtos unitários. Kits (pacotes) usam o estoque dos componentes —
-            configure em Produtos → Kit.
-          </p>
-        </div>
-          {page && (
-            <span className={styles.count}>
-              {produtosExibidos.length} unitário{produtosExibidos.length === 1 ? '' : 's'} na página
-            </span>
-          )}
-      </div>
+      <PageHeader
+        title="Estoque"
+        subtitle="Movimentação de produtos unitários. Kits (pacotes) usam o estoque dos componentes — configure em Produtos → Kit."
+        badge={
+          page
+            ? `${produtosExibidos.length} unitário${produtosExibidos.length === 1 ? '' : 's'} na página`
+            : undefined
+        }
+      />
 
-      <div className={styles.searchPanel}>
-        <label className={styles.searchLabelNome}>
-          Buscar por produto
-          <input
-            className={styles.searchInputNome}
-            value={nomeSearch.value}
-            onChange={(e) => nomeSearch.setValue(e.target.value)}
-            placeholder="Digite parte do nome"
-            autoComplete="off"
-          />
-        </label>
+      <SearchPanel footer={searchHints}>
+        <TextField
+          label="Buscar por produto"
+          value={nomeSearch.value}
+          onChange={(e) => nomeSearch.setValue(e.target.value)}
+          placeholder="Digite parte do nome"
+          autoComplete="off"
+        />
+        <TextField
+          label="Código de barras"
+          mono
+          value={codigoSearch.value}
+          onChange={(e) => codigoSearch.setValue(onlyDigits(e.target.value))}
+          placeholder="Digite o código (EAN)"
+          inputMode="numeric"
+          autoComplete="off"
+        />
+      </SearchPanel>
 
-        <label className={styles.searchLabelCodigo}>
-          Código de barras
-          <input
-            className={styles.searchInputCodigo}
-            value={codigoSearch.value}
-            onChange={(e) => codigoSearch.setValue(onlyDigits(e.target.value))}
-            placeholder="Digite o código (EAN)"
-            inputMode="numeric"
-            autoComplete="off"
-          />
-        </label>
-
-        {(nomeSearch.isShort || codigoSearch.isShort) && (
-          <span className={styles.searchHint}>
-            Filtrando na página atual — informe {BUSCA_MIN_API} ou mais caracteres para buscar no
-            servidor.
-          </span>
-        )}
-        {refreshing && buscaNoServidor && (
-          <span className={styles.searchHint}>Buscando no servidor…</span>
-        )}
-      </div>
-
-      {initialLoading && <p className={styles.status}>Carregando…</p>}
-      {loadError && <p className={styles.error}>{loadError}</p>}
+      {initialLoading && <StatusMessage>Carregando…</StatusMessage>}
+      {loadError && <StatusMessage variant="error">{loadError}</StatusMessage>}
 
       {listaPronta && !loadError && (
         <>
           {produtosExibidos.length === 0 ? (
-            <p className={styles.status}>
+            <StatusMessage>
               {buscaAtiva
                 ? 'Nenhum produto unitário encontrado para os filtros informados.'
                 : 'Nenhum produto unitário ativo encontrado.'}
-            </p>
+            </StatusMessage>
           ) : (
             <>
               <div className={styles.cardList}>
@@ -192,32 +192,16 @@ export function EstoquePage() {
           )}
 
           {page && (
-            <div className={styles.pagination}>
-              {page.totalPages > 1 && (
-                <button
-                  type="button"
-                  disabled={page.first}
-                  onClick={() => setPageNumber((n) => n - 1)}
-                >
-                  Anterior
-                </button>
-              )}
-              <span className={styles.paginationInfo}>
-                Página {page.number + 1} de {page.totalPages}
-                {' · '}
-                {page.totalElements}{' '}
-                {page.totalElements === 1 ? 'produto no total' : 'produtos no total'}
-              </span>
-              {page.totalPages > 1 && (
-                <button
-                  type="button"
-                  disabled={page.last}
-                  onClick={() => setPageNumber((n) => n + 1)}
-                >
-                  Próxima
-                </button>
-              )}
-            </div>
+            <PaginationBar
+              pageNumber={page.number}
+              totalPages={page.totalPages}
+              totalElements={page.totalElements}
+              itemLabel={{ one: 'produto no total', many: 'produtos no total' }}
+              first={page.first}
+              last={page.last}
+              onPrevious={() => setPageNumber((n) => n - 1)}
+              onNext={() => setPageNumber((n) => n + 1)}
+            />
           )}
         </>
       )}

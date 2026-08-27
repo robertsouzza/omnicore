@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getLoginErrorMessage, useAuth } from '../auth/AuthContext'
+import { Button, StatusMessage, TextField } from '../components/ui'
 import styles from './LoginPage.module.css'
 
 export function LoginPage() {
@@ -37,42 +38,34 @@ export function LoginPage() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
-          <label className={styles.label}>
-            E-mail
-            <input
-              type="email"
-              className={styles.input}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="username"
-              required
-              disabled={loading}
-            />
-          </label>
+          <TextField
+            label="E-mail"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="username"
+            required
+            disabled={loading}
+          />
 
-          <label className={styles.label}>
-            Senha
-            <input
-              type="password"
-              className={styles.input}
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              autoComplete="current-password"
-              required
-              disabled={loading}
-            />
-          </label>
+          <TextField
+            label="Senha"
+            type="password"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            autoComplete="current-password"
+            required
+            disabled={loading}
+          />
 
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <StatusMessage variant="error">{error}</StatusMessage>}
 
-          <button type="submit" className={styles.submit} disabled={loading}>
+          <Button type="submit" fullWidth disabled={loading}>
             {loading ? 'Entrando…' : 'Entrar'}
-          </button>
+          </Button>
         </form>
 
-        <p className={styles.hint}>
-          Dev: carlos.vendedor@omnicore.local · senha123
-        </p>
+        <p className={styles.hint}>Dev: carlos.vendedor@omnicore.local · senha123</p>
       </div>
     </div>
   )

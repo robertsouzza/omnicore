@@ -163,6 +163,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
 | PWA salão (código de barras) | — | ✅ Sessão 12 — `/salao`, manifest, SW |
+| UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -176,7 +177,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ (10.5) · PWA salão ✅ (12) | **12.5** UI kit **próximo** · **13-FE** Query+Vitest |
+| Evolução frontend (arquitetura) | hooks ✅ (10.5) · PWA salão ✅ (12) · **UI kit ✅ (12.5)** | **13-FE** Query+Vitest **próximo** |
 
 ---
 
@@ -215,7 +216,8 @@ npm run build
 | Frontend: clientes (CRUD, CEP, telefone int., documento estrangeiro) | ✅ |
 | Frontend: estoque (saldo, movimentação manual, histórico; indicador colorido; só unitários) | ✅ |
 | Frontend: vendas (carrinho, listagem, cancelamento; kits na busca) | ✅ |
-| Frontend: UI kit / TanStack Query | ⬜ **próximo** (12.5 ou 13-FE) |
+| Frontend: UI kit (tokens + componentes `ui/`) | ✅ Sessão 12.5 |
+| Frontend: TanStack Query + Vitest | ⬜ **próximo** (13-FE) |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

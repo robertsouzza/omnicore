@@ -73,8 +73,8 @@
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
-| **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ **próximo** | — |
-| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
+| **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | *(pendente commit)* |
+| **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ **próximo** | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
@@ -88,8 +88,8 @@
 | **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` em `utils/strings.ts` | ✅ |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | ✅ |
 | **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
-| **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | **próximo** |
-| **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | pré-SaaS / robustez |
+| **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | ✅ |
+| **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | **próximo** |
 
 ### Sessão 7.2 — busca e paginação de produtos (paridade clientes)
 
@@ -190,6 +190,16 @@
 
 **Decisão (27/ago):** impressão de etiqueta **não bloqueia** Sessão 12.5; cadastro + leitor USB já atendidos.
 
+### Sessão 12.5 — UI kit mínimo (frontend) — entregue
+
+**Design tokens:** `frontend-app/src/styles/tokens.css` — variáveis `--oc-*` (cores marca, texto, superfícies, feedback, tipografia, espaçamento, raio, sombra); import em `index.css`.
+
+**Componentes:** `frontend-app/src/components/ui/` — `Button`, `TextField`, `TextArea`, `PageHeader`, `SearchPanel`, `PaginationBar`, `StatusMessage` + `ui.module.css` compartilhado; barrel `index.ts`.
+
+**Páginas migradas (piloto):** `LoginPage` (TextField, Button, StatusMessage); `EstoquePage` (PageHeader, SearchPanel, TextField, PaginationBar, StatusMessage). Demais telas podem adotar gradualmente.
+
+**Build:** `npm run lint` + `npm run build` OK.
+
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
 **Backend:** `tipoDocumento` (CPF, PASSAPORTE, DOCUMENTO_ESTRANGEIRO) + `numeroDocumento` único por tipo; `GET /api/clientes/documento?tipo=&numero=`; atalho `/cpf/{cpf}` mantido; `GET /api/clientes?nome=` (mín. 3 letras, paginado). Estrangeiro exige **endereço de entrega no Brasil**. Validação **CPF com dígitos verificadores** (`CpfValidator`); celular 4–15 dígitos + libphonenumber. `GlobalExceptionHandler`: mensagens amigáveis (409/500).
@@ -249,8 +259,8 @@
 |--------|------|-------------|---------|
 | **10.5** | Hooks compartilhados | `src/hooks/`: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` centralizado em `utils/strings.ts` | **Após Sessão 11** |
 | **11.5** | Upload imagem (opcional) | Ver débito técnico imagem | Entre 11 e 12 |
-| **12.5** | UI kit mínimo | `components/ui/`: Button, TextField, TextArea, SearchPanel, PaginationBar, StatusMessage, PageHeader; `styles/tokens.css` | **Após Sessão 12** |
-| **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | **Pré-SaaS / robustez** |
+| **12.5** | UI kit mínimo | `components/ui/`: Button, TextField, TextArea, SearchPanel, PaginationBar, StatusMessage, PageHeader; `styles/tokens.css` | ✅ |
+| **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | **Próximo** |
 
 **Não fazer ainda:** pastas `features/` (só com 20+ telas), Redux/Zustand, micro-frontends, refatorar todo CSS de uma vez.
 
@@ -360,7 +370,7 @@ npm run build
 
 ## Próximo passo acordado
 
-**Sessão 12.5 — UI kit mínimo** ou **11.5 upload imagem** — ver cronograma.
+**Sessão 13-FE — TanStack Query + Vitest** (ou **11.5 upload imagem** opcional) — ver cronograma.
 
 ---
 
@@ -381,10 +391,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: Sessão 12.5 — UI kit mínimo (ou 13-FE Query+Vitest).
+Próximo: Sessão 13-FE — TanStack Query + Vitest (ou 11.5 upload imagem).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 27/ago/2026 — barcode/QR produto ✅ (`2b164e6`); próximo: 12.5 UI kit.*
+*Última atualização: 27/ago/2026 — Sessão 12.5 UI kit ✅ (local, pendente commit); próximo: 13-FE Query+Vitest.*
