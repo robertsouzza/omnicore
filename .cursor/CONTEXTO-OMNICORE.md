@@ -72,7 +72,7 @@
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `c853b62` |
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
-| **11.5** | **Upload imagem produto (opcional)** | ✅ entregue | *(pendente commit)* |
+| **11.5** | **Upload imagem produto (opcional)** | ✅ entregue | `732ef38` |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
@@ -417,4 +417,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 11.5 upload imagem ✅ (local, pendente commit); próximo: 13+ backend.*
+*Última atualização: 27/ago/2026 — Sessão 11.5 upload imagem ✅ (`732ef38`); próximo: 13+ backend.*
