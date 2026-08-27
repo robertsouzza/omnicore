@@ -73,7 +73,7 @@
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
-| **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | *(pendente commit)* |
+| **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ **próximo** | — |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
@@ -397,4 +397,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 12.5 UI kit ✅ (local, pendente commit); próximo: 13-FE Query+Vitest.*
+*Última atualização: 27/ago/2026 — Sessão 12.5 UI kit ✅ (`f76cb01`); próximo: 13-FE Query+Vitest.*

@@ -39,4 +39,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `1610851` — docs débito etiqueta pós-12.5 · **12.5 UI kit pendente commit**
+Último commit relevante: `f76cb01` — feat(frontend): Sessão 12.5 UI kit mínimo + design tokens
