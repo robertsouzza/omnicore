@@ -16,6 +16,11 @@ export interface Produto {
   updatedAt: string
 }
 
+export interface ProdutoCodigos {
+  imagemCodigoBarras: string | null
+  imagemQrCode: string | null
+}
+
 export interface ProdutoRequest {
   codigoBarras: string
   nome: string
@@ -23,6 +28,8 @@ export interface ProdutoRequest {
   precoVenda: number
   categoria: string
   urlImagem?: string | null
+  imagemCodigoBarras?: string | null
+  imagemQrCode?: string | null
   tipoProduto: TipoProduto
   indicadorTamanho: IndicadorTamanho
 }

@@ -1,7 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { atualizarProduto, buscarProduto, criarProduto } from '../api/produtos'
+import { atualizarProduto, buscarProduto, buscarProdutoCodigos, criarProduto } from '../api/produtos'
 import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
+import { ProdutoCodigosSection } from '../components/ProdutoCodigosSection'
 import { useAuth } from '../auth/AuthContext'
 import { useUnauthorizedHandler } from '../hooks'
 import {
@@ -21,6 +22,8 @@ interface FormState {
   precoVenda: string
   categoria: string
   urlImagem: string
+  imagemCodigoBarras: string
+  imagemQrCode: string
   tipoProduto: TipoProduto
   indicadorTamanho: IndicadorTamanho
 }
@@ -32,6 +35,8 @@ const INITIAL_FORM: FormState = {
   precoVenda: '',
   categoria: '',
   urlImagem: '',
+  imagemCodigoBarras: '',
+  imagemQrCode: '',
   tipoProduto: 'UNITARIO',
   indicadorTamanho: 'MEDIO',
 }
@@ -44,21 +49,26 @@ function toRequest(form: FormState): ProdutoRequest {
     precoVenda: Number(form.precoVenda),
     categoria: form.categoria.trim(),
     urlImagem: form.urlImagem.trim() || null,
+    imagemCodigoBarras: form.imagemCodigoBarras.trim() || null,
+    imagemQrCode: form.imagemQrCode.trim() || null,
     tipoProduto: form.tipoProduto,
     indicadorTamanho: form.indicadorTamanho,
   }
 }
 
-function fromProduto(produto: {
-  codigoBarras: string
-  nome: string
-  descricao: string | null
-  precoVenda: number
-  categoria: string
-  urlImagem: string | null
-  tipoProduto: TipoProduto
-  indicadorTamanho: IndicadorTamanho
-}): FormState {
+function fromProduto(
+  produto: {
+    codigoBarras: string
+    nome: string
+    descricao: string | null
+    precoVenda: number
+    categoria: string
+    urlImagem: string | null
+    tipoProduto: TipoProduto
+    indicadorTamanho: IndicadorTamanho
+  },
+  codigos?: { imagemCodigoBarras: string | null; imagemQrCode: string | null },
+): FormState {
   return {
     codigoBarras: produto.codigoBarras,
     nome: produto.nome,
@@ -66,6 +76,8 @@ function fromProduto(produto: {
     precoVenda: String(produto.precoVenda),
     categoria: produto.categoria,
     urlImagem: produto.urlImagem ?? '',
+    imagemCodigoBarras: codigos?.imagemCodigoBarras ?? '',
+    imagemQrCode: codigos?.imagemQrCode ?? '',
     tipoProduto: produto.tipoProduto,
     indicadorTamanho: produto.indicadorTamanho,
   }
@@ -90,8 +102,11 @@ export function ProdutoFormPage() {
     setLoading(true)
     setError(null)
 
-    buscarProduto(session.token, Number(id))
-      .then((produto) => setForm(fromProduto(produto)))
+    Promise.all([
+      buscarProduto(session.token, Number(id)),
+      buscarProdutoCodigos(session.token, Number(id)),
+    ])
+      .then(([produto, codigos]) => setForm(fromProduto(produto, codigos)))
       .catch((err) => {
         if (handleUnauthorized(err)) return
         setError(getErrorMessage(err, 'Produto não encontrado.'))
@@ -100,7 +115,23 @@ export function ProdutoFormPage() {
   }, [id, isEditing, session, handleUnauthorized])
 
   function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((current) => ({ ...current, [key]: value }))
+    setForm((current) => {
+      const next = { ...current, [key]: value }
+      if (key === 'codigoBarras' && value !== current.codigoBarras) {
+        next.imagemCodigoBarras = ''
+        next.imagemQrCode = ''
+      } else if (
+        key !== 'codigoBarras' &&
+        key !== 'imagemCodigoBarras' &&
+        key !== 'imagemQrCode' &&
+        key !== 'urlImagem' &&
+        key !== 'indicadorTamanho' &&
+        value !== current[key]
+      ) {
+        next.imagemQrCode = ''
+      }
+      return next
+    })
     setFieldErrors((current) => {
       if (!(key in current)) return current
       const next = { ...current }
@@ -303,6 +334,21 @@ export function ProdutoFormPage() {
 
         {error && <p className={styles.error}>{error}</p>}
       </form>
+
+      <ProdutoCodigosSection
+        produtoId={isEditing && id ? Number(id) : undefined}
+        codigoBarras={form.codigoBarras}
+        nome={form.nome}
+        descricao={form.descricao}
+        precoVenda={form.precoVenda}
+        categoria={form.categoria}
+        tipoProduto={form.tipoProduto}
+        imagemCodigoBarras={form.imagemCodigoBarras || null}
+        imagemQrCode={form.imagemQrCode || null}
+        onImagemCodigoBarrasChange={(value) => updateField('imagemCodigoBarras', value ?? '')}
+        onImagemQrCodeChange={(value) => updateField('imagemQrCode', value ?? '')}
+        disabled={submitting}
+      />
 
       {isEditing && id && form.tipoProduto === 'PACOTE' && session && (
         <ComposicaoPacoteSection

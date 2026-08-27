@@ -3,6 +3,7 @@ package com.omnicore.cerebro_backend.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.omnicore.cerebro_backend.enums.IndicadorTamanho;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
 
@@ -54,6 +55,15 @@ public class Produto {
 
     @Column(name = "url_imagem", length = 255)
     private String urlImagem;
+
+    /** PNG em data URL — omitido nas respostas JSON (GET /{id}/codigos). */
+    @JsonIgnore
+    @Column(name = "imagem_codigo_barras", columnDefinition = "TEXT")
+    private String imagemCodigoBarras;
+
+    @JsonIgnore
+    @Column(name = "imagem_qr_code", columnDefinition = "TEXT")
+    private String imagemQrCode;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "tipo_produto", nullable = false, length = 20)

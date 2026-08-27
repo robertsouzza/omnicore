@@ -31,6 +31,12 @@ public record ProdutoRequestDTO(
 
     String urlImagem,
 
+    @Size(max = 524_288, message = "A imagem do código de barras excede o tamanho máximo permitido.")
+    String imagemCodigoBarras,
+
+    @Size(max = 524_288, message = "A imagem do QR Code excede o tamanho máximo permitido.")
+    String imagemQrCode,
+
     @NotNull(message = "O tipo do produto é obrigatório.")
     TipoProduto tipoProduto,
 

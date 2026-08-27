@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.omnicore.cerebro_backend.dto.ProdutoCodigosResponseDTO;
 import com.omnicore.cerebro_backend.dto.ProdutoRequestDTO;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.service.ProdutoService;
@@ -29,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequestMapping("/api/produtos")
 @Tag(name = "Produtos", description = "Endpoints para gerenciamento do catálogo de produtos do OmniCore")
-@RequiredArgsConstructor // O Lombok cria o construtor para todos os campos 'final' automaticamente do produtoService!
+@RequiredArgsConstructor
 public class ProdutoController {
 
     private final ProdutoService produtoService;
@@ -38,12 +39,14 @@ public class ProdutoController {
     @Operation(summary = "Cadastrar um novo produto", description = "Salva um produto unitário ou pacote no banco, validando duplicidade de código de barras.")
     public ResponseEntity<Produto> cadastrar(@Valid @RequestBody ProdutoRequestDTO dto) {
         Produto produto = Produto.builder()
-                .codigoBarras(dto.codigoBarras()) // Padrão record: chamada direta
+                .codigoBarras(dto.codigoBarras())
                 .nome(dto.nome())
                 .descricao(dto.descricao())
                 .precoVenda(dto.precoVenda())
                 .categoria(dto.categoria())
                 .urlImagem(dto.urlImagem())
+                .imagemCodigoBarras(dto.imagemCodigoBarras())
+                .imagemQrCode(dto.imagemQrCode())
                 .tipoProduto(dto.tipoProduto())
                 .indicadorTamanho(dto.indicadorTamanho())
                 .build();
@@ -54,23 +57,35 @@ public class ProdutoController {
 
     @GetMapping
     @Operation(
-        summary = "Listar produtos de forma paginada", 
+        summary = "Listar produtos de forma paginada",
         description = "Retorna o catálogo de produtos fatiado por páginas para garantir a performance e eficiência de memória do ecossistema."
     )
     public ResponseEntity<Page<Produto>> listar(
-        @ParameterObject 
-        @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable,         
+        @ParameterObject
+        @PageableDefault(page = 0, size = 20, sort = "nome", direction = Sort.Direction.ASC) Pageable pageable,
         @RequestParam(value = "incluirInativos", required = false, defaultValue = "false") boolean incluirInativos,
         @RequestParam(value = "nome", required = false) String nome,
         @RequestParam(value = "codigoBarras", required = false) String codigoBarras) {
         Page<Produto> produtosPaginados = produtoService.listarTodos(pageable, incluirInativos, nome, codigoBarras);
         return ResponseEntity.ok(produtosPaginados);
-    }   
+    }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar produto por ID", description = "Retorna os detalhes de um produto específico com base no identificador único.")
     public ResponseEntity<Produto> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(produtoService.buscarPorId(id));
+    }
+
+    @GetMapping("/{id}/codigos")
+    @Operation(
+            summary = "Buscar imagens de código de barras e QR Code",
+            description = "Retorna as imagens PNG (data URL) persistidas no cadastro do produto."
+    )
+    public ResponseEntity<ProdutoCodigosResponseDTO> buscarCodigos(@PathVariable Long id) {
+        Produto produto = produtoService.buscarPorId(id);
+        return ResponseEntity.ok(new ProdutoCodigosResponseDTO(
+                produto.getImagemCodigoBarras(),
+                produto.getImagemQrCode()));
     }
 
     @PutMapping("/{id}")
@@ -83,6 +98,8 @@ public class ProdutoController {
                 .precoVenda(dto.precoVenda())
                 .categoria(dto.categoria())
                 .urlImagem(dto.urlImagem())
+                .imagemCodigoBarras(dto.imagemCodigoBarras())
+                .imagemQrCode(dto.imagemQrCode())
                 .tipoProduto(dto.tipoProduto())
                 .indicadorTamanho(dto.indicadorTamanho())
                 .build();
@@ -93,12 +110,12 @@ public class ProdutoController {
 
     @DeleteMapping("/{id}")
     @Operation(
-        summary = "Inativar um produto (Exclusão Lógica)", 
+        summary = "Inativar um produto (Exclusão Lógica)",
         description = "Altera o status do produto para inativo. O registro permanece no banco para integridade histórica, mas não constará como disponível no ecossistema."
     )
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         produtoService.inativar(id);
-        return ResponseEntity.noContent().build(); // Retorna o status 244 No Content, ideal para exclusões seguras
+        return ResponseEntity.noContent().build();
     }
 
 }

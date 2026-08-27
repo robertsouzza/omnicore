@@ -41,6 +41,8 @@ public class ProdutoService {
         produtoExistente.setPrecoVenda(dadosAtualizados.getPrecoVenda());
         produtoExistente.setCategoria(dadosAtualizados.getCategoria());
         produtoExistente.setUrlImagem(dadosAtualizados.getUrlImagem());
+        produtoExistente.setImagemCodigoBarras(dadosAtualizados.getImagemCodigoBarras());
+        produtoExistente.setImagemQrCode(dadosAtualizados.getImagemQrCode());
         produtoExistente.setTipoProduto(dadosAtualizados.getTipoProduto());
         produtoExistente.setIndicadorTamanho(dadosAtualizados.getIndicadorTamanho());
 

@@ -1,5 +1,5 @@
 import { apiFetch } from './client'
-import type { Page, Produto, ProdutoRequest } from '../types/produto'
+import type { Page, Produto, ProdutoCodigos, ProdutoRequest } from '../types/produto'
 import { filtrarProdutosComSaldoPositivo, type ProdutoComSaldo } from '../utils/produtoEstoque'
 import { onlyDigits } from '../utils/strings'
 
@@ -35,6 +35,10 @@ export function listarProdutos(
 
 export function buscarProduto(token: string, id: number): Promise<Produto> {
   return apiFetch<Produto>(`/api/produtos/${id}`, {}, token)
+}
+
+export function buscarProdutoCodigos(token: string, id: number): Promise<ProdutoCodigos> {
+  return apiFetch<ProdutoCodigos>(`/api/produtos/${id}/codigos`, {}, token)
 }
 
 export function criarProduto(token: string, dados: ProdutoRequest): Promise<Produto> {

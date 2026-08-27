@@ -139,7 +139,7 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Módulo | Base path | Principais operações |
 |--------|-----------|----------------------|
 | Autenticação | `/api/auth` | Login JWT |
-| Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca por `nome` e `codigoBarras` |
+| Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca; `GET /{id}/codigos` (barcode/QR PNG) |
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
 | Estoque | `/api/estoque` | Entrada, saída, saldo, saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
@@ -156,7 +156,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|------|--------|
 | Login | `/login` | ✅ |
 | Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox, **coluna estoque colorida**) | `/produtos` | ✅ |
-| Cadastro / edição de produtos | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
+| Cadastro / edição de produtos (+ gerar/salvar barcode e QR Code) | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |

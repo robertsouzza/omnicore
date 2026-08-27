@@ -71,6 +71,7 @@
 | **10.5** | **Frontend: hooks compartilhados (DRY listagens/forms)** | ✅ entregue | `7e259ba` |
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `c853b62` |
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
+| 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `PLACEHOLDER` |
 | **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ⬜ **próximo** | — |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ⬜ planejado | — |
@@ -171,6 +172,14 @@
 **Frontend:** coluna **Estoque** em `/produtos` (unitários; kits com `—`); `SaldoCell` + `useProdutoSaldos` + faixas de cor (verde 100% · azul ≥50% · laranja ≥25% · rosa piscando &lt;25% · vermelho 0) em **Produtos** e **Estoque**; tooltip com % do pico.
 
 **Testado:** vendas #10 (Fanta → laranja) e #11 (Biscoito → rosa) após simulação PAGA.
+
+### Pós-12 — código de barras + QR no cadastro (27/ago) — entregue
+
+**Frontend:** `ProdutoCodigosSection` no form produto — gera EAN (jsbarcode) e QR JSON (qrcode); PNG persistido; **Baixar PNG**; reabre salvo via `GET /api/produtos/{id}/codigos`.
+
+**Backend:** colunas `imagem_codigo_barras`, `imagem_qr_code` (TEXT data URL); `@JsonIgnore` na listagem; fix `@JsonView` que quebrava paginação.
+
+**Testado:** produtos #1 (Coca-Cola) e #8 (Biscoito) com imagens salvas.
 
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
