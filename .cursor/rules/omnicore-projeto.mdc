@@ -39,4 +39,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `c853b62` — feat(frontend): Sessão 12 PWA salão + código de barras
+Último commit relevante: `647c384` — feat: indicador visual de estoque em Produtos e Estoque
