@@ -35,6 +35,11 @@ spring:
     properties:
       "[hibernate.format_sql]": true # Deixa o SQL do terminal indentado e legível
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
 # Configuração do Swagger / OpenAPI
 springdoc:
   api-docs:
@@ -47,3 +52,11 @@ omnicore:
   jwt:
     secret: ${JWT_SECRET:omnicore-dev-secret-key-com-minimo-32-caracteres}
     expiration-hours: ${JWT_EXPIRATION_HOURS:24}
+  storage:
+    enabled: ${STORAGE_ENABLED:true}
+    endpoint: ${STORAGE_ENDPOINT:http://localhost:9000}
+    access-key: ${STORAGE_ACCESS_KEY:minioadmin}
+    secret-key: ${STORAGE_SECRET_KEY:minioadmin}
+    bucket: ${STORAGE_BUCKET:omnicore-produtos}
+    public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:9000/omnicore-produtos}
+    max-file-size-bytes: 5242880

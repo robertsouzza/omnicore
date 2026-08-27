@@ -1,0 +1,117 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--oc-space-3);
+  grid-column: 1 / -1;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: var(--oc-text-sm);
+  font-weight: 500;
+  color: var(--oc-color-text-secondary);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--oc-space-4);
+  align-items: flex-start;
+}
+
+.preview {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: var(--oc-radius-md);
+  border: 1px solid var(--oc-color-border);
+  background: var(--oc-color-surface-muted);
+}
+
+.placeholder {
+  width: 120px;
+  height: 120px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--oc-radius-md);
+  border: 1px dashed var(--oc-color-border-input);
+  color: var(--oc-color-text-subtle);
+  font-size: var(--oc-text-sm);
+  background: var(--oc-color-surface-muted);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--oc-space-2);
+  align-items: flex-start;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--oc-space-2) var(--oc-space-4);
+  border-radius: var(--oc-radius-md);
+  background: var(--oc-color-primary);
+  color: #fff;
+  font-size: var(--oc-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.uploadBtn:hover {
+  background: var(--oc-color-primary-hover);
+}
+
+.clearBtn {
+  padding: var(--oc-space-2) var(--oc-space-3);
+  border: 1px solid var(--oc-color-border-input);
+  border-radius: var(--oc-radius-md);
+  background: var(--oc-color-surface);
+  font-size: var(--oc-text-sm);
+  cursor: pointer;
+}
+
+.hint {
+  margin: 0;
+  font-size: var(--oc-text-xs);
+  color: var(--oc-color-text-muted);
+}
+
+.urlLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--oc-space-2);
+  font-size: var(--oc-text-sm);
+  font-weight: 500;
+  color: var(--oc-color-text-secondary);
+}
+
+.urlInput,
+.inputError {
+  padding: var(--oc-space-2) var(--oc-space-3);
+  border-radius: var(--oc-radius-md);
+  border: 1px solid var(--oc-color-border-input);
+  font-size: var(--oc-text-md);
+  width: 100%;
+}
+
+.inputError {
+  border-color: var(--oc-color-error);
+}
+
+.fieldError {
+  font-size: var(--oc-text-sm);
+  color: var(--oc-color-error);
+}

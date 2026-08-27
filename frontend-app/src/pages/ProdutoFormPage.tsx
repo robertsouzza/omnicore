@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { atualizarProduto, buscarProduto, buscarProdutoCodigos, criarProduto } from '../api/produtos'
 import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
 import { ProdutoCodigosSection } from '../components/ProdutoCodigosSection'
+import { ProdutoImagemSection } from '../components/ProdutoImagemSection'
 import { useAuth } from '../auth/AuthContext'
 import { useUnauthorizedHandler } from '../hooks'
 import {
@@ -316,20 +317,14 @@ export function ProdutoFormPage() {
             )}
           </label>
 
-          <label className={`${styles.label} ${styles.fullWidth}`}>
-            URL da imagem
-            <input
-              type="url"
-              className={fieldErrors.urlImagem ? styles.inputError : styles.input}
-              value={form.urlImagem}
-              onChange={(e) => updateField('urlImagem', e.target.value)}
-              placeholder="https://..."
-              disabled={submitting}
-            />
-            {fieldErrors.urlImagem && (
-              <span className={styles.fieldError}>{fieldErrors.urlImagem}</span>
-            )}
-          </label>
+          <ProdutoImagemSection
+            token={session?.token}
+            urlImagem={form.urlImagem}
+            onUrlImagemChange={(value) => updateField('urlImagem', value)}
+            fieldError={fieldErrors.urlImagem}
+            disabled={submitting}
+            onUnauthorized={handleUnauthorized}
+          />
         </div>
 
         {error && <p className={styles.error}>{error}</p>}

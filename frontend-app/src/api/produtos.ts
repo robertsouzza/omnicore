@@ -1,4 +1,4 @@
-import { apiFetch } from './client'
+import { apiFetch, apiUpload } from './client'
 import type { Page, Produto, ProdutoCodigos, ProdutoRequest } from '../types/produto'
 import { filtrarProdutosComSaldoPositivo, type ProdutoComSaldo } from '../utils/produtoEstoque'
 import { onlyDigits } from '../utils/strings'
@@ -63,6 +63,17 @@ export function atualizarProduto(
 
 export function inativarProduto(token: string, id: number): Promise<void> {
   return apiFetch<void>(`/api/produtos/${id}`, { method: 'DELETE' }, token)
+}
+
+export interface ProdutoImagemUploadResponse {
+  url: string
+}
+
+/** Envia imagem JPG/PNG/WebP para object storage; retorna URL pública. */
+export function uploadProdutoImagem(token: string, file: File): Promise<ProdutoImagemUploadResponse> {
+  const form = new FormData()
+  form.append('file', file)
+  return apiUpload<ProdutoImagemUploadResponse>('/api/produtos/imagem/upload', form, token)
 }
 
 /** Busca produto vendável por EAN (primeiro com estoque > 0). */

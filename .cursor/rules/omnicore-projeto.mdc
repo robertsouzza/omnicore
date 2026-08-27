@@ -11,11 +11,11 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
-- Próximo foco: **11.5 upload imagem** (opcional) ou **13+ backend**
+- Próximo foco: **13+ backend** (reserva estoque, salão→caixa)
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
-- Imagem produto: MVP = só URL (`urlImagem`); upload + Object Storage = débito técnico — **momento sugerido: após Sessão 11, antes da 12 (sessão 11.5)**
+- Imagem produto: upload JPG/PNG/WebP via MinIO dev ✅ (11.5); produção = trocar `omnicore.storage.*` (S3/Cloudinary)
 - Catálogo/precificação/compras: cadastro enxuto + preço livre; estoque separado do cadastro (Sessão 10); fornecedor/NF-e/custo/margem = débito técnico — **precificação pós-11; NF-e Fase 6**
-- Frontend roadmap: **10.5** hooks ✅ · **12.5** UI kit ✅ · **13-FE** Query+Vitest ✅
+- Frontend roadmap: **10.5** hooks ✅ · **12.5** UI kit ✅ · **13-FE** Query+Vitest ✅ · **11.5** upload imagem ✅
 - Usuário: Roberto · Assistente: Logan · Idioma: português (BR)
 - Não commitar `docker-compose.yml` sem pedido explícito
 - Commits/push só quando Roberto pedir
@@ -39,4 +39,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `abab2c9` — feat(frontend): Sessão 13-FE TanStack Query + Vitest
+Último commit relevante: `7fb4c1a` — docs hash 13-FE · **11.5 upload imagem pendente commit**

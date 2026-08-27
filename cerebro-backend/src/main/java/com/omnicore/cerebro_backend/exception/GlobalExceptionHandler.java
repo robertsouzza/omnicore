@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleBusinessException(BusinessException ex, WebRequest request) {
         Map<String, Object> body = corpoBase(HttpStatus.BAD_REQUEST, "Regra de Negócio Violada", request);
         body.put("message", ex.getMessage());
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<Object> handleMaxUploadSize(MaxUploadSizeExceededException ex, WebRequest request) {
+        Map<String, Object> body = corpoBase(HttpStatus.BAD_REQUEST, "Arquivo muito grande", request);
+        body.put("message", "A imagem excede o tamanho máximo de 5 MB.");
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
     }
 

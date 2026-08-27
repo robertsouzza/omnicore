@@ -77,3 +77,37 @@ export async function apiFetch<T>(
 
   return JSON.parse(text) as T
 }
+
+/** Upload multipart — não define Content-Type (boundary automático). */
+export async function apiUpload<T>(
+  path: string,
+  formData: FormData,
+  token?: string | null,
+): Promise<T> {
+  const headers = new Headers()
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`)
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  })
+
+  if (!response.ok) {
+    let body: unknown
+    try {
+      body = await response.json()
+    } catch {
+      body = undefined
+    }
+    throw new ApiError(extractApiErrorMessage(body, response.status), response.status, body)
+  }
+
+  const text = await response.text()
+  if (!text) {
+    return undefined as T
+  }
+  return JSON.parse(text) as T
+}

@@ -72,7 +72,7 @@
 | 12 | PWA salão: manifest, offline básico, layout mobile + código de barras | ✅ entregue | `c853b62` |
 | 12+ | Indicador visual estoque: coluna em Produtos + cores por faixa (Produtos/Estoque) | ✅ entregue | `647c384` |
 | 12+ | Gerar/persistir código de barras + QR Code no cadastro produto | ✅ entregue | `2b164e6` |
-| **11.5** | **Upload imagem produto (opcional)** | ⬜ planejado | — |
+| **11.5** | **Upload imagem produto (opcional)** | ✅ entregue | *(pendente commit)* |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
@@ -87,7 +87,7 @@
 | ~~**11**~~ | ~~Carrinho simples → `POST /api/vendas`; listagem com filtros; cancelar venda~~ | ✅ `c0ae1d9` |
 | **10.5** | Hooks: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` em `utils/strings.ts` | ✅ |
 | **12** | `vite-plugin-pwa`; UI mobile vendedor; scan/input código de barras | ✅ |
-| **11.5** | Upload imagem + Object Storage (opcional) | ver débito imagem |
+| **11.5** | Upload imagem + Object Storage (MinIO dev) | ✅ |
 | **12.5** | `components/ui/`: Button, TextField, SearchPanel, PaginationBar, tokens CSS | ✅ |
 | **13-FE** | TanStack Query + Vitest/Testing Library (meta ~15–20 testes) | ✅ |
 
@@ -210,6 +210,16 @@
 
 **Demais listagens** (Clientes, Estoque, Vendas) podem migrar gradualmente; `usePaginatedResource` permanece disponível.
 
+### Sessão 11.5 — upload imagem produto — entregue
+
+**Storage:** MinIO (S3-compatible) em dev — `docker compose -f docker-compose.minio.yml up -d`; bucket `omnicore-produtos` criado automaticamente na subida do backend (política leitura pública em `produtos/*`).
+
+**Backend:** AWS SDK S3 → `S3ObjectStorageService`; `POST /api/produtos/imagem/upload` (multipart JPG/PNG/WebP, máx. 5 MB); retorna `{ url }` para `urlImagem`; config `omnicore.storage.*` em `application.yml`.
+
+**Frontend:** `ProdutoImagemSection` no form produto — escolher arquivo, preview, upload automático; campo URL manual mantido como alternativa; `apiUpload` + validação `utils/produtoImagem.ts`.
+
+**Testes:** `ProdutoImagemControllerTest`; Vitest `produtoImagem.test.ts` (4 testes).
+
 ### Sessão 9.1 — documento do cliente (Fase A) — entregue
 
 **Backend:** `tipoDocumento` (CPF, PASSAPORTE, DOCUMENTO_ESTRANGEIRO) + `numeroDocumento` único por tipo; `GET /api/clientes/documento?tipo=&numero=`; atalho `/cpf/{cpf}` mantido; `GET /api/clientes?nome=` (mín. 3 letras, paginado). Estrangeiro exige **endereço de entrega no Brasil**. Validação **CPF com dígitos verificadores** (`CpfValidator`); celular 4–15 dígitos + libphonenumber. `GlobalExceptionHandler`: mensagens amigáveis (409/500).
@@ -268,7 +278,7 @@
 | Sessão | Nome | Entregáveis | Momento |
 |--------|------|-------------|---------|
 | **10.5** | Hooks compartilhados | `src/hooks/`: `useUnauthorizedHandler`, `useDebouncedSearch`, `usePaginatedResource`, `useAsyncAction`; `onlyDigits` centralizado em `utils/strings.ts` | **Após Sessão 11** |
-| **11.5** | Upload imagem (opcional) | Ver débito técnico imagem | Entre 11 e 12 |
+| **11.5** | Upload imagem (opcional) | MinIO dev + endpoint multipart + UI upload | ✅ |
 | **12.5** | UI kit mínimo | `components/ui/`: Button, TextField, TextArea, SearchPanel, PaginationBar, StatusMessage, PageHeader; `styles/tokens.css` | ✅ |
 | **13-FE** | Query + testes | TanStack Query (`useQuery`/`useMutation`, invalidação estoque↔vendas); Vitest + Testing Library (prioridade: `api/client`, utils, hooks) | ✅ |
 
@@ -380,7 +390,7 @@ npm run build
 
 ## Próximo passo acordado
 
-**Próximo passo acordado:** **11.5 upload imagem** (opcional) ou evoluções **13+** backend — ver cronograma.
+**Próximo passo acordado:** evoluções **13+ backend** (reserva estoque, salão→caixa) — ver cronograma.
 
 ---
 
@@ -401,10 +411,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 11.5 upload imagem (opcional) ou backend 13+.
+Próximo: backend 13+ (reserva estoque, salão→caixa).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 13-FE Query+Vitest ✅ (`abab2c9`); próximo: 11.5 ou 13+.*
+*Última atualização: 27/ago/2026 — Sessão 11.5 upload imagem ✅ (local, pendente commit); próximo: 13+ backend.*

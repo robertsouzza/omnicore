@@ -100,6 +100,13 @@ npm run dev
 
 Em desenvolvimento, o Vite faz **proxy** de `/api` para `http://localhost:8080`. O backend aceita CORS em `localhost:5173`.
 
+**Upload de imagem (Sessão 11.5):** suba o MinIO local antes do backend:
+
+```bash
+docker compose -f docker-compose.minio.yml up -d
+# Console MinIO: http://localhost:9001 (minioadmin / minioadmin)
+```
+
 Copie `.env.example` para `.env` se precisar apontar para outra URL de API:
 
 ```bash
@@ -156,7 +163,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|------|--------|
 | Login | `/login` | ✅ |
 | Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox, **coluna estoque colorida**) | `/produtos` | ✅ |
-| Cadastro / edição de produtos (+ gerar/salvar barcode e QR Code) | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
+| Cadastro / edição de produtos (+ gerar/salvar barcode e QR Code, **upload imagem**) | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
@@ -173,12 +180,12 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Item | MVP atual | Quando implementar |
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
-| Imagem do produto | URL opcional no cadastro (sem upload) | **Sessão 11.5** (upload + Object Storage, antes da 12) |
+| Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
 | Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · **Query+Vitest ✅ (13-FE)** | **11.5** upload imagem ou **13+** backend |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **upload imagem ✅ (11.5)** | **13+** backend |
 
 ---
 
@@ -220,6 +227,7 @@ npm run build
 | Frontend: vendas (carrinho, listagem, cancelamento; kits na busca) | ✅ |
 | Frontend: UI kit (tokens + componentes `ui/`) | ✅ Sessão 12.5 |
 | Frontend: TanStack Query + Vitest | ✅ Sessão 13-FE |
+| Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).

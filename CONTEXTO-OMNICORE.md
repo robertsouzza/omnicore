@@ -8,8 +8,8 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 11.5 upload imagem (opcional) ou backend 13+.
-Sessão 13-FE (Query+Vitest) ✅ entregue — Produtos piloto, npm run test (33 testes).
+Próximo: backend 13+ (reserva estoque, salão→caixa).
+Sessão 11.5 (upload imagem) ✅ entregue — MinIO + POST /api/produtos/imagem/upload + UI no form.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 
