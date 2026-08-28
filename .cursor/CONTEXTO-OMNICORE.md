@@ -75,7 +75,7 @@
 | **11.5** | **Upload imagem produto (opcional)** | ✅ entregue | `732ef38` |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
-| **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | ver git |
+| **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | 13+ | Reserva estoque, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
@@ -428,4 +428,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 28/ago/2026 — 13+ pagar venda + Caixa + UX salão ✅; próximo: reserva estoque.*
+*Última atualização: 28/ago/2026 — 13+ pagar venda + Caixa + UX salão ✅ (`cd11666`); próximo: reserva estoque.*
