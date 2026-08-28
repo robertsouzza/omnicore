@@ -7,12 +7,14 @@ import com.omnicore.cerebro_backend.enums.TipoProduto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 
 public record ProdutoRequestDTO(
     @NotBlank(message = "O código de barras é obrigatório.")
     @Size(max = 50, message = "O código de barras deve ter no máximo 50 caracteres.")
+    @Pattern(regexp = "\\d+", message = "O código de barras (EAN) deve conter apenas dígitos.")
     String codigoBarras,
 
     @NotBlank(message = "O nome do produto é obrigatório.")

@@ -13,7 +13,7 @@ import {
   formatPreco,
 } from '../types/venda'
 import type { ProdutoComSaldo } from '../utils/produtoEstoque'
-import { filtrarProdutosComSaldoPositivo, rotuloSaldoProduto } from '../utils/produtoEstoque'
+import { filtrarProdutosComSaldoPositivo, detalheComponentesKit, rotuloSaldoProduto } from '../utils/produtoEstoque'
 import { onlyDigits } from '../utils/strings'
 import { getErrorMessage } from '../utils/validation'
 import styles from './NovaVendaPage.module.css'
@@ -223,20 +223,28 @@ export function NovaVendaPage() {
 
           {produtosSugeridos.length > 0 && (
             <ul className={styles.suggestions}>
-              {produtosSugeridos.map((produto) => (
+              {produtosSugeridos.map((produto) => {
+                const kitDetalhe = detalheComponentesKit(produto)
+                return (
                 <li key={produto.id}>
                   <button
                     type="button"
                     className={styles.suggestionBtn}
                     onClick={() => addProduto(produto)}
+                    title={kitDetalhe ?? undefined}
                   >
                     <span>{produto.nome}</span>
                     <span className={styles.suggestionMeta}>
-                      {rotuloSaldoProduto(produto)} · {formatPreco(produto.precoVenda)}
+                      <span className={styles.suggestionMetaLine}>
+                        {rotuloSaldoProduto(produto)} · {formatPreco(produto.precoVenda)}
+                      </span>
+                      {kitDetalhe && (
+                        <span className={styles.suggestionKitDetail}>{kitDetalhe}</span>
+                      )}
                     </span>
                   </button>
                 </li>
-              ))}
+              )})}
             </ul>
           )}
 

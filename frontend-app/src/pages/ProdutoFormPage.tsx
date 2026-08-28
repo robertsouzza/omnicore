@@ -14,6 +14,7 @@ import {
   type TipoProduto,
 } from '../types/produto'
 import { getErrorMessage, getFieldErrors } from '../utils/validation'
+import { onlyDigits } from '../utils/strings'
 import styles from './ProdutoFormPage.module.css'
 
 interface FormState {
@@ -44,7 +45,7 @@ const INITIAL_FORM: FormState = {
 
 function toRequest(form: FormState): ProdutoRequest {
   return {
-    codigoBarras: form.codigoBarras.trim(),
+    codigoBarras: onlyDigits(form.codigoBarras),
     nome: form.nome.trim(),
     descricao: form.descricao.trim() || null,
     precoVenda: Number(form.precoVenda),
@@ -202,12 +203,15 @@ export function ProdutoFormPage() {
       <form className={styles.form} id="produto-form" onSubmit={handleSubmit}>
         <div className={styles.grid}>
           <label className={styles.label}>
-            Código de barras *
+            Código de barras (EAN) *
             <input
               className={fieldErrors.codigoBarras ? styles.inputError : styles.input}
               value={form.codigoBarras}
-              onChange={(e) => updateField('codigoBarras', e.target.value)}
+              onChange={(e) => updateField('codigoBarras', onlyDigits(e.target.value))}
               maxLength={50}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="Somente dígitos (ex.: 7891234567890)"
               required
               disabled={submitting}
             />

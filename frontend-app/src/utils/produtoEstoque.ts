@@ -2,10 +2,22 @@ import { listarComposicao } from '../api/composicao'
 import { obterSaldo } from '../api/estoque'
 import type { Produto } from '../types/produto'
 
+export interface ComponenteEstoqueResumo {
+  nome: string
+  saldo: number
+}
+
 export interface ProdutoComSaldo extends Produto {
-  /** Unitários: unidades em estoque. Pacotes: kits montáveis pelos componentes. */
+  /** Unitários: unidades em estoque. Pacotes: kits montáveis (mínimo entre componentes). */
   saldo: number
   saldoPorComponentes: boolean
+  /** Preenchido em PACOTE — saldo de cada componente do kit. */
+  componentesEstoque?: ComponenteEstoqueResumo[]
+}
+
+interface KitsDisponiveisResult {
+  kits: number
+  componentes: ComponenteEstoqueResumo[]
 }
 
 async function obterSaldoSeguro(token: string, produtoId: number): Promise<number> {
@@ -29,32 +41,37 @@ function quantidadeFilhoParaUmKit(quantidadePorUnidade: number): number | null {
  * Quantos kits de 1 unidade podem ser vendidos com base no estoque dos filhos.
  * Mesma regra do backend (menor limite entre componentes).
  */
-async function calcularKitsDisponiveis(token: string, pacoteId: number): Promise<number> {
+async function calcularKitsDisponiveis(token: string, pacoteId: number): Promise<KitsDisponiveisResult> {
   try {
     const componentes = await listarComposicao(token, pacoteId)
-    if (componentes.length === 0) return 0
+    if (componentes.length === 0) return { kits: 0, componentes: [] }
 
     let minKits = Infinity
+    const resumo: ComponenteEstoqueResumo[] = []
 
     for (const componente of componentes) {
       const qtdNecessaria = quantidadeFilhoParaUmKit(componente.quantidade)
-      if (qtdNecessaria === null) return 0
+      if (qtdNecessaria === null) return { kits: 0, componentes: [] }
 
       const saldoFilho = await obterSaldoSeguro(token, componente.produtoFilho.id)
+      resumo.push({ nome: componente.produtoFilho.nome, saldo: saldoFilho })
       const kitsPossiveis = Math.floor(saldoFilho / qtdNecessaria)
       minKits = Math.min(minKits, kitsPossiveis)
     }
 
-    return minKits === Infinity ? 0 : minKits
+    return {
+      kits: minKits === Infinity ? 0 : minKits,
+      componentes: resumo,
+    }
   } catch {
-    return 0
+    return { kits: 0, componentes: [] }
   }
 }
 
 async function calcularSaldoDisponivel(token: string, produto: Produto): Promise<ProdutoComSaldo> {
   if (produto.tipoProduto === 'PACOTE') {
-    const saldo = await calcularKitsDisponiveis(token, produto.id)
-    return { ...produto, saldo, saldoPorComponentes: true }
+    const { kits, componentes } = await calcularKitsDisponiveis(token, produto.id)
+    return { ...produto, saldo: kits, saldoPorComponentes: true, componentesEstoque: componentes }
   }
 
   const saldo = await obterSaldoSeguro(token, produto.id)
@@ -75,8 +92,24 @@ export async function filtrarProdutosComSaldoPositivo(
   return resultados.filter((produto) => produto.saldo > 0)
 }
 
+/** Rótulo principal na busca de venda. */
 export function rotuloSaldoProduto(produto: ProdutoComSaldo): string {
   return produto.saldoPorComponentes
-    ? `Kits disp.: ${produto.saldo}`
+    ? `Até ${produto.saldo} kit${produto.saldo === 1 ? '' : 's'}`
     : `Estoque: ${produto.saldo}`
+}
+
+function abreviarNomeComponente(nome: string): string {
+  const palavra = nome.trim().split(/\s+/)[0] ?? nome
+  if (palavra.length <= 10) return palavra
+  return `${palavra.slice(0, 6)}.`
+}
+
+/** Detalhe opcional: estoque de cada componente (não é soma — é referência). */
+export function detalheComponentesKit(produto: ProdutoComSaldo): string | null {
+  if (!produto.saldoPorComponentes || !produto.componentesEstoque?.length) return null
+  const partes = produto.componentesEstoque.map(
+    (c) => `${abreviarNomeComponente(c.nome)} ${c.saldo}`,
+  )
+  return `Comp.: ${partes.join(' · ')}`
 }
