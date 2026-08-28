@@ -183,7 +183,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
-| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa`; Pix/cartão/formas = **14+** |
+| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + `/caixa`; formas Pix/débito/crédito/dinheiro + **TEF** = **14+** (mock → sandbox → SitDemo) |
+| Meios de pagamento / TEF | Hoje: liquida sem forma registrada | **14-A** mock · **14-B** Pix PSP · **14-C** TEF CliSiTef+SitDemo · ver CONTEXTO |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
@@ -231,7 +232,7 @@ npm run build
 | Frontend: UI kit (tokens + componentes `ui/`) | ✅ Sessão 12.5 |
 | Frontend: TanStack Query + Vitest | ✅ Sessão 13-FE |
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
-| Reserva de estoque, WebSocket desconto, fiscal | ⬜ |
+| Reserva de estoque, PDV, meios pagamento/TEF, fiscal | ⬜ planejado — ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 

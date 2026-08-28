@@ -78,7 +78,7 @@
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | 13+ | Reserva de estoque (PENDENTE segura quantidade) | ⬜ | — |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ⬜ planejado | — |
-| 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
+| 14+ | Meios de pagamento (Pix, débito, crédito, dinheiro) + TEF + fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
 
@@ -119,7 +119,7 @@
 
 **Teste validado (24/ago):** Venda #5 — Rafael Castro, 10× Fanta R$ 9,50 = R$ 95,00; criada PENDENTE (sem baixa); simulação de pagamento no banco → PAGA + saída −10 (saldo Fanta 90) — UI estoque/histórico conferidos.
 
-**Débito técnico — pagamento / caixa (parcialmente resolvido):** ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa` + detalhe venda; forma de pagamento (Pix, cartão…) = **14+ / fiscal**. Reserva de estoque na PENDENTE = próximo 13+.
+**Débito técnico — pagamento / caixa (parcialmente resolvido):** ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa` + detalhe venda; **formas** (Pix, débito, crédito, dinheiro, TEF) = **14+** — ver seção “Meios de pagamento e TEF”. Reserva de estoque na PENDENTE = próximo 13+.
 
 ### Sessão 13+ (parcial) — salão→caixa: pagar venda — entregue
 
@@ -155,11 +155,75 @@
 - Cliente/CPF opcional na venda (fiscal completo = **14+**)
 - Reaproveitar: `BarcodeField`, `carrinhoVenda`, `buscarProdutoPorCodigoBarras`, `criarVenda`
 
-**Fora do MVP PDV:** peso/KG (açougue), tecla preço, impressora cupom/gaveta, NFC-e, múltiplas formas de pagamento.
+**Fora do MVP PDV (v1):** peso/KG (açougue), tecla preço, impressora cupom/gaveta, NFC-e. **Meios de pagamento reais** (Pix/cartão/TEF) = **14+** — ver seção abaixo; PDV v1 pode finalizar **PAGA** com forma registrada em modo simulado.
 
-**Ordem no roadmap:** `13+ reserva estoque` → **`13+/14 PDV`** → `14+ fiscal` (CPF nota, Pix/cartão, NFC-e).
+**Ordem no roadmap:** `13+ reserva estoque` → **`13+/14 PDV`** → **`14+ meios de pagamento + fiscal`**.
 
 **WebSocket desconto gerente:** permanece débito 13+/14+ (não bloqueia PDV MVP).
+
+### Planejamento — Meios de pagamento e TEF (14+) — acordado 28/ago
+
+**Decisão (Roberto + Logan):** o cliente poderá pagar por **Pix**, **débito**, **crédito** ou **dinheiro**. No **PDV**, cartão passa por **TEF** (pinpad/adquirente). Implementação **após reserva de estoque e PDV UI**; desenvolvimento **sem contas/cartões reais** via camadas simuladas e sandboxes.
+
+#### Formas de pagamento previstas
+
+| Forma | Uso típico | Integração alvo | Dev/teste sem dinheiro real |
+|-------|------------|-----------------|------------------------------|
+| **DINHEIRO** | Troco na gaveta | Só OmniCore (valor recebido + troco) | 100% local — nenhum gateway |
+| **PIX** | QR ou chave | PSP (Efi, Mercado Pago, PagSeguro, Stone…) | **Sandbox/homologação** do PSP escolhido |
+| **DEBITO** | Pinpad | **TEF** → adquirente (Cielo, Rede, Getnet…) | **SiTef SitDemo** + CliSiTef simulada |
+| **CREDITO** | Pinpad parcelado | **TEF** (mesmo fluxo) | **SiTef SitDemo** + venda digitada (sem pinpad) |
+
+#### TEF — o que é e por que o PDV precisa
+
+**TEF** (Transferência Eletrônica de Fundos) = protocolo entre o **PDV/ERP** e o **pinpad** (via biblioteca do provedor, ex. **CliSiTef** / Software Express–Fiserv), que fala com a **adquirente**. Não é “só uma API REST no browser”.
+
+**Implicação para OmniCore (React no browser):**
+
+- **Dinheiro + Pix (API)** → viável no **frontend web** + backend Java.
+- **Débito/crédito TEF** → em produção exige **Windows + pinpad** e, na prática, um **agente local** (serviço em `localhost`, app desktop ou shell Electron) que chama a **DLL CliSiTef** e expõe JSON/HTTP para o React.
+
+Arquitetura alvo (documentada, não implementada):
+
+```
+React PDV (/pdv)  →  OmniCore API (Java)  →  registro PagamentoVenda
+       ↓
+  Agente TEF local (futuro)  →  CliSiTef DLL  →  SitDemo (dev) / adquirente (prod)
+```
+
+#### Fases de implementação (proposta)
+
+| Fase | Escopo | Quando |
+|------|--------|--------|
+| **14-A — Registro operacional** | Enum `FormaPagamento`; tabela `pagamento_venda` (forma, valor, troco, NSU simulado); dinheiro com troco; Pix/cartão **modo SIMULADO** (`omnicore.pagamento.provider=mock`) | Com PDV ou logo após |
+| **14-B — Pix real** | Cobrança Pix via PSP (sandbox); webhook confirma → venda PAGA | Após escolher PSP + credenciais homologação |
+| **14-C — TEF homologação** | Agente local + CliSiTef + **SitDemo** (127.0.0.1); débito/crédito simulados | PDV em Windows na loja / máquina dev |
+| **14-D — Produção + fiscal** | Pinpad real, NFC-e, estorno financeiro alinhado ao cancelamento | Fase 6 fiscal |
+
+#### Como testar sem Pix/cartão/conta real
+
+| Camada | Ferramenta / abordagem |
+|--------|-------------------------|
+| **OmniCore (recomendado p/ dev diário)** | Interface `PaymentGateway` no backend + **`MockPaymentGateway`**: aprova/rejeita transação por flag; Vitest no frontend mockando `api/pagamentos` |
+| **Pix** | Sandbox do PSP (ex. Mercado Pago **cartões/números de teste**, Efi/Gerencianet **homologação**); QR de teste; webhook apontando para `localhost` (ngrok se necessário) |
+| **TEF (cartão)** | **SitDemo** (Fiserv) — servidor SiTef simulado, sem adquirente real; DLL **CliSiTef simulada** (Win32/Win64); loja `00000000`, IP `127.0.0.1`; **venda digitada** se não houver pinpad ([TOTVS SitDemo](https://centraldeatendimento.totvs.com/hc/pt-br/articles/4422602030743), [ACBr SitDemo](https://www.projetoacbr.com.br/forum/files/file/526-sitdemo-fiserv/)) |
+| **TEF (referência Java/desktop)** | Comunidade **ACBr TEF** (Delphi/Lazarus); OmniCore permanece Java — integração via **agente local**, não ACBr direto no Spring |
+| **E2E PDV** | Fluxo completo com `provider=mock`: bip → escolher forma → “Confirmar (teste)” → venda PAGA + estoque |
+
+#### Modelo de dados (esboço — 14-A)
+
+- `tb_pagamento_venda`: `venda_id`, `forma` (DINHEIRO|PIX|DEBITO|CREDITO), `valor`, `valor_recebido`, `troco`, `status` (PENDENTE|APROVADO|RECUSADO|ESTORNADO), `provider` (MOCK|SITEF|EFI|…), `referencia_externa`, `nsu`, `created_at`
+- Venda **PAGA** só quando soma dos pagamentos ≥ `valor_total` (ou pagamento único no MVP)
+- `PUT /api/vendas/{id}/pagar` evolui para aceitar **payload de pagamento(s)** (retrocompatível: sem payload = comportamento atual)
+
+#### Débitos relacionados (permanecem 14+)
+
+- Estorno financeiro no cancelamento (estorno TEF/Pix vs só estoque hoje)
+- Split / múltiplas formas na mesma venda (ex. parte dinheiro + parte Pix)
+- Conciliação (NSU, extrato adquirente)
+- NFC-e vinculada ao pagamento
+
+**Decisão vigente:** não bloquear **13+ reserva** nem **PDV v1** — PDV v1 finaliza PAGA; **forma de pagamento** entra em **14-A (mock)** antes de gateways reais.
 
 ### Sessão 11.1 — cancelamento com autorização de gerente — entregue
 
@@ -433,7 +497,8 @@ npm run build
 ## Próximo passo acordado
 
 1. **Imediato:** **13+ reserva de estoque** (PENDENTE segura quantidade; liberar no cancelamento/pagamento).
-2. **Em seguida:** **Sessão PDV** — tela `/pdv` checkout bip contínuo (mercado, padaria, hiper) — ver seção “Planejamento PDV”.
+2. **Em seguida:** **Sessão PDV** — tela `/pdv` checkout bip contínuo.
+3. **Depois:** **14+ meios de pagamento** (mock → Pix sandbox → TEF SitDemo) + fiscal.
 
 ---
 
@@ -460,4 +525,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 28/ago/2026 — planejamento PDV documentado; próximo: reserva estoque, depois PDV.*
+*Última atualização: 28/ago/2026 — meios de pagamento + TEF documentados (14+); próximo: reserva estoque.*
