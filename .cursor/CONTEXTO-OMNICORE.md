@@ -14,7 +14,7 @@
 |-------|--------|
 | Web | E-commerce + checkout ágil |
 | Salão | App vendedor (PWA + código de barras) |
-| Caixa | PDV (dinheiro, cartão, Pix) |
+| Caixa | PDV checkout (dinheiro, cartão, Pix) — **parcial:** `/caixa` paga PENDENTE; **PDV bip** = sessão futura |
 | Balcão/Entrega | Separação e conferência |
 
 **Stack:** Java 21 · Spring Boot 3.5 · PostgreSQL (Docker) · React (PWA) · JWT · Swagger · GitHub Actions CI
@@ -76,7 +76,8 @@
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
-| 13+ | Reserva estoque, WebSocket desconto | ⬜ | — |
+| 13+ | Reserva de estoque (PENDENTE segura quantidade) | ⬜ | — |
+| **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ⬜ planejado | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -129,6 +130,36 @@
 **UX Salão:** após registrar venda rápida, **banner no `/salao`** (“Venda #N registrada — envie ao caixa”) em vez de redirect para admin com botão pagar.
 
 **Teste validado (28/ago):** vendas salão #14/#15 — pagamento via Caixa; Nova Venda “Paga (caixa)” #16 liquida na hora; salão pós-registro permanece no modo vendedor.
+
+### Planejamento — Sessão PDV (pós-reserva estoque) — acordado 28/ago
+
+**Decisão (Roberto + Logan):** implementar **reserva de estoque (13+)** primeiro; em seguida **tela PDV** dedicada ao nicho mercado/supermercado/padaria/conveniência (alto giro, leitor USB).
+
+**Problema:** Nova Venda e Salão atendem bem varejo geral e vendedor no chão, mas **não** são UX de caixa fixo com bip contínuo (referência: PDV tipo ERP — lista crescendo, subtotal grande, atalhos de teclado).
+
+**Canais de venda — complementares (mesmo backend):**
+
+| Canal | Rota atual | Público | Fluxo típico |
+|-------|------------|---------|--------------|
+| Salão | `/salao` | Vendedor mobile | Bip → **PENDENTE** → cliente ao caixa |
+| Nova venda | `/vendas/nova` | Admin/balcão | Busca nome → PENDENTE ou **PAGA** |
+| Caixa (atual) | `/caixa` | Operador caixa | Confirma pagamento de **PENDENTE** |
+| **PDV (futuro)** | **`/pdv`** (provisório) | Caixa mercado/padaria | Bip contínuo → finalizar **PAGA** direto |
+
+**Escopo MVP PDV (proposta):**
+
+- Layout caixa: campo código de barras **sempre focado**; tabela de itens; subtotal/total em destaque
+- Bip contínuo: mesmo EAN incrementa quantidade; Enter confirma leitura
+- Atalhos teclado (inspirado PDV clássico): ex. F3 excluir linha, F4 quantidade, F5 nova venda, F10 finalizar
+- Finalizar: `POST /api/vendas` status **PAGA** (reutiliza engine atual + baixa estoque)
+- Cliente/CPF opcional na venda (fiscal completo = **14+**)
+- Reaproveitar: `BarcodeField`, `carrinhoVenda`, `buscarProdutoPorCodigoBarras`, `criarVenda`
+
+**Fora do MVP PDV:** peso/KG (açougue), tecla preço, impressora cupom/gaveta, NFC-e, múltiplas formas de pagamento.
+
+**Ordem no roadmap:** `13+ reserva estoque` → **`13+/14 PDV`** → `14+ fiscal` (CPF nota, Pix/cartão, NFC-e).
+
+**WebSocket desconto gerente:** permanece débito 13+/14+ (não bloqueia PDV MVP).
 
 ### Sessão 11.1 — cancelamento com autorização de gerente — entregue
 
@@ -401,7 +432,8 @@ npm run build
 
 ## Próximo passo acordado
 
-**Próximo passo acordado:** **13+ reserva de estoque** (PENDENTE segura quantidade; liberar no cancelamento/pagamento) — ver cronograma.
+1. **Imediato:** **13+ reserva de estoque** (PENDENTE segura quantidade; liberar no cancelamento/pagamento).
+2. **Em seguida:** **Sessão PDV** — tela `/pdv` checkout bip contínuo (mercado, padaria, hiper) — ver seção “Planejamento PDV”.
 
 ---
 
@@ -422,10 +454,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 13+ reserva de estoque (salão→caixa pagar ✅).
+Próximo: 13+ reserva de estoque → depois PDV (/pdv).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 28/ago/2026 — 13+ pagar venda + Caixa + UX salão ✅ (`cd11666`); próximo: reserva estoque.*
+*Última atualização: 28/ago/2026 — planejamento PDV documentado; próximo: reserva estoque, depois PDV.*

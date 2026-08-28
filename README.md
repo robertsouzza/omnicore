@@ -170,6 +170,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
 | **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ parcial |
+| **PDV** (checkout bip contínuo — mercado/padaria) | `/pdv` | ⬜ planejado pós-reserva estoque |
 | PWA salão (código de barras, **banner pós-venda**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
 | TanStack Query + Vitest | — | ✅ Sessão 13-FE — Produtos piloto, 33 testes |
@@ -186,7 +187,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** | **13+** reserva estoque |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** | **13+** reserva estoque → **PDV** |
+| PDV (checkout bip) | Nova Venda/Salão atendem varejo geral; **sem** tela caixa fixo estilo mercado | **Após reserva estoque** — rota `/pdv`, atalhos teclado, PAGA direto |
 
 ---
 
