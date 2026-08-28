@@ -1,5 +1,5 @@
 import { type FormEvent, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { buscarProdutoPorCodigoBarras } from '../api/produtos'
 import { criarVenda } from '../api/vendas'
 import { BarcodeField } from '../components/BarcodeField'
@@ -18,8 +18,13 @@ import styles from './SalaoVendaPage.module.css'
 
 type BarcodeFeedback = { type: 'ok' | 'error' | 'loading'; message: string }
 
+type VendaRegistrada = {
+  id: number
+  total: number
+  clienteResumo: string
+}
+
 export function SalaoVendaPage() {
-  const navigate = useNavigate()
   const { session } = useAuth()
   const handleUnauthorized = useUnauthorizedHandler()
   const clienteBusca = useClienteBusca()
@@ -30,6 +35,7 @@ export function SalaoVendaPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [ultimoProduto, setUltimoProduto] = useState<string | null>(null)
+  const [vendaRegistrada, setVendaRegistrada] = useState<VendaRegistrada | null>(null)
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
@@ -128,11 +134,20 @@ export function SalaoVendaPage() {
             : null,
         itens: itensRequest,
       })
+
+      const clienteResumo =
+        clienteBusca.clienteSelecionado?.nomeCompleto ??
+        (clienteBusca.nomeOcasional.trim() || 'Consumidor')
+
       setCart([])
       clienteBusca.reset()
       setUltimoProduto(null)
       setBarcodeFeedback(null)
-      navigate(`/vendas/${venda.id}`)
+      setVendaRegistrada({
+        id: venda.id,
+        total: venda.valorTotal,
+        clienteResumo,
+      })
     } catch (err) {
       if (handleUnauthorized(err)) return
       setError(getErrorMessage(err, 'Não foi possível registrar a venda.'))
@@ -143,6 +158,34 @@ export function SalaoVendaPage() {
 
   return (
     <section className={styles.page}>
+      {vendaRegistrada && (
+        <div className={styles.successBanner} role="status">
+          <div className={styles.successBannerMain}>
+            <p className={styles.successBannerTitle}>
+              Venda #{vendaRegistrada.id} registrada
+            </p>
+            <p className={styles.successBannerText}>
+              Envie o cliente ao <strong>caixa</strong> para confirmar o pagamento.
+            </p>
+            <p className={styles.successBannerMeta}>
+              {vendaRegistrada.clienteResumo} · {formatPreco(vendaRegistrada.total)}
+            </p>
+          </div>
+          <div className={styles.successBannerActions}>
+            <Link to="/salao/vendas" className={styles.successBannerLink}>
+              Ver vendas recentes
+            </Link>
+            <button
+              type="button"
+              className={styles.successBannerDismiss}
+              onClick={() => setVendaRegistrada(null)}
+            >
+              Nova venda
+            </button>
+          </div>
+        </div>
+      )}
+
       <header>
         <h1 className={styles.title}>Venda rápida</h1>
         <p className={styles.subtitle}>Escaneie ou digite o código de barras</p>

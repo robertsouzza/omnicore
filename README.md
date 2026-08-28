@@ -151,7 +151,7 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Estoque | `/api/estoque` | Entrada, saída, saldo, saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
-| Vendas | `/api/vendas` | Criar, listar com filtros, cancelar com estorno |
+| Vendas | `/api/vendas` | Criar, listar com filtros, **pagar pendente**, cancelar com estorno |
 
 Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, validação de produto/cliente/colaborador ativos, kits com baixa nos produtos filhos.
 
@@ -168,8 +168,9 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
-| Vendas (nova, listagem, detalhe, cancelamento) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
-| PWA salão (código de barras) | — | ✅ Sessão 12 — `/salao`, manifest, SW |
+| Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
+| **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ parcial |
+| PWA salão (código de barras, **banner pós-venda**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
 | TanStack Query + Vitest | — | ✅ Sessão 13-FE — Produtos piloto, 33 testes |
 
@@ -181,11 +182,11 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
-| Pagamento / caixa | Status PENDENTE ou PAGA só na criação da venda | Confirmar pagamento PENDENTE→PAGA + formas (Pix/cartão) = **Sessão 12+** |
+| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa`; Pix/cartão/formas = **14+** |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **upload imagem ✅ (11.5)** | **13+** backend |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** | **13+** reserva estoque |
 
 ---
 

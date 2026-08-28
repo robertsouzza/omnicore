@@ -328,4 +328,73 @@ class VendaServiceTest {
         assertTrue(exception.getMessage().contains("não possui composição cadastrada"));
         verify(vendaRepository, never()).save(any(Venda.class));
     }
+
+    @Test
+    @DisplayName("Deve pagar venda pendente, validar estoque e registrar saída")
+    void devePagarVendaPendenteComBaixaEstoque() {
+        ItemVenda item = ItemVenda.builder()
+                .produto(produtoMock)
+                .quantidade(2)
+                .precoUnitario(new BigDecimal("5.00"))
+                .build();
+        Venda venda = Venda.builder()
+                .id(5L)
+                .status(StatusVenda.PENDENTE)
+                .valorTotal(new BigDecimal("10.00"))
+                .build();
+        venda.adicionarItem(item);
+
+        when(vendaRepository.findById(5L)).thenReturn(Optional.of(venda));
+        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        Venda paga = vendaService.pagar(5L, VENDEDOR);
+
+        assertEquals(StatusVenda.PAGA, paga.getStatus());
+        verify(movimentacaoEstoqueRepository, times(1)).save(any(MovimentacaoEstoque.class));
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar pagamento quando estoque insuficiente na confirmação")
+    void deveRejeitarPagamentoComEstoqueInsuficiente() {
+        ItemVenda item = ItemVenda.builder()
+                .produto(produtoMock)
+                .quantidade(5)
+                .precoUnitario(new BigDecimal("5.00"))
+                .build();
+        Venda venda = Venda.builder()
+                .id(6L)
+                .status(StatusVenda.PENDENTE)
+                .valorTotal(new BigDecimal("25.00"))
+                .build();
+        venda.adicionarItem(item);
+
+        when(vendaRepository.findById(6L)).thenReturn(Optional.of(venda));
+        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(2);
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.pagar(6L, VENDEDOR));
+
+        assertTrue(exception.getMessage().contains("Saldo insuficiente"));
+        verify(vendaRepository, never()).save(any(Venda.class));
+        verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar pagamento de venda que não está pendente")
+    void deveRejeitarPagamentoDeVendaNaoPendente() {
+        Venda venda = Venda.builder()
+                .id(7L)
+                .status(StatusVenda.PAGA)
+                .valorTotal(new BigDecimal("10.00"))
+                .build();
+
+        when(vendaRepository.findById(7L)).thenReturn(Optional.of(venda));
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.pagar(7L, VENDEDOR));
+
+        assertTrue(exception.getMessage().contains("não pode ser paga"));
+        verify(vendaRepository, never()).save(any(Venda.class));
+    }
 }

@@ -75,7 +75,8 @@
 | **11.5** | **Upload imagem produto (opcional)** | ✅ entregue | `732ef38` |
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
-| 13+ | Backend avançado: reserva estoque, salão→caixa, WebSocket desconto | ⬜ | — |
+| **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | ver git |
+| 13+ | Reserva estoque, WebSocket desconto | ⬜ | — |
 | 14+ | Fiscal/deploy: pagamentos, NFC-e, CI frontend, staging | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -117,7 +118,17 @@
 
 **Teste validado (24/ago):** Venda #5 — Rafael Castro, 10× Fanta R$ 9,50 = R$ 95,00; criada PENDENTE (sem baixa); simulação de pagamento no banco → PAGA + saída −10 (saldo Fanta 90) — UI estoque/histórico conferidos.
 
-**Débito técnico — pagamento / caixa (futuro):** não há endpoint `PUT /vendas/{id}/pagar` nem tela para PENDENTE → PAGA após criação; forma de pagamento (Pix, cartão…) = Sessão 12+ / fiscal.
+**Débito técnico — pagamento / caixa (parcialmente resolvido):** ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa` + detalhe venda; forma de pagamento (Pix, cartão…) = **14+ / fiscal**. Reserva de estoque na PENDENTE = próximo 13+.
+
+### Sessão 13+ (parcial) — salão→caixa: pagar venda — entregue
+
+**Backend:** `PUT /api/vendas/{id}/pagar` — só **PENDENTE**; revalida produto ativo + estoque; status **PAGA** + `registrarSaidaPorVenda` (kits baixam nos filhos).
+
+**Frontend:** rota **`/caixa`** (lista pendentes, confirmar pagamento); botão pagar no detalhe `/vendas/:id`; `pagarVenda` em `api/vendas.ts`.
+
+**UX Salão:** após registrar venda rápida, **banner no `/salao`** (“Venda #N registrada — envie ao caixa”) em vez de redirect para admin com botão pagar.
+
+**Teste validado (28/ago):** vendas salão #14/#15 — pagamento via Caixa; Nova Venda “Paga (caixa)” #16 liquida na hora; salão pós-registro permanece no modo vendedor.
 
 ### Sessão 11.1 — cancelamento com autorização de gerente — entregue
 
@@ -304,9 +315,9 @@ Fase 6 – Fiscal/deploy         ~15% (CI backend ok; frontend/deploy pendente)
 
 ### Backend avançado (PDF — pendente)
 
+- ~~Fluxo salão → caixa (pagar PENDENTE)~~ ✅ parcial (28/ago)
 - Reserva temporária de estoque
 - WebSockets (desconto gerente)
-- Fluxo salão → caixa
 - Pagamentos / NFC-e
 - Conferência balcão
 
@@ -390,7 +401,7 @@ npm run build
 
 ## Próximo passo acordado
 
-**Próximo passo acordado:** evoluções **13+ backend** (reserva estoque, salão→caixa) — ver cronograma.
+**Próximo passo acordado:** **13+ reserva de estoque** (PENDENTE segura quantidade; liberar no cancelamento/pagamento) — ver cronograma.
 
 ---
 
@@ -411,10 +422,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: backend 13+ (reserva estoque, salão→caixa).
+Próximo: 13+ reserva de estoque (salão→caixa pagar ✅).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 27/ago/2026 — Sessão 11.5 upload imagem ✅ (`732ef38`); próximo: 13+ backend.*
+*Última atualização: 28/ago/2026 — 13+ pagar venda + Caixa + UX salão ✅; próximo: reserva estoque.*

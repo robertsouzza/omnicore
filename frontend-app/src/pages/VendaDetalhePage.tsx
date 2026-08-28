@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { buscarCliente } from '../api/clientes'
-import { buscarVenda, cancelarVenda } from '../api/vendas'
+import { buscarVenda, cancelarVenda, pagarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
 import { useUnauthorizedHandler } from '../hooks'
 import type { CancelarVendaRequest, Venda } from '../types/venda'
@@ -11,6 +11,7 @@ import {
   formatPreco,
   labelStatusVenda,
   vendaPodeCancelar,
+  vendaPodePagar,
 } from '../types/venda'
 import { getErrorMessage } from '../utils/validation'
 import styles from './VendaDetalhePage.module.css'
@@ -39,6 +40,7 @@ export function VendaDetalhePage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
+  const [paying, setPaying] = useState(false)
   const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
 
   const load = useCallback(async () => {
@@ -72,6 +74,23 @@ export function VendaDetalhePage() {
   useEffect(() => {
     void load()
   }, [load])
+
+  async function confirmarPagamento() {
+    if (!session || !venda || !vendaPodePagar(venda)) return
+
+    setPaying(true)
+    setActionError(null)
+
+    try {
+      const atualizada = await pagarVenda(session.token, venda.id)
+      setVenda(atualizada)
+    } catch (err) {
+      if (handleUnauthorized(err)) return
+      setActionError(getErrorMessage(err, 'Não foi possível confirmar o pagamento.'))
+    } finally {
+      setPaying(false)
+    }
+  }
 
   async function confirmarCancelamento(payload: CancelarVendaRequest) {
     if (!session || !venda) return
@@ -193,6 +212,26 @@ export function VendaDetalhePage() {
               </table>
             </div>
           </section>
+
+          {vendaPodePagar(venda) && (
+            <div className={styles.actionRow}>
+              <button
+                type="button"
+                className={styles.payBtn}
+                disabled={paying || cancelling}
+                onClick={() => void confirmarPagamento()}
+              >
+                {paying ? 'Confirmando pagamento…' : 'Confirmar pagamento'}
+              </button>
+              <p className={styles.payHint}>
+                Liquida a venda e debita estoque (incluindo componentes de kits).
+              </p>
+            </div>
+          )}
+
+          {actionError && vendaPodePagar(venda) && (
+            <p className={styles.error}>{actionError}</p>
+          )}
 
           {vendaPodeCancelar(venda) && (
             <button

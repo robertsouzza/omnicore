@@ -185,6 +185,35 @@ public class VendaService {
         return vendaRepository.save(venda);
     }
 
+    @Transactional
+    public Venda pagar(Long id, AuthenticatedColaborador colaborador) {
+        if (colaborador == null) {
+            throw new BusinessException("Colaborador autenticado não identificado.");
+        }
+
+        Venda venda = buscarPorId(id);
+
+        if (venda.getStatus() != StatusVenda.PENDENTE) {
+            throw new BusinessException(
+                    "A venda #" + id + " não pode ser paga no status atual: " + venda.getStatus() + ".");
+        }
+
+        for (ItemVenda item : venda.getItens()) {
+            Produto produto = produtoRepository.findById(item.getProduto().getId())
+                    .orElseThrow(() -> new BusinessException(
+                            "Produto com ID " + item.getProduto().getId() + " não encontrado."));
+            validarProdutoAtivo(produto);
+            validarEstoqueDisponivel(produto, item.getQuantidade());
+            item.setProduto(produto);
+        }
+
+        venda.setStatus(StatusVenda.PAGA);
+        Venda vendaPaga = vendaRepository.save(venda);
+        registrarSaidaPorVenda(vendaPaga);
+
+        return vendaPaga;
+    }
+
     private void validarAutorizacaoCancelamento(Venda venda, CancelarVendaRequestDTO dto,
                                                 AuthenticatedColaborador solicitante) {
         if (!exigeAutorizacaoGerente(venda.getStatus())) {

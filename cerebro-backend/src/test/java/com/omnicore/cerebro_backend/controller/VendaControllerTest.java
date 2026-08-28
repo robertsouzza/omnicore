@@ -201,4 +201,36 @@ public class VendaControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("A venda #1 já se encontra cancelada."));
     }
+
+    @Test
+    @DisplayName("PUT /api/vendas/{id}/pagar deve retornar 200 OK ao confirmar pagamento")
+    void deveRetornar200AoPagarVenda() throws Exception {
+        Venda vendaPaga = Venda.builder()
+                .id(1L)
+                .status(StatusVenda.PAGA)
+                .valorTotal(new BigDecimal("59.80"))
+                .build();
+
+        when(vendaService.pagar(eq(1L), any())).thenReturn(vendaPaga);
+
+        mockMvc.perform(put("/api/vendas/{id}/pagar", 1L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(
+                        GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities()))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.status").value("PAGA"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/vendas/{id}/pagar deve retornar 400 quando regra de negócio falhar")
+    void deveRetornar400AoPagarVendaInvalida() throws Exception {
+        when(vendaService.pagar(eq(1L), any()))
+                .thenThrow(new BusinessException("A venda #1 não pode ser paga no status atual: PAGA."));
+
+        mockMvc.perform(put("/api/vendas/{id}/pagar", 1L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(
+                        GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities()))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("A venda #1 não pode ser paga no status atual: PAGA."));
+    }
 }

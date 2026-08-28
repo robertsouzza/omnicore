@@ -191,3 +191,80 @@
   font-size: 0.875rem;
   font-weight: 500;
 }
+
+.successBanner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border: 1px solid #6ee7b7;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgb(16 185 129 / 15%);
+}
+
+.successBannerMain {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.successBannerTitle {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #065f46;
+}
+
+.successBannerText {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #047857;
+  line-height: 1.45;
+}
+
+.successBannerMeta {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f2744;
+}
+
+.successBannerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.successBannerLink {
+  flex: 1;
+  min-width: 8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #6ee7b7;
+  background: #fff;
+  color: #047857;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.successBannerDismiss {
+  flex: 1;
+  min-width: 8rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: 8px;
+  background: #059669;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.successBannerDismiss:hover {
+  background: #047857;
+}

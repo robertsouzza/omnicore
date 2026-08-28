@@ -4,6 +4,7 @@ import { Layout } from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { SalaoLayout } from './components/SalaoLayout'
 import { QueryProvider } from './providers/QueryProvider'
+import { CaixaPage } from './pages/CaixaPage'
 import { ClienteFormPage } from './pages/ClienteFormPage'
 import { ClientesPage } from './pages/ClientesPage'
 import { EstoquePage } from './pages/EstoquePage'
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/vendas" element={<VendasPage />} />
               <Route path="/vendas/nova" element={<NovaVendaPage />} />
               <Route path="/vendas/:id" element={<VendaDetalhePage />} />
+              <Route path="/caixa" element={<CaixaPage />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/produtos" replace />} />

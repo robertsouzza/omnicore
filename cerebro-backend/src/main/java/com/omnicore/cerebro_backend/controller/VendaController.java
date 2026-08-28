@@ -88,4 +88,19 @@ public class VendaController {
         }
         return ResponseEntity.ok(vendaService.cancelar(id, dto, colaborador));
     }
+
+    @PutMapping("/{id}/pagar")
+    @Operation(
+        summary = "Confirmar pagamento de venda pendente",
+        description = "Altera o status de PENDENTE para PAGA, valida estoque disponível e registra saída "
+                + "automática (incluindo baixa nos componentes de pacotes)."
+    )
+    public ResponseEntity<Venda> pagar(@PathVariable Long id,
+            @AuthenticationPrincipal AuthenticatedColaborador colaborador) {
+        if (colaborador == null) {
+            throw new com.omnicore.cerebro_backend.exception.BusinessException(
+                    "Colaborador autenticado não identificado.");
+        }
+        return ResponseEntity.ok(vendaService.pagar(id, colaborador));
+    }
 }

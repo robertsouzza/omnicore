@@ -114,6 +114,10 @@ export function vendaPodeCancelar(venda: Venda): boolean {
   return venda.status !== 'CANCELADA'
 }
 
+export function vendaPodePagar(venda: Venda): boolean {
+  return venda.status === 'PENDENTE'
+}
+
 export function vendaExigeAutorizacaoGerente(status: Venda['status']): boolean {
   return status === 'PAGA' || status === 'CONCLUIDA'
 }

@@ -45,6 +45,10 @@ export function criarVenda(token: string, dados: VendaRequest): Promise<Venda> {
   )
 }
 
+export function pagarVenda(token: string, id: number): Promise<Venda> {
+  return apiFetch<Venda>(`/api/vendas/${id}/pagar`, { method: 'PUT' }, token)
+}
+
 export function cancelarVenda(
   token: string,
   id: number,
