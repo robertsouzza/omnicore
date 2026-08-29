@@ -533,4 +533,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 29/ago/2026 — reserva estoque + UX saldo tempo real (13+); próximo: PDV.*
+*Última atualização: 29/ago/2026 — reserva estoque + UX saldo tempo real (`58add40`); próximo: PDV.*
