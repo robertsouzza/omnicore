@@ -77,7 +77,7 @@
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
-| **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | *(commit desta sessão)* |
+| **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
 | 14+ | Meios de pagamento (Pix, débito, crédito, dinheiro) + TEF + fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
