@@ -148,12 +148,12 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Autenticação | `/api/auth` | Login JWT |
 | Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca; `GET /{id}/codigos` (barcode/QR PNG) |
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
-| Estoque | `/api/estoque` | Entrada, saída, saldo, saldo/indicador (pico histórico), histórico |
+| Estoque | `/api/estoque` | Entrada, saída, **saldo disponível** (físico − reservas), saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
 | Vendas | `/api/vendas` | Criar, listar com filtros, **pagar pendente**, cancelar com estorno |
 
-Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, validação de produto/cliente/colaborador ativos, kits com baixa nos produtos filhos.
+Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, **reserva de estoque em vendas PENDENTE**, validação de produto/cliente/colaborador ativos, kits com baixa nos produtos filhos.
 
 ---
 
@@ -162,18 +162,18 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Tela | Rota | Status |
 |------|------|--------|
 | Login | `/login` | ✅ |
-| Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox, **coluna estoque colorida**) | `/produtos` | ✅ |
+| Listagem de produtos (busca nome/EAN, paginação, imagem + lightbox, **coluna estoque colorida**, **atualização ~4s**) | `/produtos` | ✅ |
 | Cadastro / edição de produtos (+ gerar/salvar barcode e QR Code, **upload imagem**) | `/produtos/novo`, `/produtos/:id/editar` | ✅ |
 | Composição de kit (pacote) | `/produtos/:id/kit` | ✅ |
 | Listagem de clientes (busca nome/documento, paginação) | `/clientes` | ✅ |
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
-| Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários) | `/estoque`, `/estoque/:produtoId` | ✅ |
-| Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
-| **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ parcial |
-| **PDV** (checkout bip contínuo — mercado/padaria) | `/pdv` | ⬜ planejado pós-reserva estoque |
-| PWA salão (código de barras, **banner pós-venda**) | — | ✅ `/salao`, `/salao/vendas` |
+| Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários; **atualização ~4s**) | `/estoque`, `/estoque/:produtoId` | ✅ |
+| Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**; **limite qtd = estoque disp.**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
+| **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ |
+| **PDV** (checkout bip contínuo — mercado/padaria) | `/pdv` | ⬜ próximo |
+| PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
-| TanStack Query + Vitest | — | ✅ Sessão 13-FE — Produtos piloto, 33 testes |
+| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 44 testes |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -188,8 +188,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** | **13+** reserva estoque → **PDV** |
-| PDV (checkout bip) | Nova Venda/Salão atendem varejo geral; **sem** tela caixa fixo estilo mercado | **Após reserva estoque** — rota `/pdv`, atalhos teclado, PAGA direto |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** · **reserva/UX estoque ✅** | **PDV** → **14+ pagamentos** |
+| PDV (checkout bip) | Nova Venda/Salão atendem varejo geral; **sem** tela caixa fixo estilo mercado | **Próximo** — rota `/pdv`, atalhos teclado, PAGA direto |
 
 ---
 
@@ -221,6 +221,7 @@ npm run build
 |------|--------|
 | Infra + Postgres + Swagger | ✅ |
 | Produtos, estoque, vendas, kits | ✅ (backend) |
+| **Reserva de estoque (PENDENTE)** | ✅ backend + UX frontend |
 | Clientes e colaboradores | ✅ (backend) |
 | Auth JWT + Swagger Authorize | ✅ |
 | CI GitHub Actions (backend) | ✅ |
@@ -232,7 +233,8 @@ npm run build
 | Frontend: UI kit (tokens + componentes `ui/`) | ✅ Sessão 12.5 |
 | Frontend: TanStack Query + Vitest | ✅ Sessão 13-FE |
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
-| Reserva de estoque, PDV, meios pagamento/TEF, fiscal | ⬜ planejado — ver CONTEXTO |
+| Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
+| PDV, meios pagamento/TEF, fiscal | ⬜ planejado — ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 

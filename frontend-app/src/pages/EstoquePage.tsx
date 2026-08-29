@@ -71,7 +71,10 @@ export function EstoquePage() {
   }, [page, nomeSearch.normalized, codigoSearch.normalized])
 
   const produtoIds = useMemo(() => produtosExibidos.map((p) => p.id), [produtosExibidos])
-  const { saldoFor } = useProdutoSaldos(produtoIds, { comIndicador: true })
+  const { saldoFor } = useProdutoSaldos(produtoIds, {
+    comIndicador: true,
+    refetchIntervalMs: 4000,
+  })
 
   const buscaAtiva = nomeSearch.isActive || codigoSearch.isActive
   const buscaNoServidor = nomeSearch.isServerSearch || codigoSearch.isServerSearch
@@ -97,7 +100,7 @@ export function EstoquePage() {
         subtitle="Movimentação de produtos unitários. Kits (pacotes) usam o estoque dos componentes — configure em Produtos → Kit."
         badge={
           page
-            ? `${produtosExibidos.length} unitário${produtosExibidos.length === 1 ? '' : 's'} na página`
+            ? `${produtosExibidos.length} unitário${produtosExibidos.length === 1 ? '' : 's'} na página · atualiza a cada 4s`
             : undefined
         }
       />

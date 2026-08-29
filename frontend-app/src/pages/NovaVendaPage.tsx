@@ -20,6 +20,7 @@ import styles from './NovaVendaPage.module.css'
 
 import {
   type CartLine,
+  parseQuantidadeInput,
   nextCartKey,
   toItemRequest,
   validarCarrinho,
@@ -108,6 +109,7 @@ export function NovaVendaPage() {
         quantidade: 1,
         precoUnitario: produto.precoVenda,
         desconto: 0,
+        saldoMax: produto.saldo,
       },
     ])
     produtoSearch.setValue('')
@@ -255,7 +257,10 @@ export function NovaVendaPage() {
               {cart.map((line) => (
                 <article key={line.key} className={styles.cartLine}>
                   <div className={styles.cartLineTop}>
-                    <strong>{line.produtoNome}</strong>
+                    <div>
+                      <strong>{line.produtoNome}</strong>
+                      <p className={styles.lineStock}>Estoque disp.: {line.saldoMax}</p>
+                    </div>
                     <button
                       type="button"
                       className={styles.removeBtn}
@@ -271,12 +276,13 @@ export function NovaVendaPage() {
                       <input
                         type="number"
                         min={1}
+                        max={line.saldoMax}
                         step={1}
                         className={styles.inputSmall}
                         value={line.quantidade}
                         onChange={(e) =>
                           updateLine(line.key, {
-                            quantidade: Number.parseInt(e.target.value, 10) || 1,
+                            quantidade: parseQuantidadeInput(e.target.value, line.saldoMax),
                           })
                         }
                         disabled={submitting}

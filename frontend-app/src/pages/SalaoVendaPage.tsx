@@ -7,9 +7,12 @@ import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
 import { useAuth } from '../auth/AuthContext'
 import { useClienteBusca, useUnauthorizedHandler } from '../hooks'
 import { calcularSubtotalItem, calcularTotalItens, formatPreco } from '../types/venda'
+import type { ProdutoComSaldo } from '../utils/produtoEstoque'
 import {
   type CartLine,
+  clampQuantidade,
   nextCartKey,
+  parseQuantidadeInput,
   toItemRequest,
   validarCarrinho,
 } from '../utils/carrinhoVenda'
@@ -34,19 +37,26 @@ export function SalaoVendaPage() {
   const [buscandoCodigo, setBuscandoCodigo] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [ultimoProduto, setUltimoProduto] = useState<string | null>(null)
+  const [ultimoProduto, setUltimoProduto] = useState<{ nome: string; saldo: number } | null>(null)
   const [vendaRegistrada, setVendaRegistrada] = useState<VendaRegistrada | null>(null)
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
 
-  function addProduto(produto: { id: number; nome: string; precoVenda: number }) {
+  function addProduto(produto: ProdutoComSaldo) {
     setCart((prev) => {
       const existente = prev.find((line) => line.produtoId === produto.id)
       if (existente) {
+        const novaQtd = existente.quantidade + 1
+        if (novaQtd > produto.saldo) {
+          setError(
+            `"${produto.nome}": estoque disponível é ${produto.saldo} (não é possível adicionar mais).`,
+          )
+          return prev
+        }
         return prev.map((line) =>
           line.produtoId === produto.id
-            ? { ...line, quantidade: line.quantidade + 1 }
+            ? { ...line, quantidade: novaQtd, saldoMax: produto.saldo }
             : line,
         )
       }
@@ -59,10 +69,11 @@ export function SalaoVendaPage() {
           quantidade: 1,
           precoUnitario: produto.precoVenda,
           desconto: 0,
+          saldoMax: produto.saldo,
         },
       ]
     })
-    setUltimoProduto(produto.nome)
+    setUltimoProduto({ nome: produto.nome, saldo: produto.saldo })
     setError(null)
   }
 
@@ -84,7 +95,10 @@ export function SalaoVendaPage() {
       }
 
       addProduto(produto)
-      setBarcodeFeedback({ type: 'ok', message: `+1 ${produto.nome}` })
+      setBarcodeFeedback({
+        type: 'ok',
+        message: `+1 ${produto.nome} · Estoque disp.: ${produto.saldo}`,
+      })
     } catch (err) {
       if (handleUnauthorized(err)) return
       setBarcodeFeedback({
@@ -99,10 +113,22 @@ export function SalaoVendaPage() {
   function updateQuantidade(key: string, delta: number) {
     setCart((prev) =>
       prev
-        .map((line) =>
-          line.key === key ? { ...line, quantidade: line.quantidade + delta } : line,
-        )
+        .map((line) => {
+          if (line.key !== key) return line
+          const quantidade = clampQuantidade(line.quantidade + delta, line.saldoMax)
+          return { ...line, quantidade }
+        })
         .filter((line) => line.quantidade > 0),
+    )
+  }
+
+  function setQuantidadeDigitada(key: string, raw: string) {
+    setCart((prev) =>
+      prev.map((line) =>
+        line.key === key
+          ? { ...line, quantidade: parseQuantidadeInput(raw, line.saldoMax) }
+          : line,
+      ),
     )
   }
 
@@ -200,7 +226,7 @@ export function SalaoVendaPage() {
         />
         {ultimoProduto && (
           <p className={styles.successToast} role="status">
-            Último: {ultimoProduto}
+            Último: {ultimoProduto.nome} · Estoque disp.: {ultimoProduto.saldo}
           </p>
         )}
       </div>
@@ -219,6 +245,7 @@ export function SalaoVendaPage() {
                     {formatPreco(line.precoUnitario)} · subtotal{' '}
                     {formatPreco(calcularSubtotalItem(toItemRequest(line)))}
                   </p>
+                  <p className={styles.lineStock}>Estoque disp.: {line.saldoMax}</p>
                 </div>
                 <div className={styles.qtyRow}>
                   <button
@@ -230,11 +257,21 @@ export function SalaoVendaPage() {
                   >
                     −
                   </button>
-                  <span className={styles.qtyValue}>{line.quantidade}</span>
+                  <input
+                    type="number"
+                    className={styles.qtyInput}
+                    min={1}
+                    max={line.saldoMax}
+                    step={1}
+                    value={line.quantidade}
+                    disabled={submitting}
+                    onChange={(e) => setQuantidadeDigitada(line.key, e.target.value)}
+                    aria-label={`Quantidade de ${line.produtoNome}`}
+                  />
                   <button
                     type="button"
                     className={styles.qtyBtn}
-                    disabled={submitting}
+                    disabled={submitting || line.quantidade >= line.saldoMax}
                     onClick={() => updateQuantidade(line.key, 1)}
                     aria-label="Aumentar quantidade"
                   >

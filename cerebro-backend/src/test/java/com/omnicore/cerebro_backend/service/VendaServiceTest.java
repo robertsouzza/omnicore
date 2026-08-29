@@ -40,6 +40,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -72,6 +73,9 @@ class VendaServiceTest {
     @Mock
     private AuthService authService;
 
+    @Mock
+    private ReservaEstoqueService reservaEstoqueService;
+
     private VendaService vendaService;
     private Produto produtoMock;
 
@@ -84,7 +88,12 @@ class VendaServiceTest {
                 composicaoPacoteRepository,
                 clienteService,
                 colaboradorService,
-                authService);
+                authService,
+                reservaEstoqueService);
+
+        lenient().when(reservaEstoqueService.calcularSaldoDisponivel(anyInt(), anyLong()))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        lenient().when(reservaEstoqueService.obterQuantidadeReservadaAtiva(anyLong())).thenReturn(0);
 
         produtoMock = new Produto();
         produtoMock.setId(1L);
@@ -222,6 +231,7 @@ class VendaServiceTest {
 
         assertEquals(StatusVenda.CANCELADA, cancelada.getStatus());
         verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));
+        verify(reservaEstoqueService).liberarReservasVenda(2L);
     }
 
     @Test
@@ -346,18 +356,18 @@ class VendaServiceTest {
 
         when(vendaRepository.findById(5L)).thenReturn(Optional.of(venda));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
-        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
         when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Venda paga = vendaService.pagar(5L, VENDEDOR);
 
         assertEquals(StatusVenda.PAGA, paga.getStatus());
+        verify(reservaEstoqueService).consumirReservasVenda(5L);
         verify(movimentacaoEstoqueRepository, times(1)).save(any(MovimentacaoEstoque.class));
     }
 
     @Test
-    @DisplayName("Deve rejeitar pagamento quando estoque insuficiente na confirmação")
-    void deveRejeitarPagamentoComEstoqueInsuficiente() {
+    @DisplayName("Deve rejeitar pagamento quando não houver reserva ativa")
+    void deveRejeitarPagamentoSemReservaAtiva() {
         ItemVenda item = ItemVenda.builder()
                 .produto(produtoMock)
                 .quantidade(5)
@@ -372,11 +382,12 @@ class VendaServiceTest {
 
         when(vendaRepository.findById(6L)).thenReturn(Optional.of(venda));
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
-        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(2);
+        doThrow(new BusinessException("Não há reserva de estoque ativa para a venda #6."))
+                .when(reservaEstoqueService).consumirReservasVenda(6L);
 
         BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.pagar(6L, VENDEDOR));
 
-        assertTrue(exception.getMessage().contains("Saldo insuficiente"));
+        assertTrue(exception.getMessage().contains("reserva"));
         verify(vendaRepository, never()).save(any(Venda.class));
         verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));
     }
@@ -396,5 +407,26 @@ class VendaServiceTest {
 
         assertTrue(exception.getMessage().contains("não pode ser paga"));
         verify(vendaRepository, never()).save(any(Venda.class));
+    }
+
+    @Test
+    @DisplayName("Deve criar venda pendente e reservar estoque")
+    void deveCriarVendaPendenteComReserva() {
+        ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 2, new BigDecimal("5.00"), BigDecimal.ZERO);
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PENDENTE, 10L, 20L, null, List.of(itemDto));
+
+        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
+        when(vendaRepository.save(any(Venda.class))).thenAnswer(invocation -> {
+            Venda venda = invocation.getArgument(0);
+            venda.setId(8L);
+            return venda;
+        });
+
+        Venda vendaGerada = vendaService.criarVenda(vendaDto);
+
+        assertEquals(StatusVenda.PENDENTE, vendaGerada.getStatus());
+        verify(reservaEstoqueService).reservarItensVenda(vendaGerada);
+        verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));
     }
 }

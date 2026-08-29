@@ -11,7 +11,7 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
-- Próximo foco: **13+ reserva estoque** → **PDV** → **14+ pagamentos** (Pix, débito, crédito, dinheiro, TEF/SitDemo em dev)
+- Próximo foco: **PDV** `/pdv` → **14+ pagamentos** (Pix, débito, crédito, dinheiro, TEF/SitDemo em dev)
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
 - Imagem produto: upload JPG/PNG/WebP via MinIO dev ✅ (11.5); produção = trocar `omnicore.storage.*` (S3/Cloudinary)
 - Catálogo/precificação/compras: cadastro enxuto + preço livre; estoque separado do cadastro (Sessão 10); fornecedor/NF-e/custo/margem = débito técnico — **precificação pós-11; NF-e Fase 6**
@@ -39,4 +39,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `6a361e0` — docs meios pagamento + TEF (14+)
+Último commit relevante: *(após push desta sessão)* — reserva estoque + UX saldo (13+)

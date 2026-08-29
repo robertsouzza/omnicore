@@ -8,7 +8,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 13+ reserva de estoque → PDV → 14+ pagamentos (Pix/TEF mock).
+Próximo: PDV (/pdv) → 14+ pagamentos (Pix/TEF mock).
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

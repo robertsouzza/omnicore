@@ -24,11 +24,14 @@ public class EstoqueService {
 
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final ProdutoRepository produtoRepository;
+    private final ReservaEstoqueService reservaEstoqueService;
 
     public EstoqueService(MovimentacaoEstoqueRepository movimentacaoEstoqueRepository,
-                          ProdutoRepository produtoRepository) {
+                          ProdutoRepository produtoRepository,
+                          ReservaEstoqueService reservaEstoqueService) {
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
         this.produtoRepository = produtoRepository;
+        this.reservaEstoqueService = reservaEstoqueService;
     }
 
     @Transactional
@@ -46,10 +49,10 @@ public class EstoqueService {
     public MovimentacaoEstoque registrarSaida(MovimentacaoEstoqueRequestDTO dto) {
         Produto produto = buscarProdutoAtivoParaMovimentacao(dto.produtoId());
 
-        int saldoAtual = obterSaldoAtual(produto.getId());
-        if (saldoAtual < dto.quantidade()) {
+        int saldoDisponivel = obterSaldoDisponivel(produto.getId());
+        if (saldoDisponivel < dto.quantidade()) {
             throw new BusinessException("Saldo insuficiente em estoque para o produto '" + produto.getNome()
-                    + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + dto.quantidade());
+                    + "'. Disponível: " + saldoDisponivel + ", Solicitado: " + dto.quantidade());
         }
 
         String justificativa = dto.justificativa() != null && !dto.justificativa().isBlank()
@@ -64,7 +67,7 @@ public class EstoqueService {
         if (!produtoRepository.existsById(produtoId)) {
             throw new BusinessException("Produto com ID " + produtoId + " não encontrado.");
         }
-        return obterSaldoAtual(produtoId);
+        return obterSaldoDisponivel(produtoId);
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +75,7 @@ public class EstoqueService {
         if (!produtoRepository.existsById(produtoId)) {
             throw new BusinessException("Produto com ID " + produtoId + " não encontrado.");
         }
-        int saldo = obterSaldoAtual(produtoId);
+        int saldo = obterSaldoDisponivel(produtoId);
         int picoHistorico = obterPicoHistorico(produtoId);
         int referencia = Math.max(picoHistorico, saldo);
         return new SaldoIndicadorResponseDTO(saldo, referencia);
@@ -105,6 +108,11 @@ public class EstoqueService {
     private int obterSaldoAtual(Long produtoId) {
         Integer saldoConsultado = movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(produtoId);
         return saldoConsultado != null ? saldoConsultado : 0;
+    }
+
+    private int obterSaldoDisponivel(Long produtoId) {
+        int saldoFisico = obterSaldoAtual(produtoId);
+        return reservaEstoqueService.calcularSaldoDisponivel(saldoFisico, produtoId);
     }
 
     private int obterPicoHistorico(Long produtoId) {

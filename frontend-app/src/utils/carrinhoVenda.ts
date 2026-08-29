@@ -7,6 +7,19 @@ export interface CartLine {
   quantidade: number
   precoUnitario: number
   desconto: number
+  /** Estoque disponível no momento em que o item entrou no carrinho. */
+  saldoMax: number
+}
+
+export function clampQuantidade(quantidade: number, saldoMax: number): number {
+  if (!Number.isFinite(quantidade) || quantidade < 1) return 1
+  return Math.min(Math.floor(quantidade), Math.max(1, saldoMax))
+}
+
+export function parseQuantidadeInput(raw: string, saldoMax: number): number {
+  const parsed = Number.parseInt(raw, 10)
+  if (Number.isNaN(parsed)) return 1
+  return clampQuantidade(parsed, saldoMax)
 }
 
 let cartKeyCounter = 0
@@ -31,6 +44,9 @@ export function validarCarrinho(cart: CartLine[]): string | null {
 
   for (const line of cart) {
     if (line.quantidade < 1) return 'Quantidade deve ser maior que zero em todos os itens.'
+    if (line.quantidade > line.saldoMax) {
+      return `"${line.produtoNome}": quantidade (${line.quantidade}) excede estoque disponível (${line.saldoMax}).`
+    }
     if (line.precoUnitario < 0) return 'Preço unitário inválido.'
     if (line.desconto < 0 || line.desconto > line.precoUnitario) {
       return 'Desconto inválido em um dos itens.'

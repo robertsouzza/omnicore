@@ -37,12 +37,15 @@ class EstoqueServiceTest {
     @Mock
     private ProdutoRepository produtoRepository;
 
+    @Mock
+    private ReservaEstoqueService reservaEstoqueService;
+
     private EstoqueService estoqueService;
     private Produto produtoMock;
 
     @BeforeEach
     void setUp() {
-        estoqueService = new EstoqueService(movimentacaoEstoqueRepository, produtoRepository);
+        estoqueService = new EstoqueService(movimentacaoEstoqueRepository, produtoRepository, reservaEstoqueService);
 
         produtoMock = new Produto();
         produtoMock.setId(1L);
@@ -107,6 +110,7 @@ class EstoqueServiceTest {
         MovimentacaoEstoqueRequestDTO dto = new MovimentacaoEstoqueRequestDTO(1L, 5, "Ajuste de perda");
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
         when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(20);
+        when(reservaEstoqueService.calcularSaldoDisponivel(20, 1L)).thenReturn(20);
         when(movimentacaoEstoqueRepository.save(any(MovimentacaoEstoque.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -121,7 +125,8 @@ class EstoqueServiceTest {
     void deveRejeitarSaidaComSaldoInsuficiente() {
         MovimentacaoEstoqueRequestDTO dto = new MovimentacaoEstoqueRequestDTO(1L, 10, "Saída");
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
-        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(3);
+        when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
+        when(reservaEstoqueService.calcularSaldoDisponivel(10, 1L)).thenReturn(3);
 
         assertThrows(BusinessException.class, () -> estoqueService.registrarSaida(dto));
         verify(movimentacaoEstoqueRepository, never()).save(any(MovimentacaoEstoque.class));

@@ -76,7 +76,7 @@
 | **12.5** | **Frontend: UI kit mínimo + design tokens** | ✅ entregue | `f76cb01` |
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
-| 13+ | Reserva de estoque (PENDENTE segura quantidade) | ⬜ | — |
+| **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | *(commit desta sessão)* |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ⬜ planejado | — |
 | 14+ | Meios de pagamento (Pix, débito, crédito, dinheiro) + TEF + fiscal/NFC-e | ⬜ | — |
 
@@ -119,7 +119,15 @@
 
 **Teste validado (24/ago):** Venda #5 — Rafael Castro, 10× Fanta R$ 9,50 = R$ 95,00; criada PENDENTE (sem baixa); simulação de pagamento no banco → PAGA + saída −10 (saldo Fanta 90) — UI estoque/histórico conferidos.
 
-**Débito técnico — pagamento / caixa (parcialmente resolvido):** ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa` + detalhe venda; **formas** (Pix, débito, crédito, dinheiro, TEF) = **14+** — ver seção “Meios de pagamento e TEF”. Reserva de estoque na PENDENTE = próximo 13+.
+**Débito técnico — pagamento / caixa (parcialmente resolvido):** ✅ `PUT /api/vendas/{id}/pagar` + tela `/caixa` + detalhe venda; **formas** (Pix, débito, crédito, dinheiro, TEF) = **14+** — ver seção “Meios de pagamento e TEF”. ✅ Reserva de estoque na PENDENTE entregue (13+).
+
+### Sessão 13+ — reserva de estoque + UX saldo em tempo real — entregue
+
+**Backend:** entidade `ReservaEstoque` (`tb_reserva_estoque`); `ReservaEstoqueService` — criar reserva na venda **PENDENTE**, consumir no **pagar**, liberar no **cancelar**; kits reservam nos componentes; venda **PAGA** direta sem reserva (igual antes). `GET /api/estoque/saldo/{id}` retorna **disponível** (físico − reservas ATIVAS).
+
+**Frontend:** polling silencioso de saldos a cada **4s** em `/estoque` e `/produtos` (`useProdutoSaldos` + `refetchIntervalMs`); Salão e Nova Venda exibem **estoque disp.**, qtd editável com **teto = disponível**; validação em `carrinhoVenda.ts` + testes Vitest.
+
+**Teste validado (29/ago):** Coca-Cola saldo 45 — não aceita qtd 46 no carrinho; tela Estoque/Produtos atualiza após venda/pagamento em outro terminal sem F5.
 
 ### Sessão 13+ (parcial) — salão→caixa: pagar venda — entregue
 
@@ -496,9 +504,9 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **Imediato:** **13+ reserva de estoque** (PENDENTE segura quantidade; liberar no cancelamento/pagamento).
-2. **Em seguida:** **Sessão PDV** — tela `/pdv` checkout bip contínuo.
-3. **Depois:** **14+ meios de pagamento** (mock → Pix sandbox → TEF SitDemo) + fiscal.
+1. **Imediato:** **Sessão PDV** — tela `/pdv` checkout bip contínuo (pós-reserva estoque ✅).
+2. **Depois:** **14+ meios de pagamento** (mock → Pix sandbox → TEF SitDemo) + fiscal.
+3. **Opcional:** polling em `/estoque/:id`; TTL reservas abandonadas; WebSocket saldo (substituir polling).
 
 ---
 
@@ -519,10 +527,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 13+ reserva de estoque → depois PDV (/pdv).
+Próximo: PDV (/pdv) → 14+ pagamentos (Pix/TEF mock).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 28/ago/2026 — meios de pagamento + TEF documentados (14+); próximo: reserva estoque.*
+*Última atualização: 29/ago/2026 — reserva estoque + UX saldo tempo real (13+); próximo: PDV.*

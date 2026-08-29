@@ -255,7 +255,10 @@ export function ProdutosPage() {
     () => produtosExibidos.filter((p) => p.tipoProduto === 'UNITARIO').map((p) => p.id),
     [produtosExibidos],
   )
-  const { saldoFor } = useProdutoSaldos(unitarioIds, { comIndicador: true })
+  const { saldoFor } = useProdutoSaldos(unitarioIds, {
+    comIndicador: true,
+    refetchIntervalMs: 4000,
+  })
 
   function estoqueCell(produto: Produto) {
     if (produto.tipoProduto !== 'UNITARIO') {
@@ -277,7 +280,8 @@ export function ProdutosPage() {
         <div className={styles.headerActions}>
           {page && (
             <span className={styles.count}>
-              {page.totalElements} {page.totalElements === 1 ? 'item' : 'itens'}
+              {page.totalElements} {page.totalElements === 1 ? 'item' : 'itens'} · atualiza a
+              cada 4s
             </span>
           )}
           <Link to="/produtos/novo" className={styles.newBtn}>

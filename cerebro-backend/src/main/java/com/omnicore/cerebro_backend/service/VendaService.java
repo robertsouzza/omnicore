@@ -44,6 +44,7 @@ public class VendaService {
     private final ClienteService clienteService;
     private final ColaboradorService colaboradorService;
     private final AuthService authService;
+    private final ReservaEstoqueService reservaEstoqueService;
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoRepository produtoRepository,
@@ -51,7 +52,8 @@ public class VendaService {
                         ComposicaoPacoteRepository composicaoPacoteRepository,
                         ClienteService clienteService,
                         ColaboradorService colaboradorService,
-                        AuthService authService) {
+                        AuthService authService,
+                        ReservaEstoqueService reservaEstoqueService) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
@@ -59,6 +61,7 @@ public class VendaService {
         this.clienteService = clienteService;
         this.colaboradorService = colaboradorService;
         this.authService = authService;
+        this.reservaEstoqueService = reservaEstoqueService;
     }
 
     @Transactional
@@ -89,6 +92,8 @@ public class VendaService {
 
             if (deveDebitarEstoque(dto.status())) {
                 validarEstoqueDisponivel(produto, itemDto.quantidade());
+            } else if (deveReservarEstoque(dto.status())) {
+                validarEstoqueDisponivel(produto, itemDto.quantidade());
             }
 
             BigDecimal desconto = itemDto.desconto() != null ? itemDto.desconto() : BigDecimal.ZERO;
@@ -113,6 +118,8 @@ public class VendaService {
 
         if (deveDebitarEstoque(vendaSalva.getStatus())) {
             registrarSaidaPorVenda(vendaSalva);
+        } else if (deveReservarEstoque(vendaSalva.getStatus())) {
+            reservaEstoqueService.reservarItensVenda(vendaSalva);
         }
 
         return vendaSalva;
@@ -179,6 +186,8 @@ public class VendaService {
 
         if (deveDebitarEstoque(venda.getStatus())) {
             estornarMovimentacoesDaVenda(venda);
+        } else if (deveReservarEstoque(venda.getStatus())) {
+            reservaEstoqueService.liberarReservasVenda(venda.getId());
         }
 
         venda.setStatus(StatusVenda.CANCELADA);
@@ -203,9 +212,10 @@ public class VendaService {
                     .orElseThrow(() -> new BusinessException(
                             "Produto com ID " + item.getProduto().getId() + " não encontrado."));
             validarProdutoAtivo(produto);
-            validarEstoqueDisponivel(produto, item.getQuantidade());
             item.setProduto(produto);
         }
+
+        reservaEstoqueService.consumirReservasVenda(venda.getId());
 
         venda.setStatus(StatusVenda.PAGA);
         Venda vendaPaga = vendaRepository.save(venda);
@@ -247,6 +257,10 @@ public class VendaService {
 
     private boolean deveDebitarEstoque(StatusVenda status) {
         return status == StatusVenda.PAGA || status == StatusVenda.CONCLUIDA;
+    }
+
+    private boolean deveReservarEstoque(StatusVenda status) {
+        return status == StatusVenda.PENDENTE;
     }
 
     private int obterSaldoAtual(Long produtoId) {
@@ -296,11 +310,15 @@ public class VendaService {
 
     private void validarSaldoProduto(Produto produto, int quantidadeNecessaria) {
         validarProdutoAtivo(produto);
-        int saldoAtual = obterSaldoAtual(produto.getId());
-        if (saldoAtual < quantidadeNecessaria) {
+        int saldoFisico = obterSaldoAtual(produto.getId());
+        int saldoDisponivel = reservaEstoqueService.calcularSaldoDisponivel(saldoFisico, produto.getId());
+        if (saldoDisponivel < quantidadeNecessaria) {
+            int reservado = reservaEstoqueService.obterQuantidadeReservadaAtiva(produto.getId());
             throw new BusinessException(
                     "Saldo insuficiente em estoque para o produto '" + produto.getNome()
-                            + "'. Estoque atual: " + saldoAtual + ", Solicitado: " + quantidadeNecessaria);
+                            + "'. Disponível: " + saldoDisponivel
+                            + " (físico: " + saldoFisico + ", reservado: " + reservado
+                            + "), Solicitado: " + quantidadeNecessaria);
         }
     }
 
