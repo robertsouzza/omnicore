@@ -14,7 +14,7 @@
 |-------|--------|
 | Web | E-commerce + checkout ágil |
 | Salão | App vendedor (PWA + código de barras) |
-| Caixa | PDV checkout (dinheiro, cartão, Pix) — **parcial:** `/caixa` paga PENDENTE; **PDV bip** = sessão futura |
+| Caixa | PDV checkout (dinheiro, cartão, Pix) — **parcial:** `/caixa` paga PENDENTE; **PDV bip** ✅ `/pdv` |
 | Balcão/Entrega | Separação e conferência |
 
 **Stack:** Java 21 · Spring Boot 3.5 · PostgreSQL (Docker) · React (PWA) · JWT · Swagger · GitHub Actions CI
@@ -77,7 +77,7 @@
 | **13-FE** | **TanStack Query + testes Vitest (frontend)** | ✅ entregue | `abab2c9` |
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
-| **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ⬜ planejado | — |
+| **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | *(commit desta sessão)* |
 | 14+ | Meios de pagamento (Pix, débito, crédito, dinheiro) + TEF + fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -128,6 +128,16 @@
 **Frontend:** polling silencioso de saldos a cada **4s** em `/estoque` e `/produtos` (`useProdutoSaldos` + `refetchIntervalMs`); Salão e Nova Venda exibem **estoque disp.**, qtd editável com **teto = disponível**; validação em `carrinhoVenda.ts` + testes Vitest.
 
 **Teste validado (29/ago):** Coca-Cola saldo 45 — não aceita qtd 46 no carrinho; tela Estoque/Produtos atualiza após venda/pagamento em outro terminal sem F5.
+
+### Sessão 13+/14 — PDV caixa (`/pdv`) — entregue
+
+**Frontend:** rota **`/pdv`** — bip contínuo, carrinho com teto de estoque, atalhos **F3/F4/F5/F10**, finaliza **`PAGA`** direto; painel **imagem do produto** (≥1024px) ao bipar; **prévia cupom térmico** montada em tempo real (≥1024px); layout largo para monitor.
+
+**Reutiliza:** `BarcodeField`, `carrinhoVenda`, `criarVenda`, `ClienteBuscaSection` (opcional).
+
+**Fora do MVP v1 (14+):** formas de pagamento (Pix/débito/crédito/dinheiro), TEF, impressão cupom/NFC-e.
+
+**Teste pendente (Roberto — tarde):** fluxo completo em monitor + leitor USB; validar painéis laterais e atalhos.
 
 ### Sessão 13+ (parcial) — salão→caixa: pagar venda — entregue
 
@@ -504,9 +514,10 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **Imediato:** **Sessão PDV** — tela `/pdv` checkout bip contínuo (pós-reserva estoque ✅).
-2. **Depois:** **14+ meios de pagamento** (mock → Pix sandbox → TEF SitDemo) + fiscal.
-3. **Opcional:** polling em `/estoque/:id`; TTL reservas abandonadas; WebSocket saldo (substituir polling).
+1. **Imediato (tarde — Roberto):** **testes PDV** `/pdv` em monitor (bip, atalhos, imagem, cupom, PAGA + estoque).
+2. **Em seguida:** **14-A meios de pagamento mock** — enum `FormaPagamento`, `pagamento_venda`, UI no PDV (dinheiro/troco, Pix/cartão simulado).
+3. **Depois:** **14-B** Pix sandbox · **14-C** TEF SitDemo · fiscal/NFC-e.
+4. **Opcional:** polling `/estoque/:id`; TTL reservas; WebSocket saldo; impressão cupom térmico.
 
 ---
 
@@ -527,10 +538,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: PDV (/pdv) → 14+ pagamentos (Pix/TEF mock).
+Próximo: testes PDV → 14-A pagamentos mock (Pix/TEF simulado).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 29/ago/2026 — reserva estoque + UX saldo tempo real (`58add40`); próximo: PDV.*
+*Última atualização: 29/ago/2026 — PDV `/pdv` entregue; próximo: testes + 14-A pagamentos mock.*

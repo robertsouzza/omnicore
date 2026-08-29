@@ -31,6 +31,11 @@
   box-shadow: 0 0 0 3px rgb(37 99 235 / 20%);
 }
 
+.inputLarge {
+  font-size: 1.375rem;
+  padding: 1rem 1.125rem;
+}
+
 .scanBtn {
   flex-shrink: 0;
   border: none;

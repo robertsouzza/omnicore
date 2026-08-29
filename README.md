@@ -170,7 +170,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários; **atualização ~4s**) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**; **limite qtd = estoque disp.**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
 | **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ |
-| **PDV** (checkout bip contínuo — mercado/padaria) | `/pdv` | ⬜ próximo |
+| **PDV** (checkout bip, atalhos F3–F10, imagem + cupom ≥1024px, PAGA direto) | `/pdv` | ✅ 13+/14 |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
 | TanStack Query + Vitest | — | ✅ Sessão 13-FE — 44 testes |
@@ -188,8 +188,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · upload imagem ✅ · **Caixa ✅** · **reserva/UX estoque ✅** | **PDV** → **14+ pagamentos** |
-| PDV (checkout bip) | Nova Venda/Salão atendem varejo geral; **sem** tela caixa fixo estilo mercado | **Próximo** — rota `/pdv`, atalhos teclado, PAGA direto |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** | **14-A pagamentos mock** |
+| PDV (checkout bip) | **`/pdv`** — bip, atalhos, PAGA direto, prévia cupom | **14-A** formas pagamento + impressão |
 
 ---
 
@@ -234,7 +234,8 @@ npm run build
 | Frontend: TanStack Query + Vitest | ✅ Sessão 13-FE |
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
-| PDV, meios pagamento/TEF, fiscal | ⬜ planejado — ver CONTEXTO |
+| Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
+| Meios pagamento/TEF mock, fiscal | ⬜ próximo — 14-A — ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 

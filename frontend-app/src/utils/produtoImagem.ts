@@ -21,3 +21,23 @@ export function formatProdutoImagemSize(bytes: number): string {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
+
+/** Converte URLs GitHub /blob/ para raw quando aplicável. */
+export function resolveImagemUrl(url: string | null | undefined): string | null {
+  const trimmed = url?.trim()
+  if (!trimmed) return null
+
+  const blobMatch = trimmed.match(
+    /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/,
+  )
+  if (blobMatch) {
+    const [, owner, repo, branch, path] = blobMatch
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
+  }
+
+  return trimmed
+}
+
+export function inicialProduto(nome: string): string {
+  return nome.trim().charAt(0).toUpperCase() || '?'
+}

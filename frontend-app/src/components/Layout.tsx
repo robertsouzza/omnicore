@@ -1,10 +1,12 @@
-import { Link, Outlet } from 'react-router-dom'
+import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
 import { OfflineBanner } from './OfflineBanner'
 import styles from './Layout.module.css'
 
 export function Layout() {
   const { session, logout } = useAuth()
+  const location = useLocation()
+  const isPdv = location.pathname === '/pdv'
 
   return (
     <div className={styles.shell}>
@@ -29,6 +31,9 @@ export function Layout() {
           <Link to="/vendas" className={styles.navLink}>
             Vendas
           </Link>
+          <Link to="/pdv" className={styles.navLink}>
+            PDV
+          </Link>
           <Link to="/caixa" className={styles.navLink}>
             Caixa
           </Link>
@@ -42,7 +47,7 @@ export function Layout() {
         </button>
       </header>
       <OfflineBanner />
-      <main className={styles.main}>
+      <main className={`${styles.main}${isPdv ? ` ${styles.mainPdv}` : ''}`}>
         <Outlet />
       </main>
     </div>

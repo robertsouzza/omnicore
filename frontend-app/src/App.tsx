@@ -11,6 +11,7 @@ import { EstoquePage } from './pages/EstoquePage'
 import { EstoqueProdutoPage } from './pages/EstoqueProdutoPage'
 import { LoginPage } from './pages/LoginPage'
 import { NovaVendaPage } from './pages/NovaVendaPage'
+import { PdvPage } from './pages/PdvPage'
 import { ProdutoFormPage } from './pages/ProdutoFormPage'
 import { ProdutoKitPage } from './pages/ProdutoKitPage'
 import { ProdutosPage } from './pages/ProdutosPage'
@@ -45,6 +46,7 @@ export default function App() {
               <Route path="/vendas" element={<VendasPage />} />
               <Route path="/vendas/nova" element={<NovaVendaPage />} />
               <Route path="/vendas/:id" element={<VendaDetalhePage />} />
+              <Route path="/pdv" element={<PdvPage />} />
               <Route path="/caixa" element={<CaixaPage />} />
             </Route>
           </Route>

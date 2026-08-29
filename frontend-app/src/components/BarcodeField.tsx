@@ -8,9 +8,20 @@ interface BarcodeFieldProps {
   loading?: boolean
   feedback?: { type: 'ok' | 'error' | 'loading'; message: string } | null
   onSubmitCode: (code: string) => void | Promise<void>
+  /** ID do input (ex.: PDV vs salão). */
+  inputId?: string
+  /** Classe extra no input (ex.: tamanho maior no PDV). */
+  inputClassName?: string
 }
 
-export function BarcodeField({ disabled, loading, feedback, onSubmitCode }: BarcodeFieldProps) {
+export function BarcodeField({
+  disabled,
+  loading,
+  feedback,
+  onSubmitCode,
+  inputId = 'barcode-input',
+  inputClassName,
+}: BarcodeFieldProps) {
   const [value, setValue] = useState('')
   const [scannerOpen, setScannerOpen] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -42,14 +53,14 @@ export function BarcodeField({ disabled, loading, feedback, onSubmitCode }: Barc
   return (
     <>
       <form className={styles.field} onSubmit={handleSubmit}>
-        <label className={styles.label} htmlFor="barcode-input">
+        <label className={styles.label} htmlFor={inputId}>
           Código de barras
         </label>
         <div className={styles.row}>
           <input
-            id="barcode-input"
+            id={inputId}
             ref={inputRef}
-            className={styles.input}
+            className={`${styles.input}${inputClassName ? ` ${inputClassName}` : ''}`}
             value={value}
             onChange={(e) => setValue(onlyDigits(e.target.value))}
             placeholder="Escaneie ou digite o EAN"

@@ -1,0 +1,99 @@
+.panel {
+  display: none;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 0.875rem;
+  box-shadow: 0 1px 4px rgb(15 39 68 / 8%);
+  min-height: 18rem;
+}
+
+.title {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem 0.5rem;
+  border: 2px dashed #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.placeholderIcon {
+  font-size: 2rem;
+  color: #94a3b8;
+}
+
+.placeholderText {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imageFrame {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.imageFallback {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.nome {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f2744;
+  line-height: 1.3;
+}
+
+.meta {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #475569;
+}
+
+.stock {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+@media (min-width: 1024px) {
+  .panel {
+    display: flex;
+  }
+}

@@ -20,21 +20,7 @@ function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
-/** Converte URLs GitHub /blob/ para raw quando aplicável. */
-function resolveImagemUrl(url: string | null | undefined): string | null {
-  const trimmed = url?.trim()
-  if (!trimmed) return null
-
-  const blobMatch = trimmed.match(
-    /^https:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/([^/]+)\/(.+)$/,
-  )
-  if (blobMatch) {
-    const [, owner, repo, branch, path] = blobMatch
-    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`
-  }
-
-  return trimmed
-}
+import { resolveImagemUrl } from '../utils/produtoImagem'
 
 interface ProdutoThumbnailProps {
   produto: Produto

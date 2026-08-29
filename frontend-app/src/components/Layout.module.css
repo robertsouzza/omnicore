@@ -108,6 +108,10 @@
   margin: 0 auto;
 }
 
+.mainPdv {
+  max-width: none;
+}
+
 /* Tablet+ — header em linha única */
 @media (min-width: 768px) {
   .header {
