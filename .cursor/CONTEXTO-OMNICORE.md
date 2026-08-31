@@ -263,6 +263,8 @@ Roberto construirá o simulador **fora** do monorepo; OmniCore só consome o con
 
 **Decisão vigente (31/ago):** PDV v1 hoje finaliza PAGA sem forma registrada; **14-A** adiciona registro + UI de pagamento + porta externa.
 
+**14-A — progresso (31/ago):** backend `bad0701` — `FormaPagamento`, `PagamentoVenda`, `PagamentoService`, `PaymentExperiencePort` (HTTP + fake em testes), `PUT /pagar` com body opcional, `POST /api/pagamentos/webhook`, config `omnicore.pagamento.experience.*`. **Pendente:** UI PDV/Caixa + simulador externo (Roberto).
+
 ### Sessão 11.1 — cancelamento com autorização de gerente — entregue
 
 **Regra de negócio (não era débito técnico — era lacuna de segurança/perfil na Sessão 11):** venda **PENDENTE** → vendedor cancela sem fricção; venda **PAGA/CONCLUÍDA** → exige **motivo** + credenciais de **GERENTE** (vendedor/caixa/conferente solicita; gerente logado só informa motivo). Estorno de estoque automático mantido.
