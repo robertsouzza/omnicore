@@ -40,4 +40,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `47b04ac` — 14-A UI pagamento (Caixa, PDV, Nova Venda, detalhe)
+Último commit relevante: `a54f898` — UX aguardando Pix/cartão (link + polling)

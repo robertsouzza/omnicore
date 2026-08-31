@@ -282,7 +282,7 @@ Roberto construirá o simulador **fora** do monorepo em **`~/omnicore-pagamento-
 - **Backend** `bad0701` — `FormaPagamento`, `PagamentoVenda`, `PagamentoService`, `PaymentExperiencePort` (HTTP + fake em testes), `PUT /pagar` com body opcional, `POST /api/pagamentos/webhook`, config `omnicore.pagamento.experience.*`.
 - **Frontend** `47b04ac` — `PagamentoPanel` + `PagamentoModal`; `/caixa` modal; `/pdv` painel + `registrarVendaComPagamento`; `/vendas/nova` e `/vendas/:id` com forma; Vitest `pagamentoForm.test.ts` (48 testes).
 - **Simulador externo** — `~/omnicore-pagamento-simulador/` ✅ (Node :9090, telas Pix/crédito/débito, webhook); skill Cursor ✅; teste Pix integrado ✅ (Roberto, 31/ago).
-- **UX aguardando pagamento** — link “Abrir tela Pix/cartão”, polling 3s, modal fecha ao liquidar (Caixa, detalhe venda, PDV).
+- **UX aguardando pagamento** — link “Abrir tela Pix/cartão”, polling 3s, modal fecha ao liquidar (`a54f898`).
 
 #### Matriz UI pagamento (14-A)
 
@@ -593,4 +593,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 31/ago/2026 — simulador registrado em `~/omnicore-pagamento-simulador/` + skill Cursor; 14-A FE `47b04ac`.*
+*Última atualização: 31/ago/2026 — UX aguardando pagamento externo (`a54f898`); simulador `:9090` ✅; 14-A FE `47b04ac`.*
