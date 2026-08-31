@@ -211,7 +211,7 @@ public class VendaControllerTest {
                 .valorTotal(new BigDecimal("59.80"))
                 .build();
 
-        when(vendaService.pagar(eq(1L), any())).thenReturn(vendaPaga);
+        when(vendaService.pagar(eq(1L), any(), any())).thenReturn(vendaPaga);
 
         mockMvc.perform(put("/api/vendas/{id}/pagar", 1L)
                 .with(authentication(new UsernamePasswordAuthenticationToken(
@@ -224,7 +224,7 @@ public class VendaControllerTest {
     @Test
     @DisplayName("PUT /api/vendas/{id}/pagar deve retornar 400 quando regra de negócio falhar")
     void deveRetornar400AoPagarVendaInvalida() throws Exception {
-        when(vendaService.pagar(eq(1L), any()))
+        when(vendaService.pagar(eq(1L), any(), any()))
                 .thenThrow(new BusinessException("A venda #1 não pode ser paga no status atual: PAGA."));
 
         mockMvc.perform(put("/api/vendas/{id}/pagar", 1L)

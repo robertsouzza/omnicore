@@ -60,3 +60,9 @@ omnicore:
     bucket: ${STORAGE_BUCKET:omnicore-produtos}
     public-base-url: ${STORAGE_PUBLIC_BASE_URL:http://localhost:9000/omnicore-produtos}
     max-file-size-bytes: 5242880
+  pagamento:
+    experience:
+      enabled: ${PAGAMENTO_EXPERIENCE_ENABLED:true}
+      base-url: ${PAGAMENTO_EXPERIENCE_BASE_URL:http://localhost:9090}
+      connect-timeout-ms: 5000
+      read-timeout-ms: 30000

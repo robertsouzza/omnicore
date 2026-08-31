@@ -76,6 +76,9 @@ class VendaServiceTest {
     @Mock
     private ReservaEstoqueService reservaEstoqueService;
 
+    @Mock
+    private PagamentoService pagamentoService;
+
     private VendaService vendaService;
     private Produto produtoMock;
 
@@ -89,7 +92,8 @@ class VendaServiceTest {
                 clienteService,
                 colaboradorService,
                 authService,
-                reservaEstoqueService);
+                reservaEstoqueService,
+                pagamentoService);
 
         lenient().when(reservaEstoqueService.calcularSaldoDisponivel(anyInt(), anyLong()))
                 .thenAnswer(invocation -> invocation.getArgument(0));

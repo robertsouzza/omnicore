@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.omnicore.cerebro_backend.dto.CancelarVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.ItemVendaRequestDTO;
+import com.omnicore.cerebro_backend.dto.PagarVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
@@ -45,6 +46,7 @@ public class VendaService {
     private final ColaboradorService colaboradorService;
     private final AuthService authService;
     private final ReservaEstoqueService reservaEstoqueService;
+    private final PagamentoService pagamentoService;
 
     public VendaService(VendaRepository vendaRepository,
                         ProdutoRepository produtoRepository,
@@ -53,7 +55,8 @@ public class VendaService {
                         ClienteService clienteService,
                         ColaboradorService colaboradorService,
                         AuthService authService,
-                        ReservaEstoqueService reservaEstoqueService) {
+                        ReservaEstoqueService reservaEstoqueService,
+                        PagamentoService pagamentoService) {
         this.vendaRepository = vendaRepository;
         this.produtoRepository = produtoRepository;
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
@@ -62,6 +65,7 @@ public class VendaService {
         this.colaboradorService = colaboradorService;
         this.authService = authService;
         this.reservaEstoqueService = reservaEstoqueService;
+        this.pagamentoService = pagamentoService;
     }
 
     @Transactional
@@ -195,7 +199,7 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda pagar(Long id, AuthenticatedColaborador colaborador) {
+    public Venda pagar(Long id, AuthenticatedColaborador colaborador, PagarVendaRequestDTO dto) {
         if (colaborador == null) {
             throw new BusinessException("Colaborador autenticado não identificado.");
         }
@@ -215,6 +219,28 @@ public class VendaService {
             item.setProduto(produto);
         }
 
+        if (dto != null) {
+            PagamentoService.PagamentoProcessamentoResult resultado = pagamentoService.processar(venda, dto);
+            if (!resultado.prontoParaLiquidar()) {
+                return venda;
+            }
+        }
+
+        return liquidarVendaPendente(venda);
+    }
+
+    @Transactional
+    public void tentarLiquidarAposPagamento(Long vendaId) {
+        Venda venda = buscarPorId(vendaId);
+        if (venda.getStatus() != StatusVenda.PENDENTE) {
+            return;
+        }
+        if (pagamentoService.pagamentoAprovadoSuficiente(venda)) {
+            liquidarVendaPendente(venda);
+        }
+    }
+
+    private Venda liquidarVendaPendente(Venda venda) {
         reservaEstoqueService.consumirReservasVenda(venda.getId());
 
         venda.setStatus(StatusVenda.PAGA);
@@ -222,6 +248,11 @@ public class VendaService {
         registrarSaidaPorVenda(vendaPaga);
 
         return vendaPaga;
+    }
+
+    @Transactional
+    public Venda pagar(Long id, AuthenticatedColaborador colaborador) {
+        return pagar(id, colaborador, null);
     }
 
     private void validarAutorizacaoCancelamento(Venda venda, CancelarVendaRequestDTO dto,

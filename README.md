@@ -151,7 +151,8 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Estoque | `/api/estoque` | Entrada, saída, **saldo disponível** (físico − reservas), saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
-| Vendas | `/api/vendas` | Criar, listar com filtros, **pagar pendente**, cancelar com estorno |
+| Vendas | `/api/vendas` | Criar, listar, **pagar** (body opcional com forma), cancelar |
+| Pagamentos | `/api/pagamentos` | Listar por venda, **webhook** experiência externa |
 
 Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, **reserva de estoque em vendas PENDENTE**, validação de produto/cliente/colaborador ativos, kits com baixa nos produtos filhos.
 

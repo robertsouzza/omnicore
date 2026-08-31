@@ -78,7 +78,7 @@
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
-| **14-A** | **Pagamentos** — registro + porta externa (sem mock na UI) | 🔄 em andamento | — |
+| **14-A** | **Pagamentos** — registro + porta externa (sem mock na UI) | 🔄 backend base | — |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)

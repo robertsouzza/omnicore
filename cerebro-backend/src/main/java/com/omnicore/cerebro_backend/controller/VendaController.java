@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.omnicore.cerebro_backend.dto.CancelarVendaRequestDTO;
+import com.omnicore.cerebro_backend.dto.PagarVendaRequestDTO;
 import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.model.Venda;
@@ -92,15 +93,18 @@ public class VendaController {
     @PutMapping("/{id}/pagar")
     @Operation(
         summary = "Confirmar pagamento de venda pendente",
-        description = "Altera o status de PENDENTE para PAGA, valida estoque disponível e registra saída "
-                + "automática (incluindo baixa nos componentes de pacotes)."
+        description = "Altera o status de PENDENTE para PAGA após pagamento. "
+                + "Sem body: comportamento legado (liquida direto). "
+                + "Com body: registra forma de pagamento (dinheiro, Pix, crédito, débito bancário). "
+                + "Pix/cartão/débito aguardam sistema de experiência externo se status PENDENTE."
     )
     public ResponseEntity<Venda> pagar(@PathVariable Long id,
+            @RequestBody(required = false) @Valid PagarVendaRequestDTO dto,
             @AuthenticationPrincipal AuthenticatedColaborador colaborador) {
         if (colaborador == null) {
             throw new com.omnicore.cerebro_backend.exception.BusinessException(
                     "Colaborador autenticado não identificado.");
         }
-        return ResponseEntity.ok(vendaService.pagar(id, colaborador));
+        return ResponseEntity.ok(vendaService.pagar(id, colaborador, dto));
     }
 }
