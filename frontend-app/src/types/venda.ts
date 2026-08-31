@@ -71,7 +71,7 @@ export const STATUS_NOVA_VENDA: { value: StatusVenda; label: string; hint: strin
   {
     value: 'PAGA',
     label: 'Paga (caixa)',
-    hint: 'Liquida agora e debita estoque imediatamente.',
+    hint: 'Reserva estoque e registra pagamento (dinheiro, Pix, cartão).',
   },
 ]
 

@@ -1,7 +1,7 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buscarProdutoPorCodigoBarras } from '../api/produtos'
-import { criarVenda } from '../api/vendas'
+import { PagamentoPanel, usePagamentoFormState } from '../components/pagamento/PagamentoPanel'
 import { BarcodeField } from '../components/BarcodeField'
 import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
 import { PdvCupomPreview } from '../components/pdv/PdvCupomPreview'
@@ -21,6 +21,7 @@ import {
   toItemRequest,
   validarCarrinho,
 } from '../utils/carrinhoVenda'
+import { registrarVendaComPagamento } from '../utils/registrarVendaComPagamento'
 import { getErrorMessage } from '../utils/validation'
 import barcodeStyles from '../components/BarcodeField.module.css'
 import styles from './PdvPage.module.css'
@@ -31,6 +32,7 @@ type VendaFinalizada = {
   id: number
   total: number
   clienteResumo: string
+  aguardandoExperiencia: boolean
 }
 
 type PdvCartLine = CartLine & {
@@ -74,6 +76,20 @@ export function PdvPage() {
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
+  const pagamento = usePagamentoFormState(totalEstimado)
+  const {
+    validate: validatePagamento,
+    buildRequest: buildPagamentoRequest,
+    setError: setPagamentoError,
+    reset: resetPagamento,
+    error: pagamentoError,
+    forma,
+    setForma,
+    valorRecebido,
+    setValorRecebido,
+    parcelas,
+    setParcelas,
+  } = pagamento
 
   const clienteResumo = useMemo(() => {
     if (clienteSelecionado) return clienteSelecionado.nomeCompleto
@@ -222,10 +238,11 @@ export function PdvPage() {
     setBarcodeFeedback(null)
     setProdutoPreview(null)
     setVendaFinalizada(null)
+    resetPagamento()
     resetCliente()
     setClienteAberto(false)
     focusBarcode()
-  }, [resetCliente, focusBarcode])
+  }, [resetCliente, focusBarcode, resetPagamento])
 
   const finalizarVenda = useCallback(async () => {
     if (!session || submitting || cart.length === 0) return
@@ -236,20 +253,29 @@ export function PdvPage() {
       return
     }
 
+    if (!validatePagamento()) {
+      setError(pagamentoError ?? 'Verifique a forma de pagamento.')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
+    setPagamentoError(null)
 
     try {
-      const venda = await criarVenda(session.token, {
-        status: 'PAGA',
-        vendedorId: session.colaboradorId,
-        clienteId: clienteSelecionado?.id ?? null,
-        nomeClienteOcasional:
-          !clienteSelecionado && nomeOcasional.trim() ? nomeOcasional.trim() : null,
-        itens: itensRequest,
-      })
+      const { venda, aguardandoExperiencia } = await registrarVendaComPagamento(
+        session.token,
+        {
+          vendedorId: session.colaboradorId,
+          clienteId: clienteSelecionado?.id ?? null,
+          nomeClienteOcasional:
+            !clienteSelecionado && nomeOcasional.trim() ? nomeOcasional.trim() : null,
+          itens: itensRequest,
+        },
+        buildPagamentoRequest(),
+      )
 
-      const clienteResumo =
+      const resumoCliente =
         clienteSelecionado?.nomeCompleto ?? (nomeOcasional.trim() || 'Consumidor')
 
       setCart([])
@@ -258,10 +284,12 @@ export function PdvPage() {
       setClienteAberto(false)
       setProdutoPreview(null)
       setBarcodeFeedback(null)
+      resetPagamento()
       setVendaFinalizada({
         id: venda.id,
         total: venda.valorTotal,
-        clienteResumo,
+        clienteResumo: resumoCliente,
+        aguardandoExperiencia,
       })
       focusBarcode()
     } catch (err) {
@@ -280,6 +308,11 @@ export function PdvPage() {
     itensRequest,
     handleUnauthorized,
     focusBarcode,
+    validatePagamento,
+    buildPagamentoRequest,
+    setPagamentoError,
+    resetPagamento,
+    pagamentoError,
   ])
 
   async function handleSubmit(event: FormEvent) {
@@ -342,9 +375,15 @@ export function PdvPage() {
       {vendaFinalizada && (
         <div className={styles.successBanner} role="status">
           <div className={styles.successBannerMain}>
-            <p className={styles.successBannerTitle}>Venda #{vendaFinalizada.id} paga</p>
+            <p className={styles.successBannerTitle}>
+              {vendaFinalizada.aguardandoExperiencia
+                ? `Venda #${vendaFinalizada.id} — aguardando pagamento`
+                : `Venda #${vendaFinalizada.id} paga`}
+            </p>
             <p className={styles.successBannerText}>
-              Estoque baixado · pronta para o próximo cliente.
+              {vendaFinalizada.aguardandoExperiencia
+                ? 'Pix/cartão iniciado no sistema externo. Estoque reservado até a confirmação.'
+                : 'Estoque baixado · pronta para o próximo cliente.'}
             </p>
             <p className={styles.successBannerMeta}>
               {vendaFinalizada.clienteResumo} · {formatPreco(vendaFinalizada.total)}
@@ -489,6 +528,19 @@ export function PdvPage() {
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
+          {pagamentoError && !error && <p className={styles.error}>{pagamentoError}</p>}
+
+          <PagamentoPanel
+            total={totalEstimado}
+            disabled={submitting || cart.length === 0}
+            forma={forma}
+            onFormaChange={setForma}
+            valorRecebido={valorRecebido}
+            onValorRecebidoChange={setValorRecebido}
+            parcelas={parcelas}
+            onParcelasChange={setParcelas}
+            compact
+          />
 
           <form ref={finalizeFormRef} onSubmit={(e) => void handleSubmit(e)}>
             <button
@@ -512,11 +564,6 @@ export function PdvPage() {
             <summary className={styles.clienteSummary}>Cliente (opcional)</summary>
             <ClienteBuscaSection busca={clienteBusca} disabled={submitting} />
           </details>
-
-          <p className={styles.footerHint}>
-            Formas de pagamento (Pix, cartão, dinheiro) entram na fase <strong>14+</strong>. Hoje a
-            venda é registrada como <strong>PAGA</strong> ao finalizar.
-          </p>
         </aside>
 
         <PdvCupomPreview

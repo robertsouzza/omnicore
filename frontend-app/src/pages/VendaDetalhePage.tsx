@@ -1,10 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
+import { PagamentoModal } from '../components/pagamento/PagamentoModal'
 import { buscarCliente } from '../api/clientes'
 import { buscarVenda, cancelarVenda, pagarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
 import { useUnauthorizedHandler } from '../hooks'
+import type { PagarVendaRequest } from '../types/pagamento'
 import type { CancelarVendaRequest, Venda } from '../types/venda'
 import {
   formatDataHoraVenda,
@@ -41,6 +43,8 @@ export function VendaDetalhePage() {
   const [actionError, setActionError] = useState<string | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [paying, setPaying] = useState(false)
+  const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false)
+  const [modalPagamentoError, setModalPagamentoError] = useState<string | null>(null)
   const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
 
   const load = useCallback(async () => {
@@ -75,18 +79,41 @@ export function VendaDetalhePage() {
     void load()
   }, [load])
 
-  async function confirmarPagamento() {
+  function abrirModalPagamento() {
+    if (!venda || !vendaPodePagar(venda)) return
+    setModalPagamentoError(null)
+    setActionError(null)
+    setModalPagamentoAberto(true)
+  }
+
+  function fecharModalPagamento() {
+    if (paying) return
+    setModalPagamentoAberto(false)
+    setModalPagamentoError(null)
+  }
+
+  async function confirmarPagamentoComForma(pagamento: PagarVendaRequest) {
     if (!session || !venda || !vendaPodePagar(venda)) return
 
     setPaying(true)
+    setModalPagamentoError(null)
     setActionError(null)
 
     try {
-      const atualizada = await pagarVenda(session.token, venda.id)
+      const atualizada = await pagarVenda(session.token, venda.id, pagamento)
+      if (atualizada.status === 'PENDENTE') {
+        setModalPagamentoError(
+          'Pagamento iniciado — aguardando confirmação no sistema externo. A venda permanece pendente até o retorno.',
+        )
+        return
+      }
       setVenda(atualizada)
+      setModalPagamentoAberto(false)
     } catch (err) {
       if (handleUnauthorized(err)) return
-      setActionError(getErrorMessage(err, 'Não foi possível confirmar o pagamento.'))
+      setModalPagamentoError(
+        getErrorMessage(err, 'Não foi possível confirmar o pagamento.'),
+      )
     } finally {
       setPaying(false)
     }
@@ -219,7 +246,7 @@ export function VendaDetalhePage() {
                 type="button"
                 className={styles.payBtn}
                 disabled={paying || cancelling}
-                onClick={() => void confirmarPagamento()}
+                onClick={abrirModalPagamento}
               >
                 {paying ? 'Confirmando pagamento…' : 'Confirmar pagamento'}
               </button>
@@ -229,7 +256,7 @@ export function VendaDetalhePage() {
             </div>
           )}
 
-          {actionError && vendaPodePagar(venda) && (
+          {actionError && vendaPodePagar(venda) && !modalPagamentoAberto && (
             <p className={styles.error}>{actionError}</p>
           )}
 
@@ -259,6 +286,17 @@ export function VendaDetalhePage() {
             </p>
           )}
         </>
+      )}
+
+      {venda && (
+        <PagamentoModal
+          venda={venda}
+          open={modalPagamentoAberto}
+          submitting={paying}
+          error={modalPagamentoError}
+          onClose={fecharModalPagamento}
+          onConfirm={(pagamento) => void confirmarPagamentoComForma(pagamento)}
+        />
       )}
 
       {session && venda && modalCancelarAberto && (

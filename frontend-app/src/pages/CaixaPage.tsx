@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarVendas, pagarVenda } from '../api/vendas'
+import { PagamentoModal } from '../components/pagamento/PagamentoModal'
 import { useAuth } from '../auth/AuthContext'
 import { useAsyncAction, usePaginatedResource } from '../hooks'
+import type { PagarVendaRequest } from '../types/pagamento'
 import type { Venda } from '../types/venda'
 import {
   formatDataHoraVenda,
@@ -16,6 +18,9 @@ import styles from './CaixaPage.module.css'
 export function CaixaPage() {
   const { session } = useAuth()
   const [payError, setPayError] = useState<string | null>(null)
+  const [modalVenda, setModalVenda] = useState<Venda | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalError, setModalError] = useState<string | null>(null)
 
   const fetchPage = useCallback(
     (page: number) => {
@@ -31,7 +36,6 @@ export function CaixaPage() {
     initialLoading,
     refreshing,
     loadError,
-    setLoadError,
     load,
     listaPronta,
   } = usePaginatedResource(fetchPage, {
@@ -41,18 +45,41 @@ export function CaixaPage() {
 
   const { actionKey, execute } = useAsyncAction()
 
-  async function confirmarPagamento(venda: Venda) {
-    if (!session || !vendaPodePagar(venda)) return
-
+  function abrirPagamento(venda: Venda) {
+    if (!vendaPodePagar(venda)) return
+    setModalVenda(venda)
+    setModalOpen(true)
+    setModalError(null)
     setPayError(null)
-    setLoadError(null)
+  }
+
+  function fecharModal() {
+    if (actionKey != null) return
+    setModalOpen(false)
+    setModalVenda(null)
+    setModalError(null)
+  }
+
+  async function confirmarPagamentoComForma(pagamento: PagarVendaRequest) {
+    if (!session || !modalVenda) return
+
+    setModalError(null)
+    setPayError(null)
     await execute(
-      venda.id,
+      modalVenda.id,
       async () => {
-        await pagarVenda(session.token, venda.id)
+        const venda = await pagarVenda(session.token, modalVenda.id, pagamento)
+        if (venda.status === 'PENDENTE') {
+          setModalError(
+            'Pagamento iniciado — aguardando confirmação no sistema externo. A venda permanece pendente até o retorno.',
+          )
+          return
+        }
+        setModalOpen(false)
+        setModalVenda(null)
         await load()
       },
-      setPayError,
+      setModalError,
       'Não foi possível confirmar o pagamento.',
     )
   }
@@ -122,7 +149,7 @@ export function CaixaPage() {
                       type="button"
                       className={styles.payBtn}
                       disabled={actionKey === venda.id}
-                      onClick={() => void confirmarPagamento(venda)}
+                      onClick={() => abrirPagamento(venda)}
                     >
                       {actionKey === venda.id ? 'Confirmando…' : 'Confirmar pagamento'}
                     </button>
@@ -155,6 +182,15 @@ export function CaixaPage() {
           )}
         </>
       )}
+
+      <PagamentoModal
+        venda={modalVenda}
+        open={modalOpen}
+        submitting={actionKey != null}
+        error={modalError}
+        onClose={fecharModal}
+        onConfirm={(pagamento) => void confirmarPagamentoComForma(pagamento)}
+      />
     </section>
   )
 }

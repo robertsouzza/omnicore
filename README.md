@@ -170,11 +170,11 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários; **atualização ~4s**) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**; **limite qtd = estoque disp.**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
-| **Caixa** (confirmar pagamento vendas PENDENTE) | `/caixa` | ✅ 13+ |
-| **PDV** (checkout bip, atalhos F3–F10, imagem + cupom ≥1024px, PAGA direto) | `/pdv` | ✅ 13+/14 |
+| **Caixa** (modal pagamento: dinheiro, Pix, crédito, débito bancário) | `/caixa` | ✅ 14-A |
+| **PDV** (checkout bip, atalhos F3–F10, imagem + cupom ≥1024px, **formas de pagamento**) | `/pdv` | ✅ 14-A |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
-| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 44 testes |
+| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 48 testes |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -184,13 +184,13 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
-| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + `/caixa`; **14-A** dinheiro/Pix/crédito/débito bancário via porta externa (sem mock na UI) |
-| Meios de pagamento | PDV liquida PAGA sem forma (hoje) | **14-A** registro + experiência externa · **14-C** pinpad débito (TEF) |
+| Pagamento / caixa | ✅ `/caixa` modal + `PUT /pagar` com forma; PDV/Nova Venda “Paga” via reserva + pagar | Simulador externo (dev) · **14-B/C/D** |
+| Meios de pagamento | ✅ UI 14-A (DINHEIRO, PIX, CREDITO, DEBITO_BANCARIO) | **14-C** pinpad débito (TEF) |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** | **14-A** UI pagamento real |
-| PDV (checkout bip) | **`/pdv`** ✅ | **14-A** finalizar com forma de pagamento |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** · **14-A pagamento UI** | Simulador + commit |
+| PDV (checkout bip) | **`/pdv`** + formas pagamento ✅ | Teste browser Pix/cartão |
 
 ---
 
@@ -236,7 +236,7 @@ npm run build
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
 | Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
-| Meios pagamento (14-A) + pinpad/TEF + fiscal | 🔄 14-A em andamento — ver CONTEXTO |
+| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE `78974df` · simulador pendente | ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 

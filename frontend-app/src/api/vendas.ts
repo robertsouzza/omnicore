@@ -1,5 +1,6 @@
 import { apiFetch } from './client'
 import type { CancelarVendaRequest, Page, StatusVenda, Venda, VendaRequest } from '../types/venda'
+import type { PagarVendaRequest } from '../types/pagamento'
 
 export interface ListarVendasParams {
   page?: number
@@ -45,8 +46,19 @@ export function criarVenda(token: string, dados: VendaRequest): Promise<Venda> {
   )
 }
 
-export function pagarVenda(token: string, id: number): Promise<Venda> {
-  return apiFetch<Venda>(`/api/vendas/${id}/pagar`, { method: 'PUT' }, token)
+export function pagarVenda(
+  token: string,
+  id: number,
+  pagamento?: PagarVendaRequest,
+): Promise<Venda> {
+  return apiFetch<Venda>(
+    `/api/vendas/${id}/pagar`,
+    {
+      method: 'PUT',
+      body: pagamento ? JSON.stringify(pagamento) : undefined,
+    },
+    token,
+  )
 }
 
 export function cancelarVenda(

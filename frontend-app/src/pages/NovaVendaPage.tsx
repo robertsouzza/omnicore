@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { listarProdutos } from '../api/produtos'
 import { criarVenda } from '../api/vendas'
 import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
+import { PagamentoPanel, usePagamentoFormState } from '../components/pagamento/PagamentoPanel'
 import { useAuth } from '../auth/AuthContext'
 import { useClienteBusca, useDebouncedSearch, useUnauthorizedHandler } from '../hooks'
 import type { StatusVenda } from '../types/venda'
@@ -25,6 +26,7 @@ import {
   toItemRequest,
   validarCarrinho,
 } from '../utils/carrinhoVenda'
+import { registrarVendaComPagamento } from '../utils/registrarVendaComPagamento'
 
 const BUSCA_MIN_API = 3
 
@@ -96,6 +98,7 @@ export function NovaVendaPage() {
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
+  const pagamento = usePagamentoFormState(totalEstimado)
 
   const statusHint = STATUS_NOVA_VENDA.find((s) => s.value === status)?.hint ?? ''
 
@@ -136,12 +139,17 @@ export function NovaVendaPage() {
       return
     }
 
+    if (status === 'PAGA' && !pagamento.validate()) {
+      setError(pagamento.error ?? 'Verifique a forma de pagamento.')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
+    pagamento.setError(null)
 
     try {
-      const venda = await criarVenda(session.token, {
-        status,
+      const dados = {
         vendedorId: session.colaboradorId,
         clienteId: clienteBusca.clienteSelecionado?.id ?? null,
         nomeClienteOcasional:
@@ -149,7 +157,25 @@ export function NovaVendaPage() {
             ? clienteBusca.nomeOcasional.trim()
             : null,
         itens: itensRequest,
-      })
+      }
+
+      if (status === 'PAGA') {
+        const { venda, aguardandoExperiencia } = await registrarVendaComPagamento(
+          session.token,
+          dados,
+          pagamento.buildRequest(),
+        )
+        if (aguardandoExperiencia) {
+          navigate(`/vendas/${venda.id}`, {
+            state: { pagamentoPendente: true },
+          })
+          return
+        }
+        navigate(`/vendas/${venda.id}`)
+        return
+      }
+
+      const venda = await criarVenda(session.token, { ...dados, status: 'PENDENTE' })
       navigate(`/vendas/${venda.id}`)
     } catch (err) {
       if (handleUnauthorized(err)) return
@@ -335,6 +361,22 @@ export function NovaVendaPage() {
             <strong>{formatPreco(totalEstimado)}</strong>
           </div>
         </section>
+
+        {status === 'PAGA' && (
+          <section className={styles.panel}>
+            <PagamentoPanel
+              total={totalEstimado}
+              disabled={submitting || cart.length === 0}
+              forma={pagamento.forma}
+              onFormaChange={pagamento.setForma}
+              valorRecebido={pagamento.valorRecebido}
+              onValorRecebidoChange={pagamento.setValorRecebido}
+              parcelas={pagamento.parcelas}
+              onParcelasChange={pagamento.setParcelas}
+              error={pagamento.error}
+            />
+          </section>
+        )}
 
         {error && <p className={styles.error}>{error}</p>}
 

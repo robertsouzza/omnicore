@@ -8,7 +8,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 14-A pagamentos (porta externa, sem mock na UI).
+Próximo: simulador externo Pix/cartão (porta 9090) + 14-B PSP.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

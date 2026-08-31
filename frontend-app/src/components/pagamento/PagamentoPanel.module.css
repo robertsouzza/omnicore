@@ -1,0 +1,105 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.compact {
+  padding: 0.875rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #0f2744;
+}
+
+.totalLine {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.formas {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.formaOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  background: #f8fafc;
+}
+
+.formaOption:has(input:checked) {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.formaOption input {
+  margin: 0;
+}
+
+.hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #334155;
+}
+
+.input,
+.select {
+  font-size: 0.9375rem;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+.troco {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #15803d;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: #b91c1c;
+}
+
+@media (min-width: 640px) {
+  .formas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .formas {
+    grid-template-columns: 1fr;
+  }
+
+  .compact .formas {
+    grid-template-columns: 1fr 1fr;
+  }
+}
