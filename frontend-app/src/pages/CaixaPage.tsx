@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { listarVendas, pagarVenda } from '../api/vendas'
 import { PagamentoModal } from '../components/pagamento/PagamentoModal'
 import { useAuth } from '../auth/AuthContext'
-import { useAsyncAction, usePaginatedResource } from '../hooks'
+import { useAsyncAction, usePaginatedResource, usePollVendaStatus } from '../hooks'
 import type { PagarVendaRequest } from '../types/pagamento'
 import type { Venda } from '../types/venda'
 import {
@@ -13,6 +13,8 @@ import {
   resumoClienteVenda,
   vendaPodePagar,
 } from '../types/venda'
+import { resolverAguardandoPagamentoExterno } from '../utils/resolverAguardandoPagamento'
+import type { AguardandoPagamentoExterno } from '../utils/urlExperiencia'
 import styles from './CaixaPage.module.css'
 
 export function CaixaPage() {
@@ -21,6 +23,9 @@ export function CaixaPage() {
   const [modalVenda, setModalVenda] = useState<Venda | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [modalError, setModalError] = useState<string | null>(null)
+  const [aguardandoExterno, setAguardandoExterno] = useState<AguardandoPagamentoExterno | null>(
+    null,
+  )
 
   const fetchPage = useCallback(
     (page: number) => {
@@ -45,11 +50,34 @@ export function CaixaPage() {
 
   const { actionKey, execute } = useAsyncAction()
 
+  const handleVendaAtualizadaPoll = useCallback(
+    (atualizada: Venda) => {
+      setModalVenda(atualizada)
+      if (atualizada.status !== 'PENDENTE') {
+        setAguardandoExterno(null)
+        setModalOpen(false)
+        setModalVenda(null)
+        setModalError(null)
+        void load()
+      }
+    },
+    [load],
+  )
+
+  const { atualizar: atualizarStatusVenda, atualizando: atualizandoStatusVenda } =
+    usePollVendaStatus(
+      session?.token,
+      modalVenda?.id,
+      modalOpen && aguardandoExterno != null,
+      handleVendaAtualizadaPoll,
+    )
+
   function abrirPagamento(venda: Venda) {
     if (!vendaPodePagar(venda)) return
     setModalVenda(venda)
     setModalOpen(true)
     setModalError(null)
+    setAguardandoExterno(null)
     setPayError(null)
   }
 
@@ -58,6 +86,7 @@ export function CaixaPage() {
     setModalOpen(false)
     setModalVenda(null)
     setModalError(null)
+    setAguardandoExterno(null)
   }
 
   async function confirmarPagamentoComForma(pagamento: PagarVendaRequest) {
@@ -69,14 +98,22 @@ export function CaixaPage() {
       modalVenda.id,
       async () => {
         const venda = await pagarVenda(session.token, modalVenda.id, pagamento)
+        setModalVenda(venda)
         if (venda.status === 'PENDENTE') {
-          setModalError(
-            'Pagamento iniciado — aguardando confirmação no sistema externo. A venda permanece pendente até o retorno.',
-          )
+          const info = await resolverAguardandoPagamentoExterno(session.token, venda.id)
+          if (info) {
+            setAguardandoExterno(info)
+            setModalError(null)
+          } else {
+            setModalError(
+              'Pagamento iniciado, mas não foi possível obter o link da experiência externa.',
+            )
+          }
           return
         }
         setModalOpen(false)
         setModalVenda(null)
+        setAguardandoExterno(null)
         await load()
       },
       setModalError,
@@ -188,6 +225,9 @@ export function CaixaPage() {
         open={modalOpen}
         submitting={actionKey != null}
         error={modalError}
+        aguardandoExterno={aguardandoExterno}
+        atualizandoStatus={atualizandoStatusVenda}
+        onAtualizarStatus={() => void atualizarStatusVenda()}
         onClose={fecharModal}
         onConfirm={(pagamento) => void confirmarPagamentoComForma(pagamento)}
       />

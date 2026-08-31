@@ -8,7 +8,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: simulador externo Pix/cartão (porta 9090) + 14-B PSP.
+Próximo: implementar simulador em ~/omnicore-pagamento-simulador/ (skill pronta, porta 9090).
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

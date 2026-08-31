@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { PagamentoModal } from '../components/pagamento/PagamentoModal'
 import { buscarCliente } from '../api/clientes'
 import { buscarVenda, cancelarVenda, pagarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
-import { useUnauthorizedHandler } from '../hooks'
+import { usePollVendaStatus, useUnauthorizedHandler } from '../hooks'
 import type { PagarVendaRequest } from '../types/pagamento'
 import type { CancelarVendaRequest, Venda } from '../types/venda'
 import {
@@ -15,6 +15,8 @@ import {
   vendaPodeCancelar,
   vendaPodePagar,
 } from '../types/venda'
+import { resolverAguardandoPagamentoExterno } from '../utils/resolverAguardandoPagamento'
+import type { AguardandoPagamentoExterno } from '../utils/urlExperiencia'
 import { getErrorMessage } from '../utils/validation'
 import styles from './VendaDetalhePage.module.css'
 
@@ -33,6 +35,7 @@ export function VendaDetalhePage() {
   const { id: idParam } = useParams()
   const id = Number(idParam)
   const navigate = useNavigate()
+  const location = useLocation()
   const { session } = useAuth()
   const handleUnauthorized = useUnauthorizedHandler()
 
@@ -45,7 +48,40 @@ export function VendaDetalhePage() {
   const [paying, setPaying] = useState(false)
   const [modalPagamentoAberto, setModalPagamentoAberto] = useState(false)
   const [modalPagamentoError, setModalPagamentoError] = useState<string | null>(null)
+  const [aguardandoExterno, setAguardandoExterno] = useState<AguardandoPagamentoExterno | null>(
+    null,
+  )
   const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
+
+  const handleVendaAtualizadaPoll = useCallback((atualizada: Venda) => {
+    setVenda(atualizada)
+    if (atualizada.status !== 'PENDENTE') {
+      setAguardandoExterno(null)
+      setModalPagamentoAberto(false)
+      setModalPagamentoError(null)
+    }
+  }, [])
+
+  const { atualizar: atualizarStatusVenda, atualizando: atualizandoStatusVenda } =
+    usePollVendaStatus(
+      session?.token,
+      venda?.id,
+      modalPagamentoAberto && aguardandoExterno != null,
+      handleVendaAtualizadaPoll,
+    )
+
+  const entrarModoAguardando = useCallback(
+    async (vendaId: number) => {
+      if (!session) return false
+      const info = await resolverAguardandoPagamentoExterno(session.token, vendaId)
+      if (!info) return false
+      setAguardandoExterno(info)
+      setModalPagamentoError(null)
+      setModalPagamentoAberto(true)
+      return true
+    },
+    [session],
+  )
 
   const load = useCallback(async () => {
     if (!session || !Number.isFinite(id)) return
@@ -79,10 +115,23 @@ export function VendaDetalhePage() {
     void load()
   }, [load])
 
+  useEffect(() => {
+    const state = location.state as { pagamentoPendente?: boolean } | null
+    if (!state?.pagamentoPendente || !session || !venda || venda.status !== 'PENDENTE') return
+
+    void (async () => {
+      const ok = await entrarModoAguardando(venda.id)
+      if (ok) {
+        navigate(location.pathname, { replace: true, state: null })
+      }
+    })()
+  }, [location.pathname, location.state, session, venda, entrarModoAguardando, navigate])
+
   function abrirModalPagamento() {
     if (!venda || !vendaPodePagar(venda)) return
     setModalPagamentoError(null)
     setActionError(null)
+    setAguardandoExterno(null)
     setModalPagamentoAberto(true)
   }
 
@@ -90,6 +139,7 @@ export function VendaDetalhePage() {
     if (paying) return
     setModalPagamentoAberto(false)
     setModalPagamentoError(null)
+    setAguardandoExterno(null)
   }
 
   async function confirmarPagamentoComForma(pagamento: PagarVendaRequest) {
@@ -101,13 +151,17 @@ export function VendaDetalhePage() {
 
     try {
       const atualizada = await pagarVenda(session.token, venda.id, pagamento)
+      setVenda(atualizada)
       if (atualizada.status === 'PENDENTE') {
-        setModalPagamentoError(
-          'Pagamento iniciado — aguardando confirmação no sistema externo. A venda permanece pendente até o retorno.',
-        )
+        const ok = await entrarModoAguardando(atualizada.id)
+        if (!ok) {
+          setModalPagamentoError(
+            'Pagamento iniciado, mas não foi possível obter o link da experiência externa.',
+          )
+        }
         return
       }
-      setVenda(atualizada)
+      setAguardandoExterno(null)
       setModalPagamentoAberto(false)
     } catch (err) {
       if (handleUnauthorized(err)) return
@@ -294,6 +348,9 @@ export function VendaDetalhePage() {
           open={modalPagamentoAberto}
           submitting={paying}
           error={modalPagamentoError}
+          aguardandoExterno={aguardandoExterno}
+          atualizandoStatus={atualizandoStatusVenda}
+          onAtualizarStatus={() => void atualizarStatusVenda()}
           onClose={fecharModalPagamento}
           onConfirm={(pagamento) => void confirmarPagamentoComForma(pagamento)}
         />

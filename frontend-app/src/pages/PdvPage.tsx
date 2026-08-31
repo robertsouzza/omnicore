@@ -2,6 +2,7 @@ import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Link } from 'react-router-dom'
 import { buscarProdutoPorCodigoBarras } from '../api/produtos'
 import { PagamentoPanel, usePagamentoFormState } from '../components/pagamento/PagamentoPanel'
+import { AguardandoExperienciaPanel } from '../components/pagamento/AguardandoExperienciaPanel'
 import { BarcodeField } from '../components/BarcodeField'
 import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
 import { PdvCupomPreview } from '../components/pdv/PdvCupomPreview'
@@ -10,8 +11,10 @@ import {
   type PdvProdutoPreviewData,
 } from '../components/pdv/PdvProdutoPreview'
 import { useAuth } from '../auth/AuthContext'
-import { useClienteBusca, useUnauthorizedHandler } from '../hooks'
+import { useClienteBusca, usePollVendaStatus, useUnauthorizedHandler } from '../hooks'
+import type { FormaPagamento } from '../types/pagamento'
 import { calcularSubtotalItem, calcularTotalItens, formatPreco } from '../types/venda'
+import type { Venda } from '../types/venda'
 import type { ProdutoComSaldo } from '../utils/produtoEstoque'
 import {
   type CartLine,
@@ -22,6 +25,7 @@ import {
   validarCarrinho,
 } from '../utils/carrinhoVenda'
 import { registrarVendaComPagamento } from '../utils/registrarVendaComPagamento'
+import { resolverAguardandoPagamentoExterno } from '../utils/resolverAguardandoPagamento'
 import { getErrorMessage } from '../utils/validation'
 import barcodeStyles from '../components/BarcodeField.module.css'
 import styles from './PdvPage.module.css'
@@ -33,6 +37,8 @@ type VendaFinalizada = {
   total: number
   clienteResumo: string
   aguardandoExperiencia: boolean
+  urlExperiencia?: string | null
+  forma?: FormaPagamento | null
 }
 
 type PdvCartLine = CartLine & {
@@ -71,6 +77,27 @@ export function PdvPage() {
   const [produtoPreview, setProdutoPreview] = useState<PdvProdutoPreviewData | null>(null)
   const [vendaFinalizada, setVendaFinalizada] = useState<VendaFinalizada | null>(null)
   const [clienteAberto, setClienteAberto] = useState(false)
+
+  const handleVendaFinalizadaPoll = useCallback((venda: Venda) => {
+    if (venda.status !== 'PENDENTE') {
+      setVendaFinalizada((prev) =>
+        prev && prev.id === venda.id
+          ? {
+              ...prev,
+              aguardandoExperiencia: false,
+              total: venda.valorTotal,
+            }
+          : prev,
+      )
+    }
+  }, [])
+
+  const { atualizar: atualizarStatusPdv, atualizando: atualizandoStatusPdv } = usePollVendaStatus(
+    session?.token,
+    vendaFinalizada?.aguardandoExperiencia ? vendaFinalizada.id : undefined,
+    vendaFinalizada?.aguardandoExperiencia === true,
+    handleVendaFinalizadaPoll,
+  )
 
   const finalizeFormRef = useRef<HTMLFormElement>(null)
 
@@ -285,11 +312,20 @@ export function PdvPage() {
       setProdutoPreview(null)
       setBarcodeFeedback(null)
       resetPagamento()
+      let urlExperiencia: string | null = null
+      let forma: FormaPagamento | null = null
+      if (aguardandoExperiencia) {
+        const info = await resolverAguardandoPagamentoExterno(session.token, venda.id)
+        urlExperiencia = info?.urlExperiencia ?? null
+        forma = info?.forma ?? null
+      }
       setVendaFinalizada({
         id: venda.id,
         total: venda.valorTotal,
         clienteResumo: resumoCliente,
         aguardandoExperiencia,
+        urlExperiencia,
+        forma,
       })
       focusBarcode()
     } catch (err) {
@@ -388,6 +424,17 @@ export function PdvPage() {
             <p className={styles.successBannerMeta}>
               {vendaFinalizada.clienteResumo} · {formatPreco(vendaFinalizada.total)}
             </p>
+            {vendaFinalizada.aguardandoExperiencia &&
+              vendaFinalizada.urlExperiencia &&
+              vendaFinalizada.forma && (
+                <AguardandoExperienciaPanel
+                  forma={vendaFinalizada.forma}
+                  urlExperiencia={vendaFinalizada.urlExperiencia}
+                  atualizando={atualizandoStatusPdv}
+                  onAtualizarStatus={() => void atualizarStatusPdv()}
+                  compact
+                />
+              )}
           </div>
           <div className={styles.successBannerActions}>
             <Link to={`/vendas/${vendaFinalizada.id}`} className={styles.successBannerLink}>

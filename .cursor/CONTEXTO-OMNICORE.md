@@ -38,6 +38,21 @@
 └── omnicore.code-workspace
 ```
 
+**Repositório irmão (fora do git omnicore):**
+
+```
+~/omnicore-pagamento-simulador/     ← simulador dev Pix/cartão/débito (:9090)
+├── README.md
+└── .cursor/skills/omnicore-pagamento-simulador/
+    ├── SKILL.md                    ← skill Agent para implementar o simulador
+    └── reference.md                ← contrato HTTP + webhook
+```
+
+- **Porta:** `9090` · **Config Cerebro:** `omnicore.pagamento.experience.base-url=http://localhost:9090`
+- **Webhook OmniCore:** `POST http://localhost:8080/api/pagamentos/webhook`
+- **Status:** simulador Node ✅ · skill Cursor ✅ · webhook `permitAll` ✅
+- **Workspace:** abrir `~/omnicore-pagamento-simulador/` no Cursor ou adicionar pasta ao workspace OmniCore
+
 ### Workspace Cursor (importante)
 
 - Chat do Agent fica ligado ao **workspace**, não à pasta git.
@@ -232,7 +247,7 @@ GET  {baseUrl}/experiencia/pagamentos/{id}
 POST (webhook OmniCore) { "status": "APROVADO"|"RECUSADO", "nsu", "referenciaExterna" }
 ```
 
-Roberto construirá o simulador **fora** do monorepo; OmniCore só consome o contrato.
+Roberto construirá o simulador **fora** do monorepo em **`~/omnicore-pagamento-simulador/`**; OmniCore só consome o contrato. Skill Agent: `@~/omnicore-pagamento-simulador/.cursor/skills/omnicore-pagamento-simulador/SKILL.md`.
 
 #### Fases de implementação (atualizado)
 
@@ -266,7 +281,8 @@ Roberto construirá o simulador **fora** do monorepo; OmniCore só consome o con
 **14-A — progresso (31/ago):**
 - **Backend** `bad0701` — `FormaPagamento`, `PagamentoVenda`, `PagamentoService`, `PaymentExperiencePort` (HTTP + fake em testes), `PUT /pagar` com body opcional, `POST /api/pagamentos/webhook`, config `omnicore.pagamento.experience.*`.
 - **Frontend** `47b04ac` — `PagamentoPanel` + `PagamentoModal`; `/caixa` modal; `/pdv` painel + `registrarVendaComPagamento`; `/vendas/nova` e `/vendas/:id` com forma; Vitest `pagamentoForm.test.ts` (48 testes).
-- **Pendente:** simulador externo (Roberto) · teste browser Pix/crédito/débito.
+- **Simulador externo** — `~/omnicore-pagamento-simulador/` ✅ (Node :9090, telas Pix/crédito/débito, webhook); skill Cursor ✅; teste Pix integrado ✅ (Roberto, 31/ago).
+- **UX aguardando pagamento** — link “Abrir tela Pix/cartão”, polling 3s, modal fecha ao liquidar (Caixa, detalhe venda, PDV).
 
 #### Matriz UI pagamento (14-A)
 
@@ -548,10 +564,9 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **14-A FE** ✅ `47b04ac` — simulador externo (`localhost:9090`) + teste Pix/cartão no browser.
-2. **Roberto (paralelo):** sistema interno de experiência de pagamento (`localhost:9090` default).
-3. **Depois:** **14-B** Pix PSP · **14-C** cartão débito pinpad/TEF · **14-D** fiscal/NFC-e.
-4. **Teste PDV** ✅ atalhos validados (Roberto, 31/ago).
+1. **14-A** — fechar ciclo Pix/cartão (UX polling ✅); **14-B** Pix PSP · **14-C** TEF · **14-D** fiscal.
+2. **Opcional:** exibir `urlExperiencia` persistida no backend (hoje montada no FE).
+3. **14-A FE** ✅ `47b04ac` + UX externa · dinheiro/Pix validados PDV/Caixa (Roberto, 31/ago).
 
 ---
 
@@ -572,10 +587,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: commit 14-A UI pagamento + simulador externo (porta 9090).
+Próximo: simulador em ~/omnicore-pagamento-simulador/ (skill pronta, porta 9090).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 31/ago/2026 — 14-A UI pagamento (`47b04ac`); backend `bad0701`; dinheiro validado PDV/Caixa.*
+*Última atualização: 31/ago/2026 — simulador registrado em `~/omnicore-pagamento-simulador/` + skill Cursor; 14-A FE `47b04ac`.*

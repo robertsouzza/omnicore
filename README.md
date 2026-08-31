@@ -174,7 +174,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | **PDV** (checkout bip, atalhos F3–F10, imagem + cupom ≥1024px, **formas de pagamento**) | `/pdv` | ✅ 14-A |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
-| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 48 testes |
+| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 51 testes |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -236,7 +236,7 @@ npm run build
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
 | Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
-| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE `47b04ac` · simulador pendente | ver CONTEXTO |
+| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE + simulador `:9090` + UX polling Pix | ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 
@@ -245,6 +245,7 @@ Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTE
 ## Desenvolvimento com Cursor
 
 - Abra o workspace **`~/omnicore/`** para backend + frontend juntos.
+- **Simulador de pagamento (14-A dev):** pasta irmã **`~/omnicore-pagamento-simulador/`** — skill em `.cursor/skills/omnicore-pagamento-simulador/SKILL.md`; porta **9090**.
 - Em chat novo: `@.cursor/CONTEXTO-OMNICORE.md` para restaurar contexto.
 - Regra persistente em `.cursor/rules/omnicore-projeto.mdc`.
 

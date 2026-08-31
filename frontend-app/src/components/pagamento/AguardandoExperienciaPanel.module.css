@@ -1,0 +1,67 @@
+.panel {
+  margin-top: 0.75rem;
+  padding: 0.875rem;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.panel.compact {
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+
+.text {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #334155;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.linkBtn,
+.refreshBtn {
+  display: block;
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.linkBtn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.linkBtn:hover {
+  background: #1d4ed8;
+}
+
+.refreshBtn {
+  border: 1px solid #93c5fd;
+  background: #fff;
+  color: #1e40af;
+}
+
+.refreshBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
