@@ -78,7 +78,7 @@
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
-| **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE entregue | `78974df` |
+| **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE entregue | `47b04ac` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -265,7 +265,7 @@ Roberto construirá o simulador **fora** do monorepo; OmniCore só consome o con
 
 **14-A — progresso (31/ago):**
 - **Backend** `bad0701` — `FormaPagamento`, `PagamentoVenda`, `PagamentoService`, `PaymentExperiencePort` (HTTP + fake em testes), `PUT /pagar` com body opcional, `POST /api/pagamentos/webhook`, config `omnicore.pagamento.experience.*`.
-- **Frontend** `78974df` — `PagamentoPanel` + `PagamentoModal`; `/caixa` modal; `/pdv` painel + `registrarVendaComPagamento`; `/vendas/nova` e `/vendas/:id` com forma; Vitest `pagamentoForm.test.ts` (48 testes).
+- **Frontend** `47b04ac` — `PagamentoPanel` + `PagamentoModal`; `/caixa` modal; `/pdv` painel + `registrarVendaComPagamento`; `/vendas/nova` e `/vendas/:id` com forma; Vitest `pagamentoForm.test.ts` (48 testes).
 - **Pendente:** simulador externo (Roberto) · teste browser Pix/crédito/débito.
 
 #### Matriz UI pagamento (14-A)
@@ -548,7 +548,7 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **14-A FE** ✅ `78974df` — simulador externo (`localhost:9090`) + teste Pix/cartão no browser.
+1. **14-A FE** ✅ `47b04ac` — simulador externo (`localhost:9090`) + teste Pix/cartão no browser.
 2. **Roberto (paralelo):** sistema interno de experiência de pagamento (`localhost:9090` default).
 3. **Depois:** **14-B** Pix PSP · **14-C** cartão débito pinpad/TEF · **14-D** fiscal/NFC-e.
 4. **Teste PDV** ✅ atalhos validados (Roberto, 31/ago).
@@ -578,4 +578,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 31/ago/2026 — 14-A UI pagamento (`78974df`); backend `bad0701`; dinheiro validado PDV/Caixa.*
+*Última atualização: 31/ago/2026 — 14-A UI pagamento (`47b04ac`); backend `bad0701`; dinheiro validado PDV/Caixa.*

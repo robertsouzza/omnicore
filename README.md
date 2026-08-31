@@ -236,7 +236,7 @@ npm run build
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
 | Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
-| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE `78974df` · simulador pendente | ver CONTEXTO |
+| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE `47b04ac` · simulador pendente | ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 
