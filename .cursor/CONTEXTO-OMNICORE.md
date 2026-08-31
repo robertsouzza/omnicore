@@ -78,7 +78,8 @@
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
-| 14+ | Meios de pagamento (Pix, débito, crédito, dinheiro) + TEF + fiscal/NFC-e | ⬜ | — |
+| **14-A** | **Pagamentos** — registro + porta externa (sem mock na UI) | 🔄 em andamento | — |
+| 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
 
@@ -179,69 +180,88 @@
 
 **WebSocket desconto gerente:** permanece débito 13+/14+ (não bloqueia PDV MVP).
 
-### Planejamento — Meios de pagamento e TEF (14+) — acordado 28/ago
+### Planejamento — Meios de pagamento (14+) — acordado 28/ago · **revisado 31/ago**
 
-**Decisão (Roberto + Logan):** o cliente poderá pagar por **Pix**, **débito**, **crédito** ou **dinheiro**. No **PDV**, cartão passa por **TEF** (pinpad/adquirente). Implementação **após reserva de estoque e PDV UI**; desenvolvimento **sem contas/cartões reais** via camadas simuladas e sandboxes.
+**Decisão (Roberto + Logan — 31/ago):** OmniCore fica **preparado para receber pagamentos reais** nas formas abaixo. **Não haverá mock na tela de execução** (PDV/Caixa). Mock/fake fica **somente em testes automatizados** (JUnit/Vitest). Em **dev manual**, um **sistema interno separado** (a construir por Roberto) simula a **experiência do cliente** (telas Pix, cartão crédito, débito bancário) e **devolve o payload** de confirmação; OmniCore registra e liquida a venda normalmente.
 
-#### Formas de pagamento previstas
+#### Formas de pagamento — MVP 14-A
 
-| Forma | Uso típico | Integração alvo | Dev/teste sem dinheiro real |
-|-------|------------|-----------------|------------------------------|
-| **DINHEIRO** | Troco na gaveta | Só OmniCore (valor recebido + troco) | 100% local — nenhum gateway |
-| **PIX** | QR ou chave | PSP (Efi, Mercado Pago, PagSeguro, Stone…) | **Sandbox/homologação** do PSP escolhido |
-| **DEBITO** | Pinpad | **TEF** → adquirente (Cielo, Rede, Getnet…) | **SiTef SitDemo** + CliSiTef simulada |
-| **CREDITO** | Pinpad parcelado | **TEF** (mesmo fluxo) | **SiTef SitDemo** + venda digitada (sem pinpad) |
+| Forma (`FormaPagamento`) | Descrição | Quem processa |
+|--------------------------|-----------|---------------|
+| **DINHEIRO** | Troco na gaveta | **100% OmniCore** (valor recebido + troco) |
+| **PIX** | QR / chave | OmniCore orquestra → **sistema de experiência** (dev) ou PSP (prod) |
+| **CREDITO** | Cartão de crédito | Idem — experiência externa devolve NSU, bandeira, parcelas |
+| **DEBITO_BANCARIO** | Débito automático / débito em conta bancária | Idem — experiência externa devolve confirmação |
 
-#### TEF — o que é e por que o PDV precisa
+#### ⚠️ Cartão de débito (pinpad) ≠ débito bancário
 
-**TEF** (Transferência Eletrônica de Fundos) = protocolo entre o **PDV/ERP** e o **pinpad** (via biblioteca do provedor, ex. **CliSiTef** / Software Express–Fiserv), que fala com a **adquirente**. Não é “só uma API REST no browser”.
+| Conceito | O que é | No OmniCore |
+|----------|---------|-------------|
+| **Cartão de débito** | Cliente passa cartão no **pinpad** (TEF → adquirente) | **Fase 14-C** — forma futura `CARTAO_DEBITO`; agente local + CliSiTef |
+| **Débito bancário / débito automático** | Débito **direto na conta** (convênio bancário) | **14-A** — enum `DEBITO_BANCARIO` |
 
-**Implicação para OmniCore (React no browser):**
+No varejo físico o **pinpad de débito** é muito comum; fica **documentado e previsto** (14-C/TEF), mas **não confundir** com débito em conta do MVP 14-A.
 
-- **Dinheiro + Pix (API)** → viável no **frontend web** + backend Java.
-- **Débito/crédito TEF** → em produção exige **Windows + pinpad** e, na prática, um **agente local** (serviço em `localhost`, app desktop ou shell Electron) que chama a **DLL CliSiTef** e expõe JSON/HTTP para o React.
-
-Arquitetura alvo (documentada, não implementada):
+#### Arquitetura — Port/Adapter (hexagonal)
 
 ```
-React PDV (/pdv)  →  OmniCore API (Java)  →  registro PagamentoVenda
-       ↓
-  Agente TEF local (futuro)  →  CliSiTef DLL  →  SitDemo (dev) / adquirente (prod)
+React PDV/Caixa  →  OmniCore API (Java)  →  PagamentoVenda (persistência)
+                              ↓
+                    PaymentExperiencePort (interface)
+                              ↓
+         ┌────────────────────┼────────────────────┐
+         │                    │                    │
+   DinheiroHandler     HttpExperienceClient   (prod) PSP / TEF agent
+   (só OmniCore)       → localhost:9xxx       Efi, MP, CliSiTef…
+                       (sistema interno Roberto)
 ```
 
-#### Fases de implementação (proposta)
+- **PDV/Caixa:** fluxo real — escolhe forma → “Aguardando pagamento…” → resultado → venda **PAGA** se aprovado.
+- **Testes unitários:** `FakePaymentExperience` in-memory — **nunca** na UI.
+- **Dev manual:** `omnicore.pagamento.experience.base-url=http://localhost:9xxx` apontando para o simulador externo.
 
-| Fase | Escopo | Quando |
-|------|--------|--------|
-| **14-A — Registro operacional** | Enum `FormaPagamento`; tabela `pagamento_venda` (forma, valor, troco, NSU simulado); dinheiro com troco; Pix/cartão **modo SIMULADO** (`omnicore.pagamento.provider=mock`) | Com PDV ou logo após |
-| **14-B — Pix real** | Cobrança Pix via PSP (sandbox); webhook confirma → venda PAGA | Após escolher PSP + credenciais homologação |
-| **14-C — TEF homologação** | Agente local + CliSiTef + **SitDemo** (127.0.0.1); débito/crédito simulados | PDV em Windows na loja / máquina dev |
-| **14-D — Produção + fiscal** | Pinpad real, NFC-e, estorno financeiro alinhado ao cancelamento | Fase 6 fiscal |
+#### Contrato mínimo — sistema de experiência (dev/prod)
 
-#### Como testar sem Pix/cartão/conta real
+```http
+POST {baseUrl}/experiencia/pagamentos/iniciar
+{ "referenciaOmniCore", "vendaId", "forma", "valor", "parcelas"? }
 
-| Camada | Ferramenta / abordagem |
-|--------|-------------------------|
-| **OmniCore (recomendado p/ dev diário)** | Interface `PaymentGateway` no backend + **`MockPaymentGateway`**: aprova/rejeita transação por flag; Vitest no frontend mockando `api/pagamentos` |
-| **Pix** | Sandbox do PSP (ex. Mercado Pago **cartões/números de teste**, Efi/Gerencianet **homologação**); QR de teste; webhook apontando para `localhost` (ngrok se necessário) |
-| **TEF (cartão)** | **SitDemo** (Fiserv) — servidor SiTef simulado, sem adquirente real; DLL **CliSiTef simulada** (Win32/Win64); loja `00000000`, IP `127.0.0.1`; **venda digitada** se não houver pinpad ([TOTVS SitDemo](https://centraldeatendimento.totvs.com/hc/pt-br/articles/4422602030743), [ACBr SitDemo](https://www.projetoacbr.com.br/forum/files/file/526-sitdemo-fiserv/)) |
-| **TEF (referência Java/desktop)** | Comunidade **ACBr TEF** (Delphi/Lazarus); OmniCore permanece Java — integração via **agente local**, não ACBr direto no Spring |
-| **E2E PDV** | Fluxo completo com `provider=mock`: bip → escolher forma → “Confirmar (teste)” → venda PAGA + estoque |
+→ { "experienciaPagamentoId", "status": "PENDENTE", "urlExperiencia"? }
 
-#### Modelo de dados (esboço — 14-A)
+GET  {baseUrl}/experiencia/pagamentos/{id}
+POST (webhook OmniCore) { "status": "APROVADO"|"RECUSADO", "nsu", "referenciaExterna" }
+```
 
-- `tb_pagamento_venda`: `venda_id`, `forma` (DINHEIRO|PIX|DEBITO|CREDITO), `valor`, `valor_recebido`, `troco`, `status` (PENDENTE|APROVADO|RECUSADO|ESTORNADO), `provider` (MOCK|SITEF|EFI|…), `referencia_externa`, `nsu`, `created_at`
-- Venda **PAGA** só quando soma dos pagamentos ≥ `valor_total` (ou pagamento único no MVP)
-- `PUT /api/vendas/{id}/pagar` evolui para aceitar **payload de pagamento(s)** (retrocompatível: sem payload = comportamento atual)
+Roberto construirá o simulador **fora** do monorepo; OmniCore só consome o contrato.
+
+#### Fases de implementação (atualizado)
+
+| Fase | Escopo |
+|------|--------|
+| **14-A — Registro + porta** | Enum `FormaPagamento`; `tb_pagamento_venda`; `PaymentExperiencePort` + HTTP client; dinheiro interno; UI PDV/Caixa **sem mock**; fake só em testes |
+| **14-B — Pix produção** | PSP sandbox/prod substituindo URL do simulador |
+| **14-C — Cartão débito pinpad (TEF)** | Agente CliSiTef + SitDemo; forma `CARTAO_DEBITO` |
+| **14-D — Fiscal** | NFC-e, estorno financeiro, conciliação |
+
+#### TEF — referência (14-C, não confundir com 14-A)
+
+**TEF** = protocolo PDV ↔ pinpad ↔ adquirente (CliSiTef DLL, Windows). Browser React **não** fala com pinpad; exige **agente local**. SitDemo para homologação sem adquirente real.
+
+#### Modelo de dados (14-A)
+
+- `tb_pagamento_venda`: `venda_id`, `forma` (DINHEIRO|PIX|CREDITO|DEBITO_BANCARIO), `valor`, `valor_recebido`, `troco`, `status` (PENDENTE|APROVADO|RECUSADO|ESTORNADO), `provider` (INTERNO|EXPERIENCIA|EFI|…), `referencia_externa`, `nsu`, `experiencia_pagamento_id`, `created_at`
+- Venda **PAGA** quando pagamento(s) aprovado(s) ≥ `valor_total` (MVP: pagamento único)
+- `PUT /api/vendas/{id}/pagar` evolui com payload de pagamento (retrocompatível)
 
 #### Débitos relacionados (permanecem 14+)
 
-- Estorno financeiro no cancelamento (estorno TEF/Pix vs só estoque hoje)
-- Split / múltiplas formas na mesma venda (ex. parte dinheiro + parte Pix)
-- Conciliação (NSU, extrato adquirente)
+- Estorno financeiro no cancelamento
+- Split / múltiplas formas na mesma venda
+- Conciliação (NSU, extrato)
 - NFC-e vinculada ao pagamento
+- **Cartão débito pinpad** (`CARTAO_DEBITO`) — 14-C
 
-**Decisão vigente:** não bloquear **13+ reserva** nem **PDV v1** — PDV v1 finaliza PAGA; **forma de pagamento** entra em **14-A (mock)** antes de gateways reais.
+**Decisão vigente (31/ago):** PDV v1 hoje finaliza PAGA sem forma registrada; **14-A** adiciona registro + UI de pagamento + porta externa.
 
 ### Sessão 11.1 — cancelamento com autorização de gerente — entregue
 
@@ -514,10 +534,10 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **Imediato (tarde — Roberto):** **testes PDV** `/pdv` em monitor (bip, atalhos, imagem, cupom, PAGA + estoque).
-2. **Em seguida:** **14-A meios de pagamento mock** — enum `FormaPagamento`, `pagamento_venda`, UI no PDV (dinheiro/troco, Pix/cartão simulado).
-3. **Depois:** **14-B** Pix sandbox · **14-C** TEF SitDemo · fiscal/NFC-e.
-4. **Opcional:** polling `/estoque/:id`; TTL reservas; WebSocket saldo; impressão cupom térmico.
+1. **Em andamento:** **14-A pagamentos** — registro `PagamentoVenda`, porta `PaymentExperiencePort`, UI PDV/Caixa (dinheiro, Pix, crédito, débito bancário); **sem mock na UI**.
+2. **Roberto (paralelo/futuro):** sistema interno de experiência de pagamento (simula telas Pix/cartão/débito e devolve payload).
+3. **Depois:** **14-B** Pix PSP · **14-C** cartão débito pinpad/TEF · **14-D** fiscal/NFC-e.
+4. **Teste PDV** ✅ atalhos validados (Roberto, 31/ago).
 
 ---
 
@@ -538,10 +558,10 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ```
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: testes PDV → 14-A pagamentos mock (Pix/TEF simulado).
+Próximo: 14-A pagamentos (porta externa, sem mock na UI).
 Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 ```
 
 ---
 
-*Última atualização: 29/ago/2026 — PDV `/pdv` entregue; próximo: testes + 14-A pagamentos mock.*
+*Última atualização: 31/ago/2026 — decisão arquitetura pagamentos 14-A (porta externa, débito bancário vs pinpad); implementação em andamento.*

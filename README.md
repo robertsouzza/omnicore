@@ -183,13 +183,13 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
-| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + `/caixa`; formas Pix/débito/crédito/dinheiro + **TEF** = **14+** (mock → sandbox → SitDemo) |
-| Meios de pagamento / TEF | Hoje: liquida sem forma registrada | **14-A** mock · **14-B** Pix PSP · **14-C** TEF CliSiTef+SitDemo · ver CONTEXTO |
+| Pagamento / caixa | ✅ `PUT /api/vendas/{id}/pagar` + `/caixa`; **14-A** dinheiro/Pix/crédito/débito bancário via porta externa (sem mock na UI) |
+| Meios de pagamento | PDV liquida PAGA sem forma (hoje) | **14-A** registro + experiência externa · **14-C** pinpad débito (TEF) |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
-| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** | **14-A pagamentos mock** |
-| PDV (checkout bip) | **`/pdv`** — bip, atalhos, PAGA direto, prévia cupom | **14-A** formas pagamento + impressão |
+| Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** | **14-A** UI pagamento real |
+| PDV (checkout bip) | **`/pdv`** ✅ | **14-A** finalizar com forma de pagamento |
 
 ---
 
@@ -235,7 +235,7 @@ npm run build
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
 | Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
-| Meios pagamento/TEF mock, fiscal | ⬜ próximo — 14-A — ver CONTEXTO |
+| Meios pagamento (14-A) + pinpad/TEF + fiscal | 🔄 14-A em andamento — ver CONTEXTO |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 
