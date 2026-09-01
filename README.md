@@ -10,7 +10,7 @@ Monorepo mantido por [Roberto Souza](https://github.com/robertsouzza).
 
 | Canal | Função |
 |-------|--------|
-| **Web** | E-commerce com checkout ágil |
+| **Web** | E-commerce B2C — cliente compra, paga e recebe (**Fase 15**, planejamento em `.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) |
 | **Salão** | App do vendedor (PWA + leitor de código de barras) |
 | **Caixa** | PDV (dinheiro, cartão, Pix) |
 | **Balcão / Entrega** | Separação e conferência de pedidos |
@@ -190,7 +190,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
 | Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** · **14-A pagamento UI** | Simulador + commit |
-| PDV (checkout bip) | **`/pdv`** + formas pagamento ✅ | Teste browser Pix/cartão |
+| E-commerce B2C (loja web cliente) | ⬜ não implementado | **Fase 15** — ver `ECOMMERCE-B2C-PLANEJAMENTO.md` |
 
 ---
 
@@ -236,7 +236,8 @@ npm run build
 | Frontend: upload imagem produto (MinIO dev) | ✅ Sessão 11.5 |
 | Frontend: salão/caixa + reserva estoque + saldo tempo real | ✅ Sessão 13+ |
 | Frontend: PDV caixa (`/pdv`) | ✅ Sessão 13+/14 |
-| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE + simulador `:9090` + UX polling Pix | ver CONTEXTO |
+| Meios pagamento (14-A) + pinpad/TEF + fiscal | ✅ 14-A FE + simulador `:9090` + UX polling Pix | **14-B/C/D** Stone/Getnet |
+| **E-commerce B2C (cliente final)** | ⬜ planejado — **último módulo** | **[`.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`](.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md)** (Fase 15) |
 
 Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md).
 

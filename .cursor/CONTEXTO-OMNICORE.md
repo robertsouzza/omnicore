@@ -257,7 +257,8 @@ Roberto construirá o simulador **fora** do monorepo em **`~/omnicore-pagamento-
 | **14-B — Pix produção** | PSP **Stone + Getnet**; QR na tela — PDV, Caixa, Nova Venda Paga, web |
 | **14-C — Terminal integrado** | Maquininha **Stone + Getnet** — crédito/débito/Pix no device |
 | **14-D — Fiscal** | NFC-e, estorno financeiro, conciliação |
-| **14-E — Checkout web (B2C)** | Cliente final: Pix + cartão via API (sem maquininha) |
+| **14-E — Checkout web (B2C)** | Cliente final: Pix + cartão via API (sem maquininha) — **detalhe em `.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`** |
+| **15 — E-commerce B2C (módulo completo)** | **Último módulo** — vitrine, carrinho, checkout, entrega, balcão; ver **`ECOMMERCE-B2C-PLANEJAMENTO.md`** |
 
 #### TEF — referência (14-C, não confundir com 14-A)
 
@@ -329,7 +330,17 @@ PagamentoService → PaymentExperiencePort
     └── WebCheckoutAdapter (Stone, Getnet) — B2C
 ```
 
-**14-E (web B2C):** catálogo público, carrinho, frete, antifraude — fase após 14-B/C; **mesmos adapters**, não mock paralelo.
+**14-E (web B2C):** catálogo público, carrinho, frete, antifraude — **módulo completo documentado em `@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md` (Fase 15 — último módulo, após 14-B/C/D).**
+
+#### Fase 15 — E-commerce B2C (último módulo — planejamento completo)
+
+**Decisão (01/set/2026):** construir **somente após** loja física + pagamentos Stone/Getnet (14-B/C) estáveis. **Não confundir** com PWA Salão (vendedor).
+
+| Documento | Conteúdo |
+|-----------|----------|
+| **`.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`** | Fluxo cliente → carrinho → pagamento → balcão/entrega; telas `/loja/*`; APIs; subfases 15-A…15-G; critérios MVP |
+
+**Resumo:** cliente navega catálogo → carrinho → checkout (endereço + frete ou retirada) → Pix/cartão web → pedido `AGUARDANDO_RETIRADA` → operador **balcão** separa e despacha → `CONCLUIDA`. Reutiliza `Venda`, `Cliente`, `PagamentoService`, estoque e status já previstos no backend.
 
 #### Modelo de dados (14-A)
 
@@ -635,7 +646,9 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha); **14-E** checkout web cliente.
+1. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha).
+2. **14-D** — fiscal/conciliação conforme prioridade loja.
+3. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
 2. **Opcional:** exibir `urlExperiencia` persistida no backend (hoje montada no FE).
 3. **14-A FE** ✅ `47b04ac` + UX externa · dinheiro/Pix validados PDV/Caixa (Roberto, 31/ago).
 
@@ -664,4 +677,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 01/set/2026 — PDV teclado + auto-refresh vendas (`af19b2a`); pagamentos 14-A testados Pix/crédito/débito ✅; simulador `:9090`.*
+*Última atualização: 01/set/2026 — Fase 15 E-commerce B2C planejado (`ECOMMERCE-B2C-PLANEJAMENTO.md`); PDV teclado `af19b2a`; pagamentos 14-A testados ✅.*
