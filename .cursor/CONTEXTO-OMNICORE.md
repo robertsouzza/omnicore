@@ -93,7 +93,7 @@
 | **13+ (parcial)** | **Pagar venda PENDENTE→PAGA + tela Caixa + UX salão pós-venda** | ✅ testado browser | `cd11666` |
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
-| **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE entregue | `47b04ac` |
+| **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE + PDV teclado | `af19b2a` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -317,6 +317,8 @@ No varejo, a “maquininha” integrada ao PDV pode ser:
 - **Frontend** `47b04ac` — `PagamentoPanel` + `PagamentoModal`; `/caixa` modal; `/pdv` painel + `registrarVendaComPagamento`; `/vendas/nova` e `/vendas/:id` com forma; Vitest `pagamentoForm.test.ts` (48 testes).
 - **Simulador externo** — `~/omnicore-pagamento-simulador/` ✅ (Node :9090, telas Pix/crédito/débito, webhook); skill Cursor ✅; teste Pix integrado ✅ (Roberto, 31/ago).
 - **UX aguardando pagamento** — link “Abrir tela Pix/cartão”, polling 3s, modal fecha ao liquidar (`a54f898`).
+- **PDV teclado** — 1–4 formas, F10 duas etapas, auto-refresh `/vendas` (`af19b2a`).
+- **Docs** — simulador dev vs TEF/maquininhas Stone/Getnet (14-B/C).
 
 #### Matriz UI pagamento (14-A)
 

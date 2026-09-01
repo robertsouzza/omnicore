@@ -40,4 +40,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `a54f898` — UX aguardando Pix/cartão (link + polling)
+Último commit relevante: `af19b2a` — PDV teclado pagamento + auto-refresh vendas
