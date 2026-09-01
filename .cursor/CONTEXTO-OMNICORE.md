@@ -254,9 +254,10 @@ Roberto construirá o simulador **fora** do monorepo em **`~/omnicore-pagamento-
 | Fase | Escopo |
 |------|--------|
 | **14-A — Registro + porta** | Enum `FormaPagamento`; `tb_pagamento_venda`; `PaymentExperiencePort` + HTTP client; dinheiro interno; UI PDV/Caixa **sem mock**; fake só em testes |
-| **14-B — Pix produção** | PSP sandbox/prod substituindo URL do simulador |
-| **14-C — Cartão débito pinpad (TEF)** | Agente CliSiTef + SitDemo; forma `CARTAO_DEBITO`; crédito no pinpad no mesmo pacote |
+| **14-B — Pix produção** | PSP **Stone + Getnet**; QR na tela — PDV, Caixa, Nova Venda Paga, web |
+| **14-C — Terminal integrado** | Maquininha **Stone + Getnet** — crédito/débito/Pix no device |
 | **14-D — Fiscal** | NFC-e, estorno financeiro, conciliação |
+| **14-E — Checkout web (B2C)** | Cliente final: Pix + cartão via API (sem maquininha) |
 
 #### TEF — referência (14-C, não confundir com 14-A)
 
@@ -290,13 +291,47 @@ No varejo, a “maquininha” integrada ao PDV pode ser:
 | Fase | Entrega |
 |------|---------|
 | **14-A** ✅ | UI + contrato + simulador dev |
-| **14-B** | Pix real (1º PSP escolhido — ex. Efi ou Mercado Pago) |
-| **14-C** | Cartão crédito/débito no **pinpad** (TEF ou SDK Stone/Cielo) |
-| **14-C+** | Outros terminais (SumUp, InfinitePay…) — 1 adapter por contrato comercial |
+| **14-B** | Pix **Stone + Getnet** — QR na tela (PDV, Caixa, Nova Venda Paga, web) |
+| **14-C** | Maquininha **Stone + Getnet** — crédito/débito/Pix no terminal |
+| **14-C+** | Outros terminais (SumUp, InfinitePay…) — adapter por contrato |
 | **14-D** | Estorno, conciliação NSU, NFC-e |
+| **14-E** | Checkout **web cliente** — Pix + cartão API (sem maquininha) |
 
-**Decisão prática:** escolher **um** provedor piloto (ex. Stone **ou** Cielo TEF **ou** MP Point) antes de implementar — cada um exige conta PJ, homologação e ambiente sandbox.
+**Decisão prática (atualizada 01/set):** piloto **Stone + Getnet (Santander)**; conta PJ + sandbox de cada um antes de codificar adapters.
 
+#### Decisão de produto (Roberto — 01/set/2026): pagamentos omnichannel
+
+**Objetivo:** OmniCore atende **loja física** (gerente, vendedor, caixa) **e** **módulo web** (cliente final compra e paga). Um motor (`PagamentoService` + adapters), UX por canal.
+
+**Provedores piloto:** **Stone** e **Getnet (Santander)**.
+
+##### Matriz — onde cada forma aparece
+
+| Forma | PDV | Caixa | Nova Venda Paga | Web cliente |
+|-------|-----|-------|-----------------|-------------|
+| Dinheiro | ✅ | ✅ | ✅ | ❌ |
+| Pix QR na tela | ✅ | ✅ | ✅ | ✅ |
+| Pix/cartão na maquininha | ✅ | ✅ | ✅ | ❌ |
+| Cartão link/gateway | ⚠️ | ⚠️ | ⚠️ | ✅ principal |
+| Débito em conta | ✅ simulador | ✅ | ✅ | futuro |
+
+**Loja:** operador escolhe forma → QR na tela **e/ou** comando na maquininha → webhook → PAGA.
+
+**Web:** cliente no checkout — Pix (QR/copia-e-cola) + cartão tokenizado; **sem** maquininha.
+
+##### Arquitetura alvo
+
+```
+PagamentoService → PaymentExperiencePort
+    ├── Dinheiro (interno)
+    ├── PixPspAdapter (Stone, Getnet) — QR tela + API
+    ├── TerminalAdapter (Stone, Getnet) — maquininha
+    └── WebCheckoutAdapter (Stone, Getnet) — B2C
+```
+
+**14-E (web B2C):** catálogo público, carrinho, frete, antifraude — fase após 14-B/C; **mesmos adapters**, não mock paralelo.
+
+#### Modelo de dados (14-A)
 
 - `tb_pagamento_venda`: `venda_id`, `forma` (DINHEIRO|PIX|CREDITO|DEBITO_BANCARIO), `valor`, `valor_recebido`, `troco`, `status` (PENDENTE|APROVADO|RECUSADO|ESTORNADO), `provider` (INTERNO|EXPERIENCIA|EFI|…), `referencia_externa`, `nsu`, `experiencia_pagamento_id`, `created_at`
 - Venda **PAGA** quando pagamento(s) aprovado(s) ≥ `valor_total` (MVP: pagamento único)
@@ -600,7 +635,7 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **14-A** — fechar ciclo Pix/cartão (UX polling ✅); **14-B** Pix PSP · **14-C** TEF · **14-D** fiscal.
+1. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha); **14-E** checkout web cliente.
 2. **Opcional:** exibir `urlExperiencia` persistida no backend (hoje montada no FE).
 3. **14-A FE** ✅ `47b04ac` + UX externa · dinheiro/Pix validados PDV/Caixa (Roberto, 31/ago).
 
@@ -629,4 +664,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 31/ago/2026 — UX aguardando pagamento externo (`a54f898`); simulador `:9090` ✅; 14-A FE `47b04ac`.*
+*Última atualização: 01/set/2026 — PDV teclado + auto-refresh vendas (`af19b2a`); pagamentos 14-A testados Pix/crédito/débito ✅; simulador `:9090`.*
