@@ -248,6 +248,7 @@ Cronograma completo por sessões: [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTE
 - Abra o workspace **`~/omnicore/`** para backend + frontend juntos.
 - **Simulador de pagamento (14-A dev):** pasta irmã **`~/omnicore-pagamento-simulador/`** — skill em `.cursor/skills/omnicore-pagamento-simulador/SKILL.md`; porta **9090**. **Não é TEF/maquininha real** — imita o webhook/contrato externo; produção = **14-B** (Pix PSP) + **14-C** (pinpad Stone/Cielo/Rede via TEF ou API).
 - Em chat novo: `@.cursor/CONTEXTO-OMNICORE.md` para restaurar contexto.
+- **E-commerce B2C (Fase 15 — último módulo):** `@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`
 - Regra persistente em `.cursor/rules/omnicore-projeto.mdc`.
 
 ---
