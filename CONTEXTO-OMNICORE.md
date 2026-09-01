@@ -2,7 +2,8 @@
 
 O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md)**.
 
-**E-commerce B2C (Fase 15 — último módulo):** **[`.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`](.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md)**
+**E-commerce B2C (Fase 15):** `@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`  
+**Multi-PSP / adapters:** `@.cursor/MULTI-PSP-ADAPTERS.md`
 
 ## Restaurar conversa no Agent
 

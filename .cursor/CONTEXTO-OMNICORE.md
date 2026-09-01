@@ -300,6 +300,19 @@ No varejo, a “maquininha” integrada ao PDV pode ser:
 
 **Decisão prática (atualizada 01/set):** piloto **Stone + Getnet (Santander)**; conta PJ + sandbox de cada um antes de codificar adapters.
 
+#### Multi-PSP — adapters e config por loja (01/set/2026)
+
+**Não existe API universal** Stone = Getnet = PagBank = InfinitePay. OmniCore usa **Port/Adapter**:
+
+- **Universal (não refaz):** PDV, Caixa, Nova Venda, `PagamentoService`, webhook interno, UI QR/aguardando.
+- **Por PSP:** classe adapter (`PaymentExperiencePort`) + credenciais + tradução webhook.
+- **Por loja:** config `omnicore.pagamento.provider=stone|getnet|…` — estabelecimento escolhe **um** PSP ativo (MVP single-loja).
+- **Pix:** OmniCore → PSP → Bacen (SPI) → app do banco do cliente; **não** integração direta com Caixa/BB/Nubank.
+
+**Documento completo:** `@.cursor/MULTI-PSP-ADAPTERS.md` (checklist novo PSP, config alvo 14-B, fluxo Pix, prioridade Stone/Getnet → 14-B+).
+
+**14-B+ (sob demanda):** PagSeguro/PagBank, InfinitePay, Mercado Pago — mesmo padrão adapter, sem refazer telas.
+
 #### Decisão de produto (Roberto — 01/set/2026): pagamentos omnichannel
 
 **Objetivo:** OmniCore atende **loja física** (gerente, vendedor, caixa) **e** **módulo web** (cliente final compra e paga). Um motor (`PagamentoService` + adapters), UX por canal.
@@ -364,7 +377,7 @@ PagamentoService → PaymentExperiencePort
 - **Simulador externo** — `~/omnicore-pagamento-simulador/` ✅ (Node :9090, telas Pix/crédito/débito, webhook); skill Cursor ✅; teste Pix integrado ✅ (Roberto, 31/ago).
 - **UX aguardando pagamento** — link “Abrir tela Pix/cartão”, polling 3s, modal fecha ao liquidar (`a54f898`).
 - **PDV teclado** — 1–4 formas, F10 duas etapas, auto-refresh `/vendas` (`af19b2a`).
-- **Docs** — simulador dev vs TEF/maquininhas Stone/Getnet (14-B/C).
+- **Docs** — simulador dev vs TEF/maquininhas Stone/Getnet (14-B/C); **multi-PSP adapters** (`MULTI-PSP-ADAPTERS.md`).
 
 #### Matriz UI pagamento (14-A)
 
@@ -677,4 +690,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 01/set/2026 — Fase 15 E-commerce B2C planejado (`ECOMMERCE-B2C-PLANEJAMENTO.md`); PDV teclado `af19b2a`; pagamentos 14-A testados ✅.*
+*Última atualização: 01/set/2026 — Multi-PSP adapters doc; Fase 15 E-commerce; PDV `af19b2a`; 14-A pagamentos ✅.*
