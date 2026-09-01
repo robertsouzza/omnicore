@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { cancelarVenda, listarVendas } from '../api/vendas'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { useAuth } from '../auth/AuthContext'
-import { useAsyncAction, usePaginatedResource } from '../hooks'
+import { useAsyncAction, usePaginatedResource, useVendasListAutoRefresh } from '../hooks'
 import type { CancelarVendaRequest, StatusVenda, Venda } from '../types/venda'
 import {
   STATUS_VENDA,
@@ -59,6 +59,8 @@ export function VendasPage() {
     errorMessage: 'Erro ao carregar vendas.',
   })
 
+  useVendasListAutoRefresh(!!session && listaPronta, load)
+
   const { actionKey, execute } = useAsyncAction()
 
   function abrirCancelamento(venda: Venda) {
@@ -88,7 +90,9 @@ export function VendasPage() {
       <div className={styles.pageHeader}>
         <div>
           <h1 className={styles.title}>Vendas</h1>
-          <p className={styles.subtitle}>Pedidos registrados no OmniCore</p>
+          <p className={styles.subtitle}>
+            Pedidos registrados no OmniCore · atualiza automaticamente
+          </p>
         </div>
         <div className={styles.headerActions}>
           {page && (

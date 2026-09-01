@@ -68,6 +68,13 @@
   gap: 0.75rem;
 }
 
+.checkoutColumnActive {
+  outline: 2px solid #2563eb;
+  outline-offset: 4px;
+  border-radius: 12px;
+  padding: 0.25rem;
+}
+
 .rightColumn {
   display: flex;
   flex-direction: column;

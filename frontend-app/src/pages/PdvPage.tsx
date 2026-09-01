@@ -1,7 +1,11 @@
 import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { buscarProdutoPorCodigoBarras } from '../api/produtos'
-import { PagamentoPanel, usePagamentoFormState } from '../components/pagamento/PagamentoPanel'
+import {
+  PagamentoPanel,
+  usePagamentoFormState,
+  type PagamentoPanelHandle,
+} from '../components/pagamento/PagamentoPanel'
 import { AguardandoExperienciaPanel } from '../components/pagamento/AguardandoExperienciaPanel'
 import { BarcodeField } from '../components/BarcodeField'
 import { ClienteBuscaSection } from '../components/ClienteBuscaSection'
@@ -26,6 +30,8 @@ import {
 } from '../utils/carrinhoVenda'
 import { registrarVendaComPagamento } from '../utils/registrarVendaComPagamento'
 import { resolverAguardandoPagamentoExterno } from '../utils/resolverAguardandoPagamento'
+import { formaPagamentoPorTecla } from '../utils/pagamentoAtalhos'
+import { notificarVendasAtualizadas } from '../utils/vendasSync'
 import { getErrorMessage } from '../utils/validation'
 import barcodeStyles from '../components/BarcodeField.module.css'
 import styles from './PdvPage.module.css'
@@ -77,9 +83,11 @@ export function PdvPage() {
   const [produtoPreview, setProdutoPreview] = useState<PdvProdutoPreviewData | null>(null)
   const [vendaFinalizada, setVendaFinalizada] = useState<VendaFinalizada | null>(null)
   const [clienteAberto, setClienteAberto] = useState(false)
+  const [modoPagamento, setModoPagamento] = useState(false)
 
   const handleVendaFinalizadaPoll = useCallback((venda: Venda) => {
     if (venda.status !== 'PENDENTE') {
+      notificarVendasAtualizadas({ vendaId: venda.id, origem: 'pdv' })
       setVendaFinalizada((prev) =>
         prev && prev.id === venda.id
           ? {
@@ -100,6 +108,8 @@ export function PdvPage() {
   )
 
   const finalizeFormRef = useRef<HTMLFormElement>(null)
+  const checkoutColumnRef = useRef<HTMLElement>(null)
+  const pagamentoPanelRef = useRef<PagamentoPanelHandle>(null)
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
@@ -127,6 +137,28 @@ export function PdvPage() {
   const focusBarcode = useCallback(() => {
     document.getElementById(PDV_BARCODE_INPUT_ID)?.focus()
   }, [])
+
+  const entrarModoPagamento = useCallback(() => {
+    setModoPagamento(true)
+    pagamentoPanelRef.current?.focusForma()
+  }, [])
+
+  const sairModoPagamento = useCallback(() => {
+    setModoPagamento(false)
+    focusBarcode()
+  }, [focusBarcode])
+
+  const selecionarFormaPorTecla = useCallback(
+    (tecla: string) => {
+      const novaForma = formaPagamentoPorTecla(tecla)
+      if (!novaForma) return false
+      setModoPagamento(true)
+      setForma(novaForma)
+      window.requestAnimationFrame(() => pagamentoPanelRef.current?.focusCampoExtra())
+      return true
+    },
+    [setForma],
+  )
 
   function addProduto(produto: ProdutoComSaldo) {
     let newKey: string | null = null
@@ -265,6 +297,7 @@ export function PdvPage() {
     setBarcodeFeedback(null)
     setProdutoPreview(null)
     setVendaFinalizada(null)
+    setModoPagamento(false)
     resetPagamento()
     resetCliente()
     setClienteAberto(false)
@@ -327,6 +360,8 @@ export function PdvPage() {
         urlExperiencia,
         forma,
       })
+      notificarVendasAtualizadas({ vendaId: venda.id, origem: 'pdv' })
+      setModoPagamento(false)
       focusBarcode()
     } catch (err) {
       if (handleUnauthorized(err)) return
@@ -357,8 +392,38 @@ export function PdvPage() {
   }
 
   useEffect(() => {
+    if (cart.length === 0) {
+      setModoPagamento(false)
+    }
+  }, [cart.length])
+
+  useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (submitting) return
+
+      const target = event.target as HTMLElement | null
+      const noCheckout =
+        target?.tagName === 'INPUT' &&
+        target.id === PDV_BARCODE_INPUT_ID &&
+        !modoPagamento
+
+      if (
+        event.key === 'Enter' &&
+        modoPagamento &&
+        cart.length > 0 &&
+        checkoutColumnRef.current?.contains(target)
+      ) {
+        if (target?.tagName === 'SELECT' || target?.tagName === 'TEXTAREA') return
+        event.preventDefault()
+        void finalizarVenda()
+        return
+      }
+
+      if (noCheckout && /^[1-4]$/.test(event.key)) {
+        event.preventDefault()
+        selecionarFormaPorTecla(event.key)
+        return
+      }
 
       switch (event.key) {
         case 'F3': {
@@ -383,17 +448,51 @@ export function PdvPage() {
         }
         case 'F10': {
           event.preventDefault()
-          if (cart.length > 0) void finalizarVenda()
+          if (cart.length === 0) break
+          if (!modoPagamento) {
+            entrarModoPagamento()
+            break
+          }
+          void finalizarVenda()
           break
         }
-        default:
+        case 'Escape': {
+          if (modoPagamento && cart.length > 0) {
+            event.preventDefault()
+            sairModoPagamento()
+          }
           break
+        }
+        default: {
+          if (cart.length > 0 && /^[1-4]$/.test(event.key)) {
+            const emCampoTexto =
+              target?.tagName === 'INPUT' &&
+              target.id !== PDV_BARCODE_INPUT_ID &&
+              (target as HTMLInputElement).type !== 'radio'
+            if (!emCampoTexto) {
+              event.preventDefault()
+              selecionarFormaPorTecla(event.key)
+            }
+          }
+          break
+        }
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [selectedKey, submitting, cart.length, finalizarVenda, focusBarcode, novaVenda])
+  }, [
+    selectedKey,
+    submitting,
+    cart.length,
+    finalizarVenda,
+    focusBarcode,
+    novaVenda,
+    modoPagamento,
+    entrarModoPagamento,
+    sairModoPagamento,
+    selecionarFormaPorTecla,
+  ])
 
   return (
     <section className={styles.page}>
@@ -403,8 +502,8 @@ export function PdvPage() {
           <p className={styles.subtitle}>Bip contínuo · venda paga na hora</p>
         </div>
         <p className={styles.shortcuts} aria-label="Atalhos de teclado">
-          <kbd>F3</kbd> excluir · <kbd>F4</kbd> qtd · <kbd>F5</kbd> nova · <kbd>F10</kbd>{' '}
-          finalizar
+          <kbd>F3</kbd> excluir · <kbd>F4</kbd> qtd · <kbd>F5</kbd> nova · <kbd>1</kbd>–
+          <kbd>4</kbd> pagamento · <kbd>F10</kbd> pagar · <kbd>Esc</kbd> bip
         </p>
       </header>
 
@@ -563,7 +662,10 @@ export function PdvPage() {
           </div>
         </div>
 
-        <aside className={styles.checkoutColumn}>
+        <aside
+          ref={checkoutColumnRef}
+          className={`${styles.checkoutColumn}${modoPagamento ? ` ${styles.checkoutColumnActive}` : ''}`}
+        >
           <div className={styles.totalPanel}>
             <p className={styles.totalLabel}>Total a pagar</p>
             <p className={styles.totalValue}>{formatPreco(totalEstimado)}</p>
@@ -578,15 +680,21 @@ export function PdvPage() {
           {pagamentoError && !error && <p className={styles.error}>{pagamentoError}</p>}
 
           <PagamentoPanel
+            ref={pagamentoPanelRef}
             total={totalEstimado}
             disabled={submitting || cart.length === 0}
             forma={forma}
-            onFormaChange={setForma}
+            onFormaChange={(novaForma) => {
+              setModoPagamento(true)
+              setForma(novaForma)
+            }}
             valorRecebido={valorRecebido}
             onValorRecebidoChange={setValorRecebido}
             parcelas={parcelas}
             onParcelasChange={setParcelas}
             compact
+            showKeyboardHints
+            radioGroupName="forma-pagamento-pdv"
           />
 
           <form ref={finalizeFormRef} onSubmit={(e) => void handleSubmit(e)}>

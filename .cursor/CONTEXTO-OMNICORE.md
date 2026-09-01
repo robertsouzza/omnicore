@@ -255,14 +255,48 @@ Roberto construirá o simulador **fora** do monorepo em **`~/omnicore-pagamento-
 |------|--------|
 | **14-A — Registro + porta** | Enum `FormaPagamento`; `tb_pagamento_venda`; `PaymentExperiencePort` + HTTP client; dinheiro interno; UI PDV/Caixa **sem mock**; fake só em testes |
 | **14-B — Pix produção** | PSP sandbox/prod substituindo URL do simulador |
-| **14-C — Cartão débito pinpad (TEF)** | Agente CliSiTef + SitDemo; forma `CARTAO_DEBITO` |
+| **14-C — Cartão débito pinpad (TEF)** | Agente CliSiTef + SitDemo; forma `CARTAO_DEBITO`; crédito no pinpad no mesmo pacote |
 | **14-D — Fiscal** | NFC-e, estorno financeiro, conciliação |
 
 #### TEF — referência (14-C, não confundir com 14-A)
 
 **TEF** = protocolo PDV ↔ pinpad ↔ adquirente (CliSiTef DLL, Windows). Browser React **não** fala com pinpad; exige **agente local**. SitDemo para homologação sem adquirente real.
 
-#### Modelo de dados (14-A)
+#### Simulador dev vs maquininha real (importante)
+
+O **`~/omnicore-pagamento-simulador/`** (:9090) **não é TEF** nem adquirente. Simula o **contrato externo** (iniciar → PENDENTE → aprovar/recusar → webhook → NSU fake) para desenvolver PDV/Caixa/estoque **sem** Stone, Cielo, pinpad ou Pix BACEN real.
+
+| Ambiente | O que autoriza | Papel no OmniCore |
+|----------|----------------|-------------------|
+| **Simulador :9090** (hoje) | Botão “Aprovar” na tela web | `PaymentExperiencePort` → HTTP |
+| **Pix produção (14-B)** | PSP (Efi, MP, banco…) — QR/chave SPI | Mesma porta; troca `base-url` + adapter PSP |
+| **Cartão pinpad / TEF (14-C)** | Pinpad + adquirente (Cielo, Rede, Getnet…) | Agente local (CliSiTef ou SDK do fabricante) |
+| **Smart POS** (Stone, SumUp, MP Point…) | App/API na própria maquininha | Adapter por provedor (API REST + webhook ou bridge TEF) |
+
+**Fluxo de loja física (objetivo produção):** operador F10 no PDV → OmniCore registra pagamento PENDENTE → **comando vai para terminal/PSP** → cliente aproxima cartão ou lê QR **na maquininha** → provedor confirma → webhook/agente → venda **PAGA** (igual ao simulador, só que hardware/API real).
+
+**Limitação do browser:** React no PDV **nunca** fala direto com USB/Bluetooth do pinpad; sempre há **camada intermediária** (agente Windows, smart POS com API, ou integração TEF homologada).
+
+#### Maquininhas (Stone, Cielo, Rede, PagSeguro, SumUp, InfinitePay, Getnet…)
+
+No varejo, a “maquininha” integrada ao PDV pode ser:
+
+1. **Pinpad clássico + TEF** — ERP/PDV manda valor e forma; pinpad pede cartão/senha; NSU volta ao sistema. Comum em supermercados e oficinas com software desktop.
+2. **Smart POS com API** — terminal Android (Stone, SumUp, MP Point…) recebe cobrança via API; cliente paga na própria maquina (Pix QR, crédito, débito); confirmação por webhook ou polling.
+3. **Pix separado do cartão** — QR no display do PDV ou na maquininha; PSP notifica OmniCore (14-B).
+
+**Dá para o OmniCore ter esses recursos?** **Sim**, em fases — a arquitetura **14-A já prepara** (`PaymentExperiencePort`, webhook, `tb_pagamento_venda`, UI “Aguardando pagamento”). O trabalho futuro é **adapter por provedor**, não refazer o PDV:
+
+| Fase | Entrega |
+|------|---------|
+| **14-A** ✅ | UI + contrato + simulador dev |
+| **14-B** | Pix real (1º PSP escolhido — ex. Efi ou Mercado Pago) |
+| **14-C** | Cartão crédito/débito no **pinpad** (TEF ou SDK Stone/Cielo) |
+| **14-C+** | Outros terminais (SumUp, InfinitePay…) — 1 adapter por contrato comercial |
+| **14-D** | Estorno, conciliação NSU, NFC-e |
+
+**Decisão prática:** escolher **um** provedor piloto (ex. Stone **ou** Cielo TEF **ou** MP Point) antes de implementar — cada um exige conta PJ, homologação e ambiente sandbox.
+
 
 - `tb_pagamento_venda`: `venda_id`, `forma` (DINHEIRO|PIX|CREDITO|DEBITO_BANCARIO), `valor`, `valor_recebido`, `troco`, `status` (PENDENTE|APROVADO|RECUSADO|ESTORNADO), `provider` (INTERNO|EXPERIENCIA|EFI|…), `referencia_externa`, `nsu`, `experiencia_pagamento_id`, `created_at`
 - Venda **PAGA** quando pagamento(s) aprovado(s) ≥ `valor_total` (MVP: pagamento único)
