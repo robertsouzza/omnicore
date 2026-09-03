@@ -20,6 +20,8 @@ function pagamento(partial: Partial<PagamentoVenda> & Pick<PagamentoVenda, 'id'>
     nsu: partial.nsu ?? null,
     experienciaPagamentoId: partial.experienciaPagamentoId ?? 'exp-1',
     urlExperiencia: partial.urlExperiencia ?? null,
+    pixCopiaECola: partial.pixCopiaECola ?? null,
+    qrCodeBase64: partial.qrCodeBase64 ?? null,
     dataHora: partial.dataHora ?? '2026-08-31T12:00:00',
   }
 }
@@ -56,6 +58,28 @@ describe('urlExperiencia', () => {
     ).toEqual({
       urlExperiencia: 'http://localhost:9090/pix/exp-z',
       forma: 'PIX',
+      pixCopiaECola: null,
+      qrCodeBase64: null,
+    })
+  })
+
+  it('aguardandoFromPagamentos inclui QR Pix quando disponível', () => {
+    expect(
+      aguardandoFromPagamentos([
+        pagamento({
+          id: 3,
+          forma: 'PIX',
+          status: 'PENDENTE',
+          experienciaPagamentoId: 'exp-qr',
+          pixCopiaECola: '00020126PIX',
+          qrCodeBase64: 'abc123',
+        }),
+      ]),
+    ).toEqual({
+      urlExperiencia: 'http://localhost:9090/pix/exp-qr',
+      forma: 'PIX',
+      pixCopiaECola: '00020126PIX',
+      qrCodeBase64: 'abc123',
     })
   })
 })

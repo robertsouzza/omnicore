@@ -47,7 +47,9 @@ export function PagamentoModal({
 
   function handleConfirm() {
     if (!pagamento.validate()) return
-    onConfirm(pagamento.buildRequest())
+    const request = pagamento.buildRequest()
+    if (!request) return
+    onConfirm(request)
   }
 
   return (
@@ -70,6 +72,8 @@ export function PagamentoModal({
           <AguardandoExperienciaPanel
             forma={aguardandoExterno.forma}
             urlExperiencia={aguardandoExterno.urlExperiencia}
+            pixCopiaECola={aguardandoExterno.pixCopiaECola}
+            qrCodeBase64={aguardandoExterno.qrCodeBase64}
             atualizando={atualizandoStatus}
             onAtualizarStatus={onAtualizarStatus ?? (() => undefined)}
             compact

@@ -31,6 +31,20 @@
   gap: 0.5rem;
 }
 
+.formasWithDefer {
+  grid-template-columns: 1fr 1fr;
+}
+
+.formaOptionDefer {
+  grid-column: 1 / -1;
+  background: #f8fafc;
+}
+
+.formaOptionDefer:has(input:checked) {
+  border-color: #64748b;
+  background: #f1f5f9;
+}
+
 .formaOption {
   display: flex;
   align-items: center;

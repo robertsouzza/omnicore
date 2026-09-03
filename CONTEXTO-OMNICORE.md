@@ -11,7 +11,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: polish PDV/Caixa + QR Pix na tela (simulador). Stone/Getnet = 14-B/C.
+Próximo: 14-B/C Stone/Getnet (sandbox). QR Pix + Paga no caixa já entregues.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 

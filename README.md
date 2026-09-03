@@ -170,8 +170,9 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Cadastro / edição de clientes | `/clientes/novo`, `/clientes/:id/editar` | ✅ |
 | Estoque (saldo com indicador colorido, entrada/saída, histórico — só unitários; **atualização ~4s**) | `/estoque`, `/estoque/:produtoId` | ✅ |
 | Vendas (nova, listagem, detalhe, cancelamento, **pagar pendente**; **limite qtd = estoque disp.**) | `/vendas`, `/vendas/nova`, `/vendas/:id` | ✅ |
-| **Caixa** (modal pagamento: dinheiro, Pix, crédito, débito bancário) | `/caixa` | ✅ 14-A |
-| **PDV** (checkout bip, atalhos F3–F10, imagem + cupom ≥1024px, **formas de pagamento**) | `/pdv` | ✅ 14-A |
+| **Caixa** (modal pagamento + QR Pix inline; reabre Aguardando se pendente) | `/caixa` | ✅ 14-A+ |
+| **PDV** (checkout bip, Pix QR na tela, atalhos 1–4/F10) | `/pdv` | ✅ 14-A+ |
+| **Nova Venda** (Pendente/Paga + **Paga no caixa** ou Pix na hora) | `/vendas/nova` | ✅ 14-A+ |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
 | TanStack Query + Vitest | — | ✅ Sessão 13-FE — 51 testes |

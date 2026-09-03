@@ -67,6 +67,12 @@ public class PagamentoVenda {
     @Column(name = "experiencia_pagamento_id", length = 80)
     private String experienciaPagamentoId;
 
+    @Column(name = "pix_copia_e_cola", length = 512)
+    private String pixCopiaECola;
+
+    @Column(name = "qr_code_base64", columnDefinition = "TEXT")
+    private String qrCodeBase64;
+
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 

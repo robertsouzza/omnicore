@@ -6,8 +6,8 @@ import {
   useRef,
   useState,
 } from 'react'
-import type { FormaPagamento } from '../../types/pagamento'
-import { FORMAS_PAGAMENTO } from '../../types/pagamento'
+import type { OpcaoPagamento } from '../../types/pagamento'
+import { FORMAS_PAGAMENTO, OPCAO_PAGA_NO_CAIXA, isDeferCaixa } from '../../types/pagamento'
 import { teclaFormaPagamento } from '../../utils/pagamentoAtalhos'
 import {
   buildPagarVendaRequest,
@@ -19,8 +19,8 @@ import styles from './PagamentoPanel.module.css'
 export interface PagamentoPanelProps {
   total: number
   disabled?: boolean
-  forma: FormaPagamento
-  onFormaChange: (forma: FormaPagamento) => void
+  forma: OpcaoPagamento
+  onFormaChange: (forma: OpcaoPagamento) => void
   valorRecebido: string
   onValorRecebidoChange: (value: string) => void
   parcelas: number
@@ -29,6 +29,8 @@ export interface PagamentoPanelProps {
   compact?: boolean
   /** Exibe atalhos 1–4 no PDV (terminal sem mouse). */
   showKeyboardHints?: boolean
+  /** Nova Venda: encaminhar para fila do caixa sem pagar agora. */
+  showPagaNoCaixa?: boolean
   radioGroupName?: string
 }
 
@@ -51,6 +53,7 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
       error,
       compact,
       showKeyboardHints,
+      showPagaNoCaixa,
       radioGroupName = 'forma-pagamento',
     },
     ref,
@@ -59,7 +62,9 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
     const valorRecebidoRef = useRef<HTMLInputElement>(null)
     const parcelasRef = useRef<HTMLSelectElement>(null)
 
-    const formaInfo = FORMAS_PAGAMENTO.find((f) => f.value === forma)
+    const formaInfo = isDeferCaixa(forma)
+      ? OPCAO_PAGA_NO_CAIXA
+      : FORMAS_PAGAMENTO.find((f) => f.value === forma)
     const troco = useMemo(() => {
       if (forma !== 'DINHEIRO') return null
       const recebido = Number(valorRecebido.replace(',', '.'))
@@ -110,7 +115,11 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
           </p>
         )}
 
-        <div className={styles.formas} role="radiogroup" aria-label="Forma de pagamento">
+        <div
+          className={`${styles.formas}${showPagaNoCaixa ? ` ${styles.formasWithDefer}` : ''}`}
+          role="radiogroup"
+          aria-label="Forma de pagamento"
+        >
           {FORMAS_PAGAMENTO.map((item) => {
             const tecla = showKeyboardHints ? teclaFormaPagamento(item.value) : null
             return (
@@ -130,11 +139,24 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
               </label>
             )
           })}
+          {showPagaNoCaixa && (
+            <label className={`${styles.formaOption} ${styles.formaOptionDefer}`}>
+              <input
+                type="radio"
+                name={radioGroupName}
+                value={OPCAO_PAGA_NO_CAIXA.value}
+                checked={forma === OPCAO_PAGA_NO_CAIXA.value}
+                disabled={disabled}
+                onChange={() => onFormaChange(OPCAO_PAGA_NO_CAIXA.value)}
+              />
+              <span className={styles.formaLabel}>{OPCAO_PAGA_NO_CAIXA.label}</span>
+            </label>
+          )}
         </div>
 
         {formaInfo?.hint && <p className={styles.hint}>{formaInfo.hint}</p>}
 
-        {forma === 'DINHEIRO' && (
+        {!isDeferCaixa(forma) && forma === 'DINHEIRO' && (
           <label className={styles.field}>
             Valor recebido
             <input
@@ -151,14 +173,14 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
           </label>
         )}
 
-        {forma === 'DINHEIRO' && troco != null && (
+        {!isDeferCaixa(forma) && forma === 'DINHEIRO' && troco != null && (
           <p className={styles.troco}>
             Troco:{' '}
             <strong>{troco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong>
           </p>
         )}
 
-        {forma === 'CREDITO' && (
+        {!isDeferCaixa(forma) && forma === 'CREDITO' && (
           <label className={styles.field}>
             Parcelas
             <select
@@ -183,18 +205,18 @@ export const PagamentoPanel = forwardRef<PagamentoPanelHandle, PagamentoPanelPro
   },
 )
 
-export function usePagamentoFormState(total: number) {
-  const [forma, setForma] = useState<FormaPagamento>('DINHEIRO')
+export function usePagamentoFormState(total: number, initialForma: OpcaoPagamento = 'DINHEIRO') {
+  const [forma, setForma] = useState<OpcaoPagamento>(initialForma)
   const [valorRecebido, setValorRecebido] = useState('')
   const [parcelas, setParcelas] = useState(1)
   const [error, setError] = useState<string | null>(null)
 
-  const reset = useCallback(() => {
-    setForma('DINHEIRO')
+  const reset = useCallback((nextForma: OpcaoPagamento = initialForma) => {
+    setForma(nextForma)
     setValorRecebido('')
     setParcelas(1)
     setError(null)
-  }, [])
+  }, [initialForma])
 
   const validate = useCallback((): boolean => {
     const msg = validarPagamentoForm(forma, total, valorRecebido, parcelas)
@@ -205,6 +227,8 @@ export function usePagamentoFormState(total: number) {
   const buildRequest = useCallback(() => {
     return buildPagarVendaRequest(forma, total, valorRecebido, parcelas)
   }, [forma, total, valorRecebido, parcelas])
+
+  const deferCaixa = isDeferCaixa(forma)
 
   return {
     forma,
@@ -217,6 +241,7 @@ export function usePagamentoFormState(total: number) {
     setError,
     validate,
     buildRequest,
+    deferCaixa,
     reset,
   }
 }

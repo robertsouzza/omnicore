@@ -21,6 +21,8 @@ public record PagamentoVendaResponseDTO(
         String nsu,
         String experienciaPagamentoId,
         String urlExperiencia,
+        String pixCopiaECola,
+        String qrCodeBase64,
         LocalDateTime dataHora
 ) {
 
@@ -38,6 +40,8 @@ public record PagamentoVendaResponseDTO(
                 pagamento.getNsu(),
                 pagamento.getExperienciaPagamentoId(),
                 urlExperiencia,
+                pagamento.getPixCopiaECola(),
+                pagamento.getQrCodeBase64(),
                 pagamento.getDataHora());
     }
 

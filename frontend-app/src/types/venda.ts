@@ -66,12 +66,12 @@ export const STATUS_NOVA_VENDA: { value: StatusVenda; label: string; hint: strin
   {
     value: 'PENDENTE',
     label: 'Pendente (salão)',
-    hint: 'Aguarda pagamento no caixa — não debita estoque.',
+    hint: 'Padrão: encaminha ao caixa. Você também pode pagar agora (Pix/cartão) no painel abaixo.',
   },
   {
     value: 'PAGA',
     label: 'Paga (caixa)',
-    hint: 'Reserva estoque e registra pagamento (dinheiro, Pix, cartão).',
+    hint: 'Pagamento na hora ou encaminhar ao caixa se a maquininha falhar.',
   },
 ]
 

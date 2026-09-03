@@ -94,6 +94,7 @@
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
 | **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE + PDV teclado | `af19b2a` |
+| **14-A+** | **QR Pix na tela** + reabrir pendente (Aguardando) + **Paga no caixa** (Nova Venda) | ✅ | `393a899` |
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
@@ -660,11 +661,9 @@ npm run build
 
 ## Próximo passo acordado
 
-1. **Polish PDV/Caixa** — reabrir pagamento pendente no painel “Aguardando”.
-2. **QR Pix na tela** — exibir QR/copia e cola com simulador (prep 14-B).
-3. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha).
-4. **14-D** — fiscal/conciliação conforme prioridade loja.
-5. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
+1. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha) — credencial sandbox Roberto.
+2. **14-D** — fiscal/conciliação conforme prioridade loja.
+3. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
 
 ---
 
@@ -691,4 +690,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 03/set/2026 — fix linter Java `91700b2`; próximo: polish PDV + QR Pix (simulador).*
+*Última atualização: 03/set/2026 — QR Pix tela + Paga no caixa + simulador qrcode; próximo: 14-B/C Stone/Getnet.*

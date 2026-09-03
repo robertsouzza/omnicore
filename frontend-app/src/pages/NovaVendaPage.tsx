@@ -98,7 +98,12 @@ export function NovaVendaPage() {
 
   const itensRequest = useMemo(() => cart.map(toItemRequest), [cart])
   const totalEstimado = useMemo(() => calcularTotalItens(itensRequest), [itensRequest])
-  const pagamento = usePagamentoFormState(totalEstimado)
+  const pagamento = usePagamentoFormState(totalEstimado, 'PAGA_NO_CAIXA')
+
+  useEffect(() => {
+    pagamento.setForma(status === 'PENDENTE' ? 'PAGA_NO_CAIXA' : 'DINHEIRO')
+    pagamento.setError(null)
+  }, [status])
 
   const statusHint = STATUS_NOVA_VENDA.find((s) => s.value === status)?.hint ?? ''
 
@@ -139,7 +144,7 @@ export function NovaVendaPage() {
       return
     }
 
-    if (status === 'PAGA' && !pagamento.validate()) {
+    if (!pagamento.deferCaixa && !pagamento.validate()) {
       setError(pagamento.error ?? 'Verifique a forma de pagamento.')
       return
     }
@@ -159,11 +164,12 @@ export function NovaVendaPage() {
         itens: itensRequest,
       }
 
-      if (status === 'PAGA') {
+      const pagamentoRequest = pagamento.buildRequest()
+      if (pagamentoRequest) {
         const { venda, aguardandoExperiencia } = await registrarVendaComPagamento(
           session.token,
           dados,
-          pagamento.buildRequest(),
+          pagamentoRequest,
         )
         if (aguardandoExperiencia) {
           navigate(`/vendas/${venda.id}`, {
@@ -362,11 +368,11 @@ export function NovaVendaPage() {
           </div>
         </section>
 
-        {status === 'PAGA' && (
+        {cart.length > 0 && (
           <section className={styles.panel}>
             <PagamentoPanel
               total={totalEstimado}
-              disabled={submitting || cart.length === 0}
+              disabled={submitting}
               forma={pagamento.forma}
               onFormaChange={pagamento.setForma}
               valorRecebido={pagamento.valorRecebido}
@@ -374,6 +380,7 @@ export function NovaVendaPage() {
               parcelas={pagamento.parcelas}
               onParcelasChange={pagamento.setParcelas}
               error={pagamento.error}
+              showPagaNoCaixa
             />
           </section>
         )}

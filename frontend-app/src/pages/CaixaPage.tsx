@@ -72,13 +72,14 @@ export function CaixaPage() {
       handleVendaAtualizadaPoll,
     )
 
-  function abrirPagamento(venda: Venda) {
-    if (!vendaPodePagar(venda)) return
+  async function abrirPagamento(venda: Venda) {
+    if (!vendaPodePagar(venda) || !session) return
     setModalVenda(venda)
     setModalOpen(true)
     setModalError(null)
-    setAguardandoExterno(null)
     setPayError(null)
+    const info = await resolverAguardandoPagamentoExterno(session.token, venda.id)
+    setAguardandoExterno(info)
   }
 
   function fecharModal() {
@@ -127,7 +128,7 @@ export function CaixaPage() {
         <div>
           <h1 className={styles.title}>Caixa</h1>
           <p className={styles.subtitle}>
-            Vendas pendentes do salão — confirme o pagamento para debitar estoque
+            Vendas pendentes do salão — confirme o pagamento (Pix, cartão ou dinheiro)
           </p>
         </div>
         <div className={styles.headerActions}>

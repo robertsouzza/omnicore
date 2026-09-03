@@ -18,9 +18,10 @@ describe('pagamentoForm', () => {
     expect(validarPagamentoForm('DINHEIRO', 10, '15,50', 1)).toBeNull()
   })
 
-  it('validarPagamentoForm aceita Pix e débito sem campos extras', () => {
+  it('validarPagamentoForm aceita Pix, débito e paga no caixa', () => {
     expect(validarPagamentoForm('PIX', 25, '', 1)).toBeNull()
     expect(validarPagamentoForm('DEBITO_BANCARIO', 25, '', 1)).toBeNull()
+    expect(validarPagamentoForm('PAGA_NO_CAIXA', 25, '', 1)).toBeNull()
   })
 
   it('buildPagarVendaRequest monta payload por forma', () => {
@@ -38,5 +39,6 @@ describe('pagamentoForm', () => {
       forma: 'PIX',
       valor: 50,
     })
+    expect(buildPagarVendaRequest('PAGA_NO_CAIXA', 50, '', 1)).toBeNull()
   })
 })

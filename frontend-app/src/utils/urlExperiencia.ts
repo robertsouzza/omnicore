@@ -46,6 +46,7 @@ export function ultimoPagamentoExternoPendente(
 }
 
 export function urlExperienciaFromPagamento(pagamento: PagamentoVenda): string | null {
+  if (pagamento.urlExperiencia) return pagamento.urlExperiencia
   if (!pagamento.experienciaPagamentoId) return null
   return buildUrlExperiencia(pagamento.forma, pagamento.experienciaPagamentoId)
 }
@@ -53,6 +54,8 @@ export function urlExperienciaFromPagamento(pagamento: PagamentoVenda): string |
 export type AguardandoPagamentoExterno = {
   urlExperiencia: string
   forma: FormaPagamento
+  pixCopiaECola?: string | null
+  qrCodeBase64?: string | null
 }
 
 export function aguardandoFromPagamentos(
@@ -60,7 +63,18 @@ export function aguardandoFromPagamentos(
 ): AguardandoPagamentoExterno | null {
   const pendente = ultimoPagamentoExternoPendente(pagamentos)
   if (!pendente) return null
+
   const urlExperiencia = urlExperienciaFromPagamento(pendente)
-  if (!urlExperiencia) return null
-  return { urlExperiencia, forma: pendente.forma }
+  const temQrPix =
+    pendente.forma === 'PIX' &&
+    (pendente.pixCopiaECola != null || pendente.qrCodeBase64 != null)
+
+  if (!urlExperiencia && !temQrPix) return null
+
+  return {
+    urlExperiencia: urlExperiencia ?? '',
+    forma: pendente.forma,
+    pixCopiaECola: pendente.pixCopiaECola,
+    qrCodeBase64: pendente.qrCodeBase64,
+  }
 }

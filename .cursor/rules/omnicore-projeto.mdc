@@ -11,7 +11,7 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 
 - Monorepo na raiz `~/omnicore/`: `cerebro-backend/` (Spring Boot 3.5, Java 21) + `frontend-app/` (React — em construção)
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
-- Próximo foco: **polish PDV/Caixa** + **QR Pix tela (simulador)** → **14-B/C** Stone/Getnet → **14-D** fiscal → **Fase 15** e-commerce B2C
+- Próximo foco: **14-B/C** Stone/Getnet (sandbox) → **14-D** fiscal → **Fase 15** e-commerce B2C
 - Simulador pagamento: repo irmão **`~/omnicore-pagamento-simulador/`** — skill `@.cursor/skills/omnicore-pagamento-simulador/SKILL.md` (fora do monorepo git)
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
 - Imagem produto: upload JPG/PNG/WebP via MinIO dev ✅ (11.5); produção = trocar `omnicore.storage.*` (S3/Cloudinary)
@@ -40,4 +40,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `91700b2` — fix linter Java pagamento e testes
+Último commit relevante: `393a899` — QR Pix na tela, polish caixa e Paga no caixa

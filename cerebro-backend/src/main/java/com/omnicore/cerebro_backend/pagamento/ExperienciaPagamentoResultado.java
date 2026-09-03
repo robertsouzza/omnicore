@@ -7,6 +7,8 @@ public record ExperienciaPagamentoResultado(
         StatusPagamento status,
         String urlExperiencia,
         String nsu,
-        String referenciaExterna
+        String referenciaExterna,
+        String pixCopiaECola,
+        String qrCodeBase64
 ) {
 }

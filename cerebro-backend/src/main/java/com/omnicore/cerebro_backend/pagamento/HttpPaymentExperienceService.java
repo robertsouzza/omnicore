@@ -78,7 +78,9 @@ public class HttpPaymentExperienceService implements PaymentExperiencePort {
                 status,
                 resposta.urlExperiencia(),
                 resposta.nsu(),
-                resposta.referenciaExterna());
+                resposta.referenciaExterna(),
+                resposta.pixCopiaECola(),
+                resposta.qrCodeBase64());
     }
 
     private record ExperienciaApiResponse(
@@ -86,7 +88,9 @@ public class HttpPaymentExperienceService implements PaymentExperiencePort {
             StatusPagamento status,
             String urlExperiencia,
             String nsu,
-            String referenciaExterna
+            String referenciaExterna,
+            String pixCopiaECola,
+            String qrCodeBase64
     ) {
     }
 }

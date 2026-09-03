@@ -89,6 +89,8 @@ class PagamentoServiceTest {
                         StatusPagamento.PENDENTE,
                         "http://localhost:9090/pix/exp-123",
                         null,
+                        null,
+                        null,
                         null));
         when(pagamentoVendaRepository.save(any(PagamentoVenda.class))).thenAnswer(inv -> inv.getArgument(0));
 

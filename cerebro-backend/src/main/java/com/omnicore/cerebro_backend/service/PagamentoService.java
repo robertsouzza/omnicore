@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.omnicore.cerebro_backend.config.PagamentoExperienceProperties;
 import com.omnicore.cerebro_backend.dto.PagarVendaRequestDTO;
+import com.omnicore.cerebro_backend.dto.PagamentoVendaResponseDTO;
 import com.omnicore.cerebro_backend.dto.PagamentoWebhookRequestDTO;
 import com.omnicore.cerebro_backend.enums.FormaPagamento;
 import com.omnicore.cerebro_backend.enums.ProviderPagamento;
@@ -18,6 +19,7 @@ import com.omnicore.cerebro_backend.model.PagamentoVenda;
 import com.omnicore.cerebro_backend.model.Venda;
 import com.omnicore.cerebro_backend.pagamento.ExperienciaPagamentoResultado;
 import com.omnicore.cerebro_backend.pagamento.IniciarExperienciaRequest;
+import com.omnicore.cerebro_backend.pagamento.PagamentoExperienciaUrls;
 import com.omnicore.cerebro_backend.pagamento.PaymentExperiencePort;
 import com.omnicore.cerebro_backend.repository.PagamentoVendaRepository;
 
@@ -40,6 +42,15 @@ public class PagamentoService {
 
     public List<PagamentoVenda> listarPorVenda(Long vendaId) {
         return pagamentoVendaRepository.findByVendaIdOrderByDataHoraAsc(vendaId);
+    }
+
+    public PagamentoVendaResponseDTO toResponseDTO(PagamentoVenda pagamento) {
+        String urlExperiencia = PagamentoExperienciaUrls.buildUrl(experienceProperties.baseUrl(), pagamento);
+        return PagamentoVendaResponseDTO.from(pagamento, urlExperiencia);
+    }
+
+    public List<PagamentoVendaResponseDTO> listarPorVendaComDetalhes(Long vendaId) {
+        return listarPorVenda(vendaId).stream().map(this::toResponseDTO).toList();
     }
 
     public PagamentoVenda buscarPorId(Long id) {
@@ -145,13 +156,20 @@ public class PagamentoService {
                 .experienciaPagamentoId(experiencia.experienciaPagamentoId())
                 .nsu(experiencia.nsu())
                 .referenciaExterna(experiencia.referenciaExterna())
+                .pixCopiaECola(experiencia.pixCopiaECola())
+                .qrCodeBase64(experiencia.qrCodeBase64())
                 .dataHora(LocalDateTime.now())
                 .build();
 
         pagamento = pagamentoVendaRepository.save(pagamento);
 
         boolean prontoParaLiquidar = experiencia.status() == StatusPagamento.APROVADO;
-        return new PagamentoProcessamentoResult(pagamento, experiencia.urlExperiencia(), prontoParaLiquidar);
+        String urlExperiencia = PagamentoExperienciaUrls.buildUrl(
+                experienceProperties.baseUrl(),
+                dto.forma(),
+                experiencia.experienciaPagamentoId(),
+                parcelas);
+        return new PagamentoProcessamentoResult(pagamento, urlExperiencia, prontoParaLiquidar);
     }
 
     private void validarValorPagamento(Venda venda, BigDecimal valor) {

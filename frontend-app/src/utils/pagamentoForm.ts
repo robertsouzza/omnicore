@@ -1,15 +1,20 @@
-import type { FormaPagamento, PagarVendaRequest } from '../types/pagamento'
+import type { FormaPagamento, OpcaoPagamento, PagarVendaRequest } from '../types/pagamento'
+import { isDeferCaixa, isFormaPagamento } from '../types/pagamento'
 
 export function calcularTroco(valorRecebido: number, total: number): number {
   return Math.max(0, valorRecebido - total)
 }
 
 export function validarPagamentoForm(
-  forma: FormaPagamento,
+  forma: OpcaoPagamento,
   total: number,
   valorRecebidoRaw: string,
   parcelas: number,
 ): string | null {
+  if (isDeferCaixa(forma)) {
+    return null
+  }
+
   if (total <= 0) {
     return 'Total inválido para pagamento.'
   }
@@ -33,26 +38,35 @@ export function validarPagamentoForm(
 }
 
 export function buildPagarVendaRequest(
-  forma: FormaPagamento,
+  forma: OpcaoPagamento,
   total: number,
   valorRecebidoRaw: string,
   parcelas: number,
-): PagarVendaRequest {
+): PagarVendaRequest | null {
+  if (isDeferCaixa(forma)) {
+    return null
+  }
+
+  const formaPagamento = forma as FormaPagamento
   const base: PagarVendaRequest = {
-    forma,
+    forma: formaPagamento,
     valor: roundMoney(total),
   }
 
-  if (forma === 'DINHEIRO') {
+  if (formaPagamento === 'DINHEIRO') {
     const valorRecebido = parseValorMonetario(valorRecebidoRaw) ?? total
     return { ...base, valorRecebido: roundMoney(valorRecebido) }
   }
 
-  if (forma === 'CREDITO') {
+  if (formaPagamento === 'CREDITO') {
     return { ...base, parcelas }
   }
 
   return base
+}
+
+export function formaPagamentoFromOpcao(forma: OpcaoPagamento): FormaPagamento | null {
+  return isFormaPagamento(forma) ? forma : null
 }
 
 function parseValorMonetario(raw: string): number | null {

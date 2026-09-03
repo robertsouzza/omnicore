@@ -24,7 +24,9 @@ public class FakePaymentExperienceService implements PaymentExperiencePort {
                 StatusPagamento.APROVADO,
                 null,
                 "NSU-FAKE-001",
-                "REF-FAKE-" + request.vendaId());
+                "REF-FAKE-" + request.vendaId(),
+                null,
+                null);
         pagamentos.put(id, resultado);
         return resultado;
     }
@@ -36,6 +38,8 @@ public class FakePaymentExperienceService implements PaymentExperiencePort {
                 new ExperienciaPagamentoResultado(
                         experienciaPagamentoId,
                         StatusPagamento.RECUSADO,
+                        null,
+                        null,
                         null,
                         null,
                         null));

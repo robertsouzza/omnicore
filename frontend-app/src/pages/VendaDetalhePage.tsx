@@ -127,11 +127,12 @@ export function VendaDetalhePage() {
     })()
   }, [location.pathname, location.state, session, venda, entrarModoAguardando, navigate])
 
-  function abrirModalPagamento() {
-    if (!venda || !vendaPodePagar(venda)) return
+  async function abrirModalPagamento() {
+    if (!venda || !vendaPodePagar(venda) || !session) return
     setModalPagamentoError(null)
     setActionError(null)
-    setAguardandoExterno(null)
+    const info = await resolverAguardandoPagamentoExterno(session.token, venda.id)
+    setAguardandoExterno(info)
     setModalPagamentoAberto(true)
   }
 

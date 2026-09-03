@@ -45,6 +45,8 @@ type VendaFinalizada = {
   aguardandoExperiencia: boolean
   urlExperiencia?: string | null
   forma?: FormaPagamento | null
+  pixCopiaECola?: string | null
+  qrCodeBase64?: string | null
 }
 
 type PdvCartLine = CartLine & {
@@ -318,6 +320,12 @@ export function PdvPage() {
       return
     }
 
+    const pagamentoRequest = buildPagamentoRequest()
+    if (!pagamentoRequest) {
+      setError('Selecione uma forma de pagamento.')
+      return
+    }
+
     setSubmitting(true)
     setError(null)
     setPagamentoError(null)
@@ -332,7 +340,7 @@ export function PdvPage() {
             !clienteSelecionado && nomeOcasional.trim() ? nomeOcasional.trim() : null,
           itens: itensRequest,
         },
-        buildPagamentoRequest(),
+        pagamentoRequest,
       )
 
       const resumoCliente =
@@ -347,10 +355,14 @@ export function PdvPage() {
       resetPagamento()
       let urlExperiencia: string | null = null
       let forma: FormaPagamento | null = null
+      let pixCopiaECola: string | null = null
+      let qrCodeBase64: string | null = null
       if (aguardandoExperiencia) {
         const info = await resolverAguardandoPagamentoExterno(session.token, venda.id)
         urlExperiencia = info?.urlExperiencia ?? null
         forma = info?.forma ?? null
+        pixCopiaECola = info?.pixCopiaECola ?? null
+        qrCodeBase64 = info?.qrCodeBase64 ?? null
       }
       setVendaFinalizada({
         id: venda.id,
@@ -359,6 +371,8 @@ export function PdvPage() {
         aguardandoExperiencia,
         urlExperiencia,
         forma,
+        pixCopiaECola,
+        qrCodeBase64,
       })
       notificarVendasAtualizadas({ vendaId: venda.id, origem: 'pdv' })
       setModoPagamento(false)
@@ -523,12 +537,12 @@ export function PdvPage() {
             <p className={styles.successBannerMeta}>
               {vendaFinalizada.clienteResumo} · {formatPreco(vendaFinalizada.total)}
             </p>
-            {vendaFinalizada.aguardandoExperiencia &&
-              vendaFinalizada.urlExperiencia &&
-              vendaFinalizada.forma && (
+            {vendaFinalizada.aguardandoExperiencia && vendaFinalizada.forma && (
                 <AguardandoExperienciaPanel
                   forma={vendaFinalizada.forma}
-                  urlExperiencia={vendaFinalizada.urlExperiencia}
+                  urlExperiencia={vendaFinalizada.urlExperiencia ?? ''}
+                  pixCopiaECola={vendaFinalizada.pixCopiaECola}
+                  qrCodeBase64={vendaFinalizada.qrCodeBase64}
                   atualizando={atualizandoStatusPdv}
                   onAtualizarStatus={() => void atualizarStatusPdv()}
                   compact

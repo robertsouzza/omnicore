@@ -33,10 +33,7 @@ public class PagamentoController {
     @GetMapping("/venda/{vendaId}")
     @Operation(summary = "Listar pagamentos de uma venda")
     public ResponseEntity<List<PagamentoVendaResponseDTO>> listarPorVenda(@PathVariable Long vendaId) {
-        List<PagamentoVendaResponseDTO> lista = pagamentoService.listarPorVenda(vendaId).stream()
-                .map(PagamentoVendaResponseDTO::from)
-                .toList();
-        return ResponseEntity.ok(lista);
+        return ResponseEntity.ok(pagamentoService.listarPorVendaComDetalhes(vendaId));
     }
 
     @PostMapping("/webhook")
@@ -47,6 +44,6 @@ public class PagamentoController {
     public ResponseEntity<PagamentoVendaResponseDTO> webhook(@Valid @RequestBody PagamentoWebhookRequestDTO dto) {
         PagamentoVenda pagamento = pagamentoService.aplicarWebhook(dto);
         vendaService.tentarLiquidarAposPagamento(pagamento.getVendaId());
-        return ResponseEntity.ok(PagamentoVendaResponseDTO.from(pagamento));
+        return ResponseEntity.ok(pagamentoService.toResponseDTO(pagamento));
     }
 }
