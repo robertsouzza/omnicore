@@ -3,13 +3,11 @@ package com.omnicore.cerebro_backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,7 +29,6 @@ import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.ReservaEstoqueRepository;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("null")
 class ReservaEstoqueServiceTest {
 
     @Mock
@@ -57,6 +54,7 @@ class ReservaEstoqueServiceTest {
 
     @Test
     @DisplayName("Deve reservar estoque dos filhos ao vender pacote pendente")
+    @SuppressWarnings("null")
     void deveReservarComponentesDoPacote() {
         Produto pacote = new Produto();
         pacote.setId(2L);
@@ -77,12 +75,16 @@ class ReservaEstoqueServiceTest {
 
         reservaEstoqueService.reservarItensVenda(venda);
 
-        ArgumentCaptor<List<ReservaEstoque>> captor = ArgumentCaptor.forClass(List.class);
+        ArgumentCaptor<List<ReservaEstoque>> captor = ArgumentCaptor.captor();
         verify(reservaEstoqueRepository).saveAll(captor.capture());
-        ReservaEstoque reserva = captor.getValue().get(0);
-        assertEquals(10L, reserva.getProduto().getId());
-        assertEquals(2, reserva.getQuantidade());
-        assertEquals(StatusReservaEstoque.ATIVA, reserva.getStatus());
+
+        List<ReservaEstoque> reservasSalvas = captor.getValue();
+        assertEquals(1, reservasSalvas.size());
+
+        ReservaEstoque capturada = reservasSalvas.get(0);
+        assertEquals(10L, capturada.getProduto().getId());
+        assertEquals(2, capturada.getQuantidade());
+        assertEquals(StatusReservaEstoque.ATIVA, capturada.getStatus());
     }
 
     @Test

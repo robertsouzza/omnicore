@@ -24,7 +24,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(controllers = ProdutoImagemController.class, excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @ActiveProfiles("test")
 @Import(GlobalExceptionHandler.class)
-@SuppressWarnings("null")
 class ProdutoImagemControllerTest {
 
     @Autowired

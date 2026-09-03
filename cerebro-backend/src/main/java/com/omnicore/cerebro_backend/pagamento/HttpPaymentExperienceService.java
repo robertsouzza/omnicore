@@ -1,5 +1,7 @@
 package com.omnicore.cerebro_backend.pagamento;
 
+import java.util.Objects;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
@@ -21,18 +23,20 @@ public class HttpPaymentExperienceService implements PaymentExperiencePort {
 
     public HttpPaymentExperienceService(PagamentoExperienceProperties properties) {
         this.properties = properties;
+        String baseUrl = Objects.requireNonNull(properties.baseUrl(), "baseUrl");
         this.restClient = RestClient.builder()
-                .baseUrl(properties.baseUrl())
+                .baseUrl(baseUrl)
                 .build();
     }
 
     @Override
     public ExperienciaPagamentoResultado iniciar(IniciarExperienciaRequest request) {
+        IniciarExperienciaRequest body = Objects.requireNonNull(request, "request");
         try {
             ExperienciaApiResponse resposta = restClient.post()
                     .uri("/experiencia/pagamentos/iniciar")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(request)
+                    .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                    .body(body)
                     .retrieve()
                     .body(ExperienciaApiResponse.class);
 
