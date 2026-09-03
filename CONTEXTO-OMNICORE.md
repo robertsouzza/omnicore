@@ -11,7 +11,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 14-B/C Stone/Getnet (loja física). E-commerce = Fase 15 (@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md).
+Próximo: polish PDV/Caixa + QR Pix na tela (simulador). Stone/Getnet = 14-B/C.
 Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
 ```
 
