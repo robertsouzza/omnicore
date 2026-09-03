@@ -94,7 +94,7 @@
 | **13+** | **Reserva de estoque** (PENDENTE segura quantidade; saldo disponível) + UX saldo/qtd | ✅ testado browser | `58add40` |
 | **13+/14 — PDV** | **Tela checkout bip contínuo** (mercado, padaria, conveniência) | ✅ entregue | `f0e442e` |
 | **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE + PDV teclado | `af19b2a` |
-| **14-A+** | **QR Pix na tela** + reabrir pendente (Aguardando) + **Paga no caixa** (Nova Venda) | ✅ | `393a899` |
+| **14-A+** | **QR Pix na tela** + reabrir pendente (Aguardando) + **Paga no caixa** (Nova Venda) | ✅ | `51ac89a` |
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
@@ -690,4 +690,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 03/set/2026 — QR Pix tela + Paga no caixa + simulador qrcode; próximo: 14-B/C Stone/Getnet.*
+*Última atualização: 03/set/2026 — QR Pix tela + Paga no caixa `51ac89a`; simulador `132d412`; próximo: 14-B/C.*
