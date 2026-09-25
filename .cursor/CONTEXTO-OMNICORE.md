@@ -98,7 +98,7 @@
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
 | **caixa ops** | Parcelas crédito, pagamentos no detalhe da venda, filtros vendedor/período em `/vendas` | ✅ | `c111ae6` |
 | **RBAC** | Perfis **VENDEDOR / CAIXA / CONFERENTE / GERENTE** — API (403) + menu/rotas FE; seed dev | ✅ | `40cdef0` |
-| **Equipe (FE)** | Gerente: CRUD colaboradores `/equipe` + matriz permissões `/equipe/permissoes` | ✅ testado (Roberto vendedor) | *(commit desta sessão)* |
+| **Equipe (FE)** | Gerente: CRUD colaboradores `/equipe` + matriz permissões `/equipe/permissoes` | ✅ testado (Roberto vendedor) | `7848e8a` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)

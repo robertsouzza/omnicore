@@ -43,4 +43,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `40cdef0` — RBAC perfis VENDEDOR/CAIXA/CONFERENTE/GERENTE API+FE
+Último commit relevante: `7848e8a` — Equipe gerente CRUD colaboradores + matriz permissões FE
