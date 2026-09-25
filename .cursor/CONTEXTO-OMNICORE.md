@@ -97,7 +97,7 @@
 | **14-A+** | **QR Pix na tela** + reabrir pendente (Aguardando) + **Paga no caixa** (Nova Venda) | ✅ | `51ac89a` |
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
 | **caixa ops** | Parcelas crédito, pagamentos no detalhe da venda, filtros vendedor/período em `/vendas` | ✅ | `c111ae6` |
-| **RBAC** | Perfis **VENDEDOR / CAIXA / CONFERENTE / GERENTE** — API (403) + menu/rotas FE; seed dev | ✅ | *(commit desta sessão)* |
+| **RBAC** | Perfis **VENDEDOR / CAIXA / CONFERENTE / GERENTE** — API (403) + menu/rotas FE; seed dev | ✅ | `40cdef0` |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
