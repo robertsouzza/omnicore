@@ -20,6 +20,9 @@ import { ProdutosPage } from './pages/ProdutosPage'
 import { SalaoVendaPage } from './pages/SalaoVendaPage'
 import { SalaoVendasPage } from './pages/SalaoVendasPage'
 import { VendaDetalhePage } from './pages/VendaDetalhePage'
+import { ColaboradorFormPage } from './pages/ColaboradorFormPage'
+import { ColaboradoresPage } from './pages/ColaboradoresPage'
+import { EquipePermissoesPage } from './pages/EquipePermissoesPage'
 import { VendasPage } from './pages/VendasPage'
 
 export default function App() {
@@ -51,6 +54,10 @@ export default function App() {
               <Route path="/vendas/:id" element={<VendaDetalhePage />} />
               <Route path="/pdv" element={<PdvPage />} />
               <Route path="/caixa" element={<CaixaPage />} />
+              <Route path="/equipe" element={<ColaboradoresPage />} />
+              <Route path="/equipe/novo" element={<ColaboradorFormPage />} />
+              <Route path="/equipe/permissoes" element={<EquipePermissoesPage />} />
+              <Route path="/equipe/:id/editar" element={<ColaboradorFormPage />} />
             </Route>
             </Route>
           </Route>

@@ -98,6 +98,7 @@
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
 | **caixa ops** | Parcelas crédito, pagamentos no detalhe da venda, filtros vendedor/período em `/vendas` | ✅ | `c111ae6` |
 | **RBAC** | Perfis **VENDEDOR / CAIXA / CONFERENTE / GERENTE** — API (403) + menu/rotas FE; seed dev | ✅ | `40cdef0` |
+| **Equipe (FE)** | Gerente: CRUD colaboradores `/equipe` + matriz permissões `/equipe/permissoes` | ✅ testado (Roberto vendedor) | *(commit desta sessão)* |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -663,13 +664,15 @@ npm run build
 
 ## RBAC por perfil (set/2026)
 
-Documentação: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md). Código: `ColaboradorAutorizacao`, `frontend-app/src/auth/permissoes.ts`, `RequirePermissao`, `seed-perfis-dev.sh`.
+Documentação: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md). Código: `ColaboradorAutorizacao`, `frontend-app/src/auth/permissoes.ts`, `permissoesCatalogo.ts`, `RequirePermissao`, `ColaboradoresPage`, `seed-perfis-dev.sh`.
 
-**Testar no browser:** login com cada e-mail da tabela PERMISSOES; validar menu, rotas bloqueadas (403) e fila caixa (só PENDENTE).
+**Gerente (Ana):** menu **Equipe** → cadastro completo (novo/editar/inativar) + link **Modelos de permissão**.
+
+**Testar no browser:** logins da tabela PERMISSOES; validar menu, 403 na API e fila caixa (só PENDENTE). Caixa/conferente: rodar `seed-perfis-dev.sh` se ainda não existirem no banco.
 
 ## Próximo passo acordado
 
-1. **Validação manual RBAC** — quatro logins dev (vendedor, caixa, conferente, gerente).
+1. **Validação manual RBAC** — restante dos perfis (caixa, conferente) + fluxos de venda/PDV.
 2. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha) — credencial sandbox Roberto.
 2. **14-D** — fiscal/conciliação conforme prioridade loja.
 3. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
@@ -699,4 +702,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 25/set/2026 — RBAC perfis loja física + caixa ops `c111ae6`; próximo: testes por perfil → 14-B/C.*
+*Última atualização: 25/set/2026 — Equipe gerente (CRUD + permissões FE); RBAC `40cdef0`; próximo: caixa/conferente → 14-B/C.*

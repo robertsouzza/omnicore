@@ -9,12 +9,13 @@ export type RotaApp =
   | '/vendas'
   | '/pdv'
   | '/caixa'
+  | '/equipe'
 
 const ROTAS_POR_PERFIL: Record<PerfilColaborador, RotaApp[]> = {
   VENDEDOR: ['/salao', '/produtos', '/clientes', '/estoque', '/vendas', '/pdv'],
   CAIXA: ['/caixa', '/pdv', '/clientes', '/produtos', '/estoque'],
   CONFERENTE: ['/produtos', '/estoque'],
-  GERENTE: ['/salao', '/produtos', '/clientes', '/estoque', '/vendas', '/pdv', '/caixa'],
+  GERENTE: ['/salao', '/produtos', '/clientes', '/estoque', '/vendas', '/pdv', '/caixa', '/equipe'],
 }
 
 export function rotasPermitidas(perfil: PerfilColaborador): RotaApp[] {
@@ -66,4 +67,8 @@ export function podeFiltrarVendasPorVendedor(perfil: PerfilColaborador): boolean
 
 export function podeAcessarSalao(perfil: PerfilColaborador): boolean {
   return perfil === 'VENDEDOR' || perfil === 'GERENTE'
+}
+
+export function podeGerenciarEquipe(perfil: PerfilColaborador): boolean {
+  return perfil === 'GERENTE'
 }

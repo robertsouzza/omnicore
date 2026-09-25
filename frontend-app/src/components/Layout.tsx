@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
-import { podeAcessarRota } from '../auth/permissoes'
+import { podeAcessarRota, podeGerenciarEquipe } from '../auth/permissoes'
 import { OfflineBanner } from './OfflineBanner'
 import styles from './Layout.module.css'
 
@@ -34,6 +34,11 @@ export function Layout() {
           {navLink('/vendas', 'Vendas')}
           {navLink('/pdv', 'PDV')}
           {navLink('/caixa', 'Caixa')}
+          {perfil && podeGerenciarEquipe(perfil) ? (
+            <Link to="/equipe" className={styles.navLink}>
+              Equipe
+            </Link>
+          ) : null}
         </nav>
         <div className={styles.userInfo}>
           <span className={styles.userName}>{session?.nome}</span>

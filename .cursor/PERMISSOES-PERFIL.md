@@ -39,6 +39,14 @@ Respostas de permissão: **403** + `AccessDeniedException` (`GlobalExceptionHand
 
 Criar conferente/caixa: `cerebro-backend/scripts/seed-perfis-dev.sh` (token de gerente).
 
+## Tela gerente (frontend)
+
+Menu **Equipe** (só GERENTE):
+
+- **`/equipe`** — CRUD colaboradores: listar, **+ Novo**, **Editar**, **Inativar** (exclusão lógica; API `DELETE /api/colaboradores/{id}`).
+- **`/equipe/novo`**, **`/equipe/:id/editar`** — formulário (nome, CPF, e-mail, senha, perfil, limite desconto).
+- **`/equipe/permissoes`** — matriz visual e troca rápida de perfil + modelos Vendedor/Caixa/Conferente.
+
 ## Evolução
 
-Permissões granulares por colaborador (exceções) = débito pós-MVP; hoje **1 perfil = 1 conjunto fixo**.
+Permissões **módulo a módulo** editáveis sem trocar perfil (exceções por pessoa ou matriz gravada no banco) = próxima fase; hoje **1 perfil = 1 conjunto fixo** (API + `permissoes.ts`).

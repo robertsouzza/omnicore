@@ -11,7 +11,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: testar login com cada perfil (vendedor, caixa, conferente, gerente) — @.cursor/PERMISSOES-PERFIL.md.
+Próximo: validar caixa/conferente no browser; Equipe/CRUD gerente ✅ — @.cursor/PERMISSOES-PERFIL.md.
 Depois: 14-B/C Stone/Getnet (sandbox).
 ```
 

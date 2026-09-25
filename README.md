@@ -148,7 +148,7 @@ Authorization: Bearer <token>
 
 Caixa/conferente: criar com `cerebro-backend/scripts/seed-perfis-dev.sh` (`TOKEN` de gerente). Matriz de permissões: [`.cursor/PERMISSOES-PERFIL.md`](.cursor/PERMISSOES-PERFIL.md).
 
-Colaboradores (CRUD) — **somente GERENTE** — `POST /api/colaboradores` (senha com BCrypt).
+Colaboradores — **somente GERENTE** na API; no frontend use **Equipe** (`/equipe`: listar, criar, editar, inativar). Senha com BCrypt; inativar = `DELETE /api/colaboradores/{id}` (lógico).
 
 ---
 
@@ -186,8 +186,9 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | **Nova Venda** (Pendente/Paga + **Paga no caixa** ou Pix na hora) | `/vendas/nova` | ✅ 14-A+ |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
-| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 62 testes |
+| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 65 testes |
 | **RBAC** (menu/rotas por perfil; produtos/estoque leitura vendedor/caixa) | — | ✅ ver `PERMISSOES-PERFIL.md` |
+| **Equipe** (CRUD colaboradores + modelos de permissão — **GERENTE**) | `/equipe`, `/equipe/novo`, `/equipe/permissoes` | ✅ |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
