@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.storage.ObjectStorageService;
 
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asConferente;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -44,7 +45,7 @@ class ProdutoImagemControllerTest {
                 MediaType.IMAGE_PNG_VALUE,
                 new byte[] { (byte) 0x89, 0x50, 0x4E, 0x47 });
 
-        mockMvc.perform(multipart("/api/produtos/imagem/upload").file(file))
+        mockMvc.perform(multipart("/api/produtos/imagem/upload").file(file).with(asConferente()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.url").value("http://localhost:9000/omnicore-produtos/produtos/abc.png"));
     }

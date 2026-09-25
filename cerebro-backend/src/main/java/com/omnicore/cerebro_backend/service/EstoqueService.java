@@ -13,6 +13,7 @@ import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
 import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.repository.MovimentacaoEstoqueRepository;
@@ -36,6 +37,7 @@ public class EstoqueService {
 
     @Transactional
     public MovimentacaoEstoque registrarEntrada(MovimentacaoEstoqueRequestDTO dto) {
+        ColaboradorAutorizacao.exigirMovimentarEstoque(null);
         Produto produto = buscarProdutoAtivoParaMovimentacao(dto.produtoId());
 
         String justificativa = dto.justificativa() != null && !dto.justificativa().isBlank()
@@ -47,6 +49,7 @@ public class EstoqueService {
 
     @Transactional
     public MovimentacaoEstoque registrarSaida(MovimentacaoEstoqueRequestDTO dto) {
+        ColaboradorAutorizacao.exigirMovimentarEstoque(null);
         Produto produto = buscarProdutoAtivoParaMovimentacao(dto.produtoId());
 
         int saldoDisponivel = obterSaldoDisponivel(produto.getId());

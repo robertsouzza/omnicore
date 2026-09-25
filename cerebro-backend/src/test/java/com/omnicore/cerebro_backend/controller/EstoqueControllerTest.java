@@ -25,6 +25,7 @@ import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.MovimentacaoEstoque;
 import com.omnicore.cerebro_backend.service.EstoqueService;
 
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asConferente;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -61,6 +62,7 @@ public class EstoqueControllerTest {
         when(estoqueService.registrarEntrada(any())).thenReturn(movimentacaoMock);
 
         mockMvc.perform(post("/api/estoque/entrada")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payloadValido))
                 .andExpect(status().isCreated());
@@ -78,6 +80,7 @@ public class EstoqueControllerTest {
                 """;
 
         mockMvc.perform(post("/api/estoque/entrada")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payloadInvalido))
                 .andExpect(status().isBadRequest());
@@ -97,6 +100,7 @@ public class EstoqueControllerTest {
                 """;
 
         mockMvc.perform(post("/api/estoque/saida")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated());
@@ -117,6 +121,7 @@ public class EstoqueControllerTest {
                 """;
 
         mockMvc.perform(post("/api/estoque/saida")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());

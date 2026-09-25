@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Produto;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,7 @@ public class ProdutoService {
 
     @Transactional
     public Produto salvar(Produto produto) {
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         // Regra de Negócio: Não permitir a duplicação de códigos de barras no ecossistema
         produtoRepository.findByCodigoBarras(produto.getCodigoBarras())
                 .ifPresent(p -> {
@@ -31,7 +33,7 @@ public class ProdutoService {
 
     @Transactional
     public Produto atualizar(Long id, Produto dadosAtualizados){
-        
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         Produto produtoExistente = buscarPorId(id);
 
         // Atualiza os campos permitidos (mantendo o ID original e a data de criação)
@@ -53,6 +55,7 @@ public class ProdutoService {
 
     @Transactional
     public void inativar(Long id) {
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         Produto produto = buscarPorId(id);
         // Blindagem: Se já estiver inativo, avisa o usuário de forma clara
         if (!produto.getAtivo()) {

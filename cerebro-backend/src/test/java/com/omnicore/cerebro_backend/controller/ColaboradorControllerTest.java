@@ -1,5 +1,6 @@
 package com.omnicore.cerebro_backend.controller;
 
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asGerente;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,6 +63,7 @@ class ColaboradorControllerTest {
         when(colaboradorService.cadastrar(any())).thenReturn(colaborador);
 
         mockMvc.perform(post("/api/colaboradores")
+                .with(asGerente())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD))
                 .andExpect(status().isCreated())

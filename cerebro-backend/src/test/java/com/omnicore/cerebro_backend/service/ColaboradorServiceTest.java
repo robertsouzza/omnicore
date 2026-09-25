@@ -24,6 +24,7 @@ import com.omnicore.cerebro_backend.enums.PerfilColaborador;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Colaborador;
 import com.omnicore.cerebro_backend.repository.ColaboradorRepository;
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -41,6 +42,7 @@ class ColaboradorServiceTest {
 
     @BeforeEach
     void setUp() {
+        WebMvcTestAuth.setGerenteNoContexto();
         colaboradorService = new ColaboradorService(colaboradorRepository, passwordEncoder);
         dtoValido = new ColaboradorRequestDTO(
                 "Carlos Vendedor",

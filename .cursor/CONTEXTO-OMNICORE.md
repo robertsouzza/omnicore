@@ -96,6 +96,8 @@
 | **14-A** | **Pagamentos** — registro + porta externa + **UI Caixa/PDV/Nova Venda** (sem mock) | ✅ FE + PDV teclado | `af19b2a` |
 | **14-A+** | **QR Pix na tela** + reabrir pendente (Aguardando) + **Paga no caixa** (Nova Venda) | ✅ | `51ac89a` |
 | **fix** | **Linter Java** — null safety pagamento + testes (Mockito/captor) | ✅ | `91700b2` |
+| **caixa ops** | Parcelas crédito, pagamentos no detalhe da venda, filtros vendedor/período em `/vendas` | ✅ | `c111ae6` |
+| **RBAC** | Perfis **VENDEDOR / CAIXA / CONFERENTE / GERENTE** — API (403) + menu/rotas FE; seed dev | ✅ | *(commit desta sessão)* |
 | 14+ | Pix PSP sandbox · TEF pinpad · fiscal/NFC-e | ⬜ | — |
 
 ### Detalhe das próximas sessões (frontend)
@@ -659,9 +661,16 @@ npm run build
 
 ---
 
+## RBAC por perfil (set/2026)
+
+Documentação: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md). Código: `ColaboradorAutorizacao`, `frontend-app/src/auth/permissoes.ts`, `RequirePermissao`, `seed-perfis-dev.sh`.
+
+**Testar no browser:** login com cada e-mail da tabela PERMISSOES; validar menu, rotas bloqueadas (403) e fila caixa (só PENDENTE).
+
 ## Próximo passo acordado
 
-1. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha) — credencial sandbox Roberto.
+1. **Validação manual RBAC** — quatro logins dev (vendedor, caixa, conferente, gerente).
+2. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha) — credencial sandbox Roberto.
 2. **14-D** — fiscal/conciliação conforme prioridade loja.
 3. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
 
@@ -690,4 +699,4 @@ Workspace: ~/omnicore/. Não commitar docker-compose.yml.
 
 ---
 
-*Última atualização: 03/set/2026 — QR Pix tela + Paga no caixa `51ac89a`; simulador `132d412`; próximo: 14-B/C.*
+*Última atualização: 25/set/2026 — RBAC perfis loja física + caixa ops `c111ae6`; próximo: testes por perfil → 14-B/C.*

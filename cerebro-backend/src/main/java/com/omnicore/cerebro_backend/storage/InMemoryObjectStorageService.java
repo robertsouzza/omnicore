@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 
 @Service
 @Profile("test")
@@ -20,6 +21,7 @@ public class InMemoryObjectStorageService implements ObjectStorageService {
 
     @Override
     public String uploadProdutoImagem(MultipartFile file) {
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         if (file == null || file.isEmpty()) {
             throw new BusinessException("Selecione um arquivo de imagem.");
         }

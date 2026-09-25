@@ -18,6 +18,7 @@ import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +41,7 @@ class ComposicaoPacoteServiceTest {
 
     @BeforeEach
     void setUp() {
+        WebMvcTestAuth.setGerenteNoContexto();
         composicaoPacoteService = new ComposicaoPacoteService(composicaoPacoteRepository, produtoRepository);
 
         pacote = Produto.builder()

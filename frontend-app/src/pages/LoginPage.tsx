@@ -1,18 +1,19 @@
 import { type FormEvent, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { getLoginErrorMessage, useAuth } from '../auth/AuthContext'
+import { rotaInicialPorPerfil } from '../auth/permissoes'
 import { Button, StatusMessage, TextField } from '../components/ui'
 import styles from './LoginPage.module.css'
 
 export function LoginPage() {
-  const { isAuthenticated, login } = useAuth()
+  const { isAuthenticated, session, login } = useAuth()
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  if (isAuthenticated) {
-    return <Navigate to="/produtos" replace />
+  if (isAuthenticated && session) {
+    return <Navigate to={rotaInicialPorPerfil(session.perfil)} replace />
   }
 
   async function handleSubmit(event: FormEvent) {

@@ -18,6 +18,7 @@ import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.service.ComposicaoPacoteService;
 
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asConferente;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -61,6 +62,7 @@ class ComposicaoPacoteControllerTest {
                 """;
 
         mockMvc.perform(post("/api/produtos/2/composicao")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isCreated());
@@ -77,6 +79,7 @@ class ComposicaoPacoteControllerTest {
                 """;
 
         mockMvc.perform(post("/api/produtos/2/composicao")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());
@@ -85,7 +88,8 @@ class ComposicaoPacoteControllerTest {
     @Test
     @DisplayName("DELETE /api/produtos/{pacoteId}/composicao/{id} - Deve retornar 204 ao remover componente")
     void deveRetornar204AoRemoverComponente() throws Exception {
-        mockMvc.perform(delete("/api/produtos/2/composicao/10"))
+        mockMvc.perform(delete("/api/produtos/2/composicao/10")
+                .with(asConferente()))
                 .andExpect(status().isNoContent());
     }
 
@@ -103,6 +107,7 @@ class ComposicaoPacoteControllerTest {
                 """;
 
         mockMvc.perform(post("/api/produtos/1/composicao")
+                .with(asConferente())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(payload))
                 .andExpect(status().isBadRequest());

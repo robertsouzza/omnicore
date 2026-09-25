@@ -21,7 +21,11 @@ import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.exception.GlobalExceptionHandler;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.service.ProdutoService;
-
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asConferente;
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asGerente;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -74,6 +78,8 @@ public class ProdutoControllerTest {
         when(produtoService.salvar(any(Produto.class))).thenReturn(produtoSalvo);
 
         mockMvc.perform(post("/api/produtos")
+                .with(authentication(new UsernamePasswordAuthenticationToken(
+                        WebMvcTestAuth.GERENTE, null, WebMvcTestAuth.GERENTE.getAuthorities())))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD_VALIDO))
                 .andExpect(status().isCreated())
@@ -96,6 +102,7 @@ public class ProdutoControllerTest {
                 """;
 
         mockMvc.perform(post("/api/produtos")
+                .with(asConferente())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadInvalido))
                 .andExpect(status().isBadRequest())
@@ -204,6 +211,7 @@ public class ProdutoControllerTest {
         when(produtoService.atualizar(eq(1L), any(Produto.class))).thenReturn(produtoAtualizado);
 
         mockMvc.perform(put("/api/produtos/{id}", 1L)
+                .with(asConferente())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD_VALIDO.replace("Produto Teste", "Produto Atualizado")))
                 .andExpect(status().isOk())
@@ -226,6 +234,7 @@ public class ProdutoControllerTest {
                 """;
 
         mockMvc.perform(put("/api/produtos/{id}", 1L)
+                .with(asConferente())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadInvalido))
                 .andExpect(status().isBadRequest())
@@ -241,6 +250,7 @@ public class ProdutoControllerTest {
         doNothing().when(produtoService).inativar(idExistente);
 
         mockMvc.perform(delete("/api/produtos/{id}", idExistente)
+                .with(asConferente())
                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }

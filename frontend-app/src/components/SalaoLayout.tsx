@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { podeAcessarRota } from '../auth/permissoes'
 import { OfflineBanner } from './OfflineBanner'
 import styles from './SalaoLayout.module.css'
 
@@ -52,12 +53,14 @@ export function SalaoLayout() {
           </span>
           Vendas
         </NavLink>
-        <Link to="/produtos" className={styles.navItem}>
-          <span className={styles.navIcon} aria-hidden="true">
-            ⚙
-          </span>
-          Admin
-        </Link>
+        {session && podeAcessarRota(session.perfil, '/produtos') && (
+          <Link to="/produtos" className={styles.navItem}>
+            <span className={styles.navIcon} aria-hidden="true">
+              ⚙
+            </span>
+            Admin
+          </Link>
+        )}
       </nav>
     </div>
   )

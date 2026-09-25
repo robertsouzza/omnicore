@@ -27,6 +27,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
+
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
 class EstoqueServiceTest {
@@ -45,6 +47,7 @@ class EstoqueServiceTest {
 
     @BeforeEach
     void setUp() {
+        WebMvcTestAuth.setGerenteNoContexto();
         estoqueService = new EstoqueService(movimentacaoEstoqueRepository, produtoRepository, reservaEstoqueService);
 
         produtoMock = new Produto();

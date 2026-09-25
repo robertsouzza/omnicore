@@ -12,6 +12,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber.PhoneNumber;
 import com.omnicore.cerebro_backend.dto.ClienteRequestDTO;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.model.Cliente;
 import com.omnicore.cerebro_backend.model.TipoDocumento;
 import com.omnicore.cerebro_backend.repository.ClienteRepository;
@@ -32,6 +33,7 @@ public class ClienteService {
 
     @Transactional
     public Cliente cadastrar(ClienteRequestDTO dto) {
+        ColaboradorAutorizacao.exigirModuloClientes(null);
         TipoDocumento tipoDocumento = dto.tipoDocumento();
         String numeroDocumento = normalizarNumeroDocumento(tipoDocumento, dto.numeroDocumento());
         validarDocumentoUnico(null, tipoDocumento, numeroDocumento);
@@ -46,6 +48,7 @@ public class ClienteService {
 
     @Transactional
     public Cliente atualizar(Long id, ClienteRequestDTO dto) {
+        ColaboradorAutorizacao.exigirModuloClientes(null);
         Cliente cliente = buscarPorId(id);
         TipoDocumento tipoDocumento = dto.tipoDocumento();
         String numeroDocumento = normalizarNumeroDocumento(tipoDocumento, dto.numeroDocumento());
@@ -112,6 +115,7 @@ public class ClienteService {
 
     @Transactional
     public void inativar(Long id) {
+        ColaboradorAutorizacao.exigirModuloClientes(null);
         Cliente cliente = buscarPorId(id);
         if (Boolean.FALSE.equals(cliente.getAtivo())) {
             throw new BusinessException("O cliente '" + cliente.getNomeCompleto() + "' já se encontra inativo.");

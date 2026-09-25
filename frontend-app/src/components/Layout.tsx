@@ -1,5 +1,6 @@
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { podeAcessarRota } from '../auth/permissoes'
 import { OfflineBanner } from './OfflineBanner'
 import styles from './Layout.module.css'
 
@@ -7,6 +8,16 @@ export function Layout() {
   const { session, logout } = useAuth()
   const location = useLocation()
   const isPdv = location.pathname === '/pdv'
+  const perfil = session?.perfil
+
+  function navLink(to: string, label: string) {
+    if (!perfil || !podeAcessarRota(perfil, to)) return null
+    return (
+      <Link to={to} className={styles.navLink}>
+        {label}
+      </Link>
+    )
+  }
 
   return (
     <div className={styles.shell}>
@@ -16,27 +27,13 @@ export function Layout() {
           <span className={styles.subtitle}>Cerebro · Varejo híbrido</span>
         </div>
         <nav className={styles.nav}>
-          <Link to="/salao" className={styles.navLink}>
-            Salão
-          </Link>
-          <Link to="/produtos" className={styles.navLink}>
-            Produtos
-          </Link>
-          <Link to="/clientes" className={styles.navLink}>
-            Clientes
-          </Link>
-          <Link to="/estoque" className={styles.navLink}>
-            Estoque
-          </Link>
-          <Link to="/vendas" className={styles.navLink}>
-            Vendas
-          </Link>
-          <Link to="/pdv" className={styles.navLink}>
-            PDV
-          </Link>
-          <Link to="/caixa" className={styles.navLink}>
-            Caixa
-          </Link>
+          {navLink('/salao', 'Salão')}
+          {navLink('/produtos', 'Produtos')}
+          {navLink('/clientes', 'Clientes')}
+          {navLink('/estoque', 'Estoque')}
+          {navLink('/vendas', 'Vendas')}
+          {navLink('/pdv', 'PDV')}
+          {navLink('/caixa', 'Caixa')}
         </nav>
         <div className={styles.userInfo}>
           <span className={styles.userName}>{session?.nome}</span>

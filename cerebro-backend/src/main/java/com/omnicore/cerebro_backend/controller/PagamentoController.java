@@ -33,6 +33,7 @@ public class PagamentoController {
     @GetMapping("/venda/{vendaId}")
     @Operation(summary = "Listar pagamentos de uma venda")
     public ResponseEntity<List<PagamentoVendaResponseDTO>> listarPorVenda(@PathVariable Long vendaId) {
+        vendaService.buscarPorId(vendaId, null);
         return ResponseEntity.ok(pagamentoService.listarPorVendaComDetalhes(vendaId));
     }
 

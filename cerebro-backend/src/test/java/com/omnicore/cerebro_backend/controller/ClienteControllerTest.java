@@ -1,5 +1,6 @@
 package com.omnicore.cerebro_backend.controller;
 
+import static com.omnicore.cerebro_backend.support.WebMvcTestAuth.asVendedor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -66,6 +67,7 @@ class ClienteControllerTest {
         when(clienteService.cadastrar(any())).thenReturn(cliente);
 
         mockMvc.perform(post("/api/clientes")
+                .with(asVendedor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD))
                 .andExpect(status().isCreated())
@@ -112,7 +114,8 @@ class ClienteControllerTest {
     void deveInativarCliente() throws Exception {
         doNothing().when(clienteService).inativar(1L);
 
-        mockMvc.perform(delete("/api/clientes/{id}", 1L))
+        mockMvc.perform(delete("/api/clientes/{id}", 1L)
+                .with(asVendedor()))
                 .andExpect(status().isNoContent());
     }
 
@@ -132,6 +135,7 @@ class ClienteControllerTest {
         when(clienteService.atualizar(eq(1L), any())).thenReturn(atualizado);
 
         mockMvc.perform(put("/api/clientes/{id}", 1L)
+                .with(asVendedor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD))
                 .andExpect(status().isOk())

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.omnicore.cerebro_backend.dto.ColaboradorRequestDTO;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.model.Colaborador;
 import com.omnicore.cerebro_backend.repository.ColaboradorRepository;
 
@@ -27,6 +28,7 @@ public class ColaboradorService {
 
     @Transactional
     public Colaborador cadastrar(ColaboradorRequestDTO dto) {
+        ColaboradorAutorizacao.exigirGerenciarColaboradores(null);
         if (dto.senha() == null || dto.senha().isBlank()) {
             throw new BusinessException("A senha é obrigatória no cadastro do colaborador.");
         }
@@ -56,6 +58,7 @@ public class ColaboradorService {
 
     @Transactional
     public Colaborador atualizar(Long id, ColaboradorRequestDTO dto) {
+        ColaboradorAutorizacao.exigirGerenciarColaboradores(null);
         Colaborador colaborador = buscarPorId(id);
         String cpfNormalizado = normalizarCpf(dto.cpf());
 
@@ -95,7 +98,14 @@ public class ColaboradorService {
     }
 
     @Transactional(readOnly = true)
+    public Colaborador buscarPorIdComAutorizacaoGerente(Long id) {
+        ColaboradorAutorizacao.exigirGerenciarColaboradores(null);
+        return buscarPorId(id);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Colaborador> listar(Pageable pageable, boolean incluirInativos) {
+        ColaboradorAutorizacao.exigirGerenciarColaboradores(null);
         if (pageable == null) {
             throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
         }
@@ -107,6 +117,7 @@ public class ColaboradorService {
 
     @Transactional
     public void inativar(Long id) {
+        ColaboradorAutorizacao.exigirGerenciarColaboradores(null);
         Colaborador colaborador = buscarPorId(id);
         if (Boolean.FALSE.equals(colaborador.getAtivo())) {
             throw new BusinessException("O colaborador '" + colaborador.getNome() + "' já se encontra inativo.");

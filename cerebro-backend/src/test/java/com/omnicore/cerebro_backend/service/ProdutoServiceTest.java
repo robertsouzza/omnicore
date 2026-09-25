@@ -1,5 +1,6 @@
 package com.omnicore.cerebro_backend.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import static org.mockito.Mockito.*;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.repository.ProdutoRepository;
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -25,6 +27,11 @@ public class ProdutoServiceTest {
 
     @InjectMocks
     private ProdutoService produtoService;
+
+    @BeforeEach
+    void autenticarGerente() {
+        WebMvcTestAuth.setGerenteNoContexto();
+    }
 
     @Test
     @DisplayName("Deve inativar um produto com sucesso (Exclusão Lógica)")

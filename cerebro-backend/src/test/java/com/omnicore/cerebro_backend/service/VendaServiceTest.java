@@ -111,7 +111,7 @@ class VendaServiceTest {
     @DisplayName("Deve criar uma venda com sucesso, calcular valor total com desconto e dar baixa no estoque")
     void deveCriarVendaComSucesso() {
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 2, new BigDecimal("5.00"), new BigDecimal("0.50"));
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
         when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
@@ -121,7 +121,7 @@ class VendaServiceTest {
             return venda;
         });
 
-        Venda vendaGerada = vendaService.criarVenda(vendaDto);
+        Venda vendaGerada = vendaService.criarVenda(vendaDto, VENDEDOR);
 
         assertNotNull(vendaGerada);
         assertEquals(StatusVenda.PAGA, vendaGerada.getStatus());
@@ -134,12 +134,12 @@ class VendaServiceTest {
     @DisplayName("Deve lançar BusinessException quando o estoque do produto for insuficiente")
     void deveLancaoExcecaoQuandoEstoqueInsuficiente() {
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 5, new BigDecimal("5.00"), BigDecimal.ZERO);
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
         when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(3);
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto));
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto, VENDEDOR));
 
         assertTrue(exception.getMessage().contains("Saldo insuficiente em estoque"));
         verify(vendaRepository, never()).save(any(Venda.class));
@@ -156,7 +156,8 @@ class VendaServiceTest {
 
         when(vendaRepository.findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable))).thenReturn(paginaMock);
 
-        Page<Venda> resultado = vendaService.listar(pageable, StatusVenda.PAGA, null, 20L, inicio, fim);
+        Page<Venda> resultado =
+                vendaService.listar(GERENTE, pageable, StatusVenda.PAGA, null, 20L, inicio, fim);
 
         assertEquals(1, resultado.getTotalElements());
         verify(vendaRepository).findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable));
@@ -169,7 +170,9 @@ class VendaServiceTest {
         LocalDateTime inicio = LocalDateTime.of(2026, 7, 10, 0, 0);
         LocalDateTime fim = LocalDateTime.of(2026, 7, 1, 0, 0);
 
-        assertThrows(BusinessException.class, () -> vendaService.listar(pageable, null, null, null, inicio, fim));
+        assertThrows(
+                BusinessException.class,
+                () -> vendaService.listar(GERENTE, pageable, null, null, null, inicio, fim));
     }
 
     @Test
@@ -178,7 +181,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder().id(1L).status(StatusVenda.PAGA).build();
         when(vendaRepository.findById(1L)).thenReturn(Optional.of(venda));
 
-        Venda encontrada = vendaService.buscarPorId(1L);
+        Venda encontrada = vendaService.buscarPorId(1L, GERENTE);
 
         assertEquals(1L, encontrada.getId());
     }
@@ -193,6 +196,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(1L)
                 .status(StatusVenda.PAGA)
+                .vendedorId(1L)
                 .valorTotal(new BigDecimal("10.00"))
                 .build();
         venda.adicionarItem(item);
@@ -225,6 +229,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(2L)
                 .status(StatusVenda.PENDENTE)
+                .vendedorId(1L)
                 .valorTotal(BigDecimal.ZERO)
                 .build();
 
@@ -240,7 +245,7 @@ class VendaServiceTest {
 
     @Test
     void deveRejeitarCancelamentoDuplicado() {
-        Venda venda = Venda.builder().id(3L).status(StatusVenda.CANCELADA).build();
+        Venda venda = Venda.builder().id(3L).status(StatusVenda.CANCELADA).vendedorId(1L).build();
         when(vendaRepository.findById(3L)).thenReturn(Optional.of(venda));
 
         assertThrows(BusinessException.class, () -> vendaService.cancelar(3L, null, VENDEDOR));
@@ -252,6 +257,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(4L)
                 .status(StatusVenda.PAGA)
+                .vendedorId(1L)
                 .valorTotal(new BigDecimal("10.00"))
                 .build();
 
@@ -264,11 +270,11 @@ class VendaServiceTest {
     void deveRejeitarVendaDeProdutoInativo() {
         produtoMock.setAtivo(false);
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 1, new BigDecimal("5.00"), BigDecimal.ZERO);
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto));
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto, VENDEDOR));
 
         assertTrue(exception.getMessage().contains("inativo"));
         verify(vendaRepository, never()).save(any(Venda.class));
@@ -305,7 +311,7 @@ class VendaServiceTest {
                 .build();
 
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(2L, 1, new BigDecimal("29.90"), BigDecimal.ZERO);
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(2L)).thenReturn(Optional.of(pacote));
         when(composicaoPacoteRepository.findByPacote_Id(2L)).thenReturn(List.of(compA, compB));
@@ -317,7 +323,7 @@ class VendaServiceTest {
             return venda;
         });
 
-        vendaService.criarVenda(vendaDto);
+        vendaService.criarVenda(vendaDto, VENDEDOR);
 
         verify(movimentacaoEstoqueRepository, times(2)).save(any(MovimentacaoEstoque.class));
     }
@@ -332,12 +338,12 @@ class VendaServiceTest {
         pacote.setAtivo(true);
 
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(2L, 1, new BigDecimal("29.90"), BigDecimal.ZERO);
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PAGA, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(2L)).thenReturn(Optional.of(pacote));
         when(composicaoPacoteRepository.findByPacote_Id(2L)).thenReturn(List.of());
 
-        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto));
+        BusinessException exception = assertThrows(BusinessException.class, () -> vendaService.criarVenda(vendaDto, VENDEDOR));
 
         assertTrue(exception.getMessage().contains("não possui composição cadastrada"));
         verify(vendaRepository, never()).save(any(Venda.class));
@@ -354,6 +360,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(5L)
                 .status(StatusVenda.PENDENTE)
+                .vendedorId(1L)
                 .valorTotal(new BigDecimal("10.00"))
                 .build();
         venda.adicionarItem(item);
@@ -380,6 +387,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(6L)
                 .status(StatusVenda.PENDENTE)
+                .vendedorId(1L)
                 .valorTotal(new BigDecimal("25.00"))
                 .build();
         venda.adicionarItem(item);
@@ -402,6 +410,7 @@ class VendaServiceTest {
         Venda venda = Venda.builder()
                 .id(7L)
                 .status(StatusVenda.PAGA)
+                .vendedorId(1L)
                 .valorTotal(new BigDecimal("10.00"))
                 .build();
 
@@ -417,7 +426,7 @@ class VendaServiceTest {
     @DisplayName("Deve criar venda pendente e reservar estoque")
     void deveCriarVendaPendenteComReserva() {
         ItemVendaRequestDTO itemDto = new ItemVendaRequestDTO(1L, 2, new BigDecimal("5.00"), BigDecimal.ZERO);
-        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PENDENTE, 10L, 20L, null, List.of(itemDto));
+        VendaRequestDTO vendaDto = new VendaRequestDTO(StatusVenda.PENDENTE, 1L, 20L, null, List.of(itemDto));
 
         when(produtoRepository.findById(1L)).thenReturn(Optional.of(produtoMock));
         when(movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoId(1L)).thenReturn(10);
@@ -427,7 +436,7 @@ class VendaServiceTest {
             return venda;
         });
 
-        Venda vendaGerada = vendaService.criarVenda(vendaDto);
+        Venda vendaGerada = vendaService.criarVenda(vendaDto, VENDEDOR);
 
         assertEquals(StatusVenda.PENDENTE, vendaGerada.getStatus());
         verify(reservaEstoqueService).reservarItensVenda(vendaGerada);

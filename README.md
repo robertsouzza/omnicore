@@ -137,7 +137,18 @@ Authorization: Bearer <token>
 
 3. No **Swagger**, use o botão **Authorize** (cadeado) com o token.
 
-Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada com BCrypt).
+**Logins dev (senha comum `senha123`):**
+
+| E-mail | Perfil |
+|--------|--------|
+| `carlos.vendedor@omnicore.local` | VENDEDOR |
+| `caixa@omnicore.local` | CAIXA |
+| `conferente@omnicore.local` | CONFERENTE |
+| `ana.gerente@omnicore.local` | GERENTE |
+
+Caixa/conferente: criar com `cerebro-backend/scripts/seed-perfis-dev.sh` (`TOKEN` de gerente). Matriz de permissões: [`.cursor/PERMISSOES-PERFIL.md`](.cursor/PERMISSOES-PERFIL.md).
+
+Colaboradores (CRUD) — **somente GERENTE** — `POST /api/colaboradores` (senha com BCrypt).
 
 ---
 
@@ -150,7 +161,7 @@ Colaboradores são cadastrados via `POST /api/colaboradores` (senha armazenada c
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
 | Estoque | `/api/estoque` | Entrada, saída, **saldo disponível** (físico − reservas), saldo/indicador (pico histórico), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
-| Colaboradores | `/api/colaboradores` | CRUD, perfis (vendedor, caixa, gerente…) |
+| Colaboradores | `/api/colaboradores` | CRUD (**GERENTE**), perfis VENDEDOR/CAIXA/CONFERENTE/GERENTE |
 | Vendas | `/api/vendas` | Criar, listar, **pagar** (body opcional com forma), cancelar |
 | Pagamentos | `/api/pagamentos` | Listar por venda, **webhook** experiência externa |
 
@@ -175,7 +186,8 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | **Nova Venda** (Pendente/Paga + **Paga no caixa** ou Pix na hora) | `/vendas/nova` | ✅ 14-A+ |
 | PWA salão (código de barras, **banner pós-venda**, **qtd editável + teto estoque**) | — | ✅ `/salao`, `/salao/vendas` |
 | UI kit (`components/ui/`, design tokens) | — | ✅ Sessão 12.5 — Login + Estoque migrados |
-| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 51 testes |
+| TanStack Query + Vitest | — | ✅ Sessão 13-FE — 62 testes |
+| **RBAC** (menu/rotas por perfil; produtos/estoque leitura vendedor/caixa) | — | ✅ ver `PERMISSOES-PERFIL.md` |
 
 Último commit relevante: ver [`.cursor/CONTEXTO-OMNICORE.md`](.cursor/CONTEXTO-OMNICORE.md). Cronograma completo: idem.
 
@@ -226,6 +238,7 @@ npm run build
 | **Reserva de estoque (PENDENTE)** | ✅ backend + UX frontend |
 | Clientes e colaboradores | ✅ (backend) |
 | Auth JWT + Swagger Authorize | ✅ |
+| **RBAC por perfil (API 403 + frontend)** | ✅ |
 | CI GitHub Actions (backend) | ✅ |
 | Frontend: login | ✅ |
 | Frontend: produtos (CRUD, kits, busca nome/EAN, imagem, **coluna estoque**) | ✅ |

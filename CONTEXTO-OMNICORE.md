@@ -11,8 +11,8 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: 14-B/C Stone/Getnet (sandbox). QR Pix + Paga no caixa já entregues.
-Ao fechar sessão: atualizar CONTEXTO + README.md + rules.
+Próximo: testar login com cada perfil (vendedor, caixa, conferente, gerente) — @.cursor/PERMISSOES-PERFIL.md.
+Depois: 14-B/C Stone/Getnet (sandbox).
 ```
 
 A regra persistente do Agent fica em `.cursor/rules/omnicore-projeto.mdc`.

@@ -9,4 +9,8 @@ public enum PerfilColaborador {
     public boolean podeAutorizarCancelamentoVendaPaga() {
         return this == GERENTE;
     }
+
+    public boolean podeListarVendasDeTodosVendedores() {
+        return this == GERENTE;
+    }
 }

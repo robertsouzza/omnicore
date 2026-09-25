@@ -80,9 +80,10 @@ public class VendaControllerTest {
                 .valorTotal(new BigDecimal("9.00"))
                 .build();
 
-        when(vendaService.criarVenda(any())).thenReturn(vendaSalva);
+        when(vendaService.criarVenda(any(), any())).thenReturn(vendaSalva);
 
         mockMvc.perform(post("/api/vendas")
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD_VALIDO))
                 .andExpect(status().isCreated())
@@ -102,6 +103,7 @@ public class VendaControllerTest {
                 """;
 
         mockMvc.perform(post("/api/vendas")
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(payloadInvalido))
                 .andExpect(status().isBadRequest());
@@ -110,10 +112,11 @@ public class VendaControllerTest {
     @Test
     @DisplayName("POST /api/vendas deve retornar 400 Bad Request quando houver regra de negócio violada")
     void deveRetornar400QuandoRegraDeNegocioViolada() throws Exception {
-        when(vendaService.criarVenda(any()))
+        when(vendaService.criarVenda(any(), any()))
                 .thenThrow(new BusinessException("Saldo insuficiente em estoque para o produto 'Refrigerante'. Estoque atual: 3, Solicitado: 5"));
 
         mockMvc.perform(post("/api/vendas")
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PAYLOAD_VALIDO))
                 .andExpect(status().isBadRequest())
@@ -124,10 +127,11 @@ public class VendaControllerTest {
     @DisplayName("GET /api/vendas deve retornar 200 OK com listagem paginada")
     void deveRetornar200AoListarVendas() throws Exception {
         Venda venda = Venda.builder().id(1L).status(StatusVenda.PAGA).build();
-        when(vendaService.listar(any(Pageable.class), eq(StatusVenda.PAGA), isNull(), eq(20L), isNull(), isNull()))
+        when(vendaService.listar(any(), any(Pageable.class), eq(StatusVenda.PAGA), isNull(), eq(20L), isNull(), isNull()))
                 .thenReturn(new PageImpl<>(java.util.List.of(venda)));
 
         mockMvc.perform(get("/api/vendas")
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities())))
                 .param("page", "0")
                 .param("size", "20")
                 .param("sort", "dataHora,DESC")
@@ -147,9 +151,10 @@ public class VendaControllerTest {
                 .valorTotal(new BigDecimal("59.80"))
                 .build();
 
-        when(vendaService.buscarPorId(1L)).thenReturn(venda);
+        when(vendaService.buscarPorId(eq(1L), any())).thenReturn(venda);
 
-        mockMvc.perform(get("/api/vendas/{id}", 1L))
+        mockMvc.perform(get("/api/vendas/{id}", 1L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.status").value("PAGA"));
@@ -158,10 +163,11 @@ public class VendaControllerTest {
     @Test
     @DisplayName("GET /api/vendas/{id} deve retornar 400 Bad Request se a venda não existir")
     void deveRetornar400AoBuscarVendaInexistente() throws Exception {
-        when(vendaService.buscarPorId(999L))
+        when(vendaService.buscarPorId(eq(999L), any()))
                 .thenThrow(new BusinessException("Venda com ID 999 não encontrada."));
 
-        mockMvc.perform(get("/api/vendas/{id}", 999L))
+        mockMvc.perform(get("/api/vendas/{id}", 999L)
+                .with(authentication(new UsernamePasswordAuthenticationToken(GERENTE_AUTH, null, GERENTE_AUTH.getAuthorities()))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Venda com ID 999 não encontrada."));
     }

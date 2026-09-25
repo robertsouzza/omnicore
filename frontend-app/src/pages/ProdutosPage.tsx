@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
+import { podeEditarCatalogo } from '../auth/permissoes'
 import { SaldoCell, SaldoKitPlaceholder } from '../components/SaldoCell'
 import { useDebouncedSearch, useProdutoSaldos, useQueryUnauthorized } from '../hooks'
 import {
@@ -132,7 +133,17 @@ interface ProdutoActionsProps {
   className?: string
 }
 
-function ProdutoActions({ produto, actionId, onInativar, className }: ProdutoActionsProps) {
+function ProdutoActions({
+  produto,
+  actionId,
+  onInativar,
+  className,
+  somenteLeitura,
+}: ProdutoActionsProps & { somenteLeitura?: boolean }) {
+  if (somenteLeitura) {
+    return <span className={styles.readOnlyHint}>Somente consulta</span>
+  }
+
   return (
     <div className={className ?? styles.rowActions}>
       <Link to={`/produtos/${produto.id}/editar`} className={styles.linkBtn}>
@@ -167,6 +178,7 @@ function StatusBadge({ ativo }: { ativo: boolean }) {
 
 export function ProdutosPage() {
   const { session } = useAuth()
+  const podeEditar = session != null && podeEditarCatalogo(session.perfil)
   const [pageNumber, setPageNumber] = useState(0)
   const [incluirInativos, setIncluirInativos] = useState(false)
   const [previewProduto, setPreviewProduto] = useState<Produto | null>(null)
@@ -270,9 +282,11 @@ export function ProdutosPage() {
               cada 4s
             </span>
           )}
-          <Link to="/produtos/novo" className={styles.newBtn}>
-            + Novo produto
-          </Link>
+          {podeEditar && (
+            <Link to="/produtos/novo" className={styles.newBtn}>
+              + Novo produto
+            </Link>
+          )}
         </div>
       </div>
 
@@ -376,6 +390,7 @@ export function ProdutosPage() {
                       actionId={actionId}
                       onInativar={(p) => void handleInativar(p)}
                       className={styles.cardActions}
+                      somenteLeitura={!podeEditar}
                     />
                   </article>
                 ))}
@@ -421,6 +436,7 @@ export function ProdutosPage() {
                             produto={produto}
                             actionId={actionId}
                             onInativar={(p) => void handleInativar(p)}
+                            somenteLeitura={!podeEditar}
                           />
                         </td>
                       </tr>

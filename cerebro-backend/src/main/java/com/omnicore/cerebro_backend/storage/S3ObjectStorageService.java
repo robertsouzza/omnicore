@@ -54,6 +54,7 @@ public class S3ObjectStorageService implements ObjectStorageService {
 
     @Override
     public String uploadProdutoImagem(MultipartFile file) {
+        com.omnicore.cerebro_backend.security.ColaboradorAutorizacao.exigirEditarCatalogo(null);
         validarArquivo(file);
 
         String extensao = extensaoPorContentType(file.getContentType());

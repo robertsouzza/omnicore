@@ -46,8 +46,10 @@ public class VendaController {
         summary = "Registrar uma nova venda",
         description = "Cria um pedido de venda com seus itens. Valida estoque e gera saída automática quando o status for PAGA ou CONCLUIDA."
     )
-    public ResponseEntity<Venda> criar(@Valid @RequestBody VendaRequestDTO dto) {
-        Venda venda = vendaService.criarVenda(dto);
+    public ResponseEntity<Venda> criar(
+            @Valid @RequestBody VendaRequestDTO dto,
+            @AuthenticationPrincipal AuthenticatedColaborador colaborador) {
+        Venda venda = vendaService.criarVenda(dto, colaborador);
         return ResponseEntity.status(HttpStatus.CREATED).body(venda);
     }
 
@@ -65,14 +67,17 @@ public class VendaController {
             @RequestParam(value = "dataInicio", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
             @RequestParam(value = "dataFim", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
-        return ResponseEntity.ok(vendaService.listar(pageable, status, vendedorId, clienteId, dataInicio, dataFim));
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim,
+            @AuthenticationPrincipal AuthenticatedColaborador colaborador) {
+        return ResponseEntity.ok(
+                vendaService.listar(colaborador, pageable, status, vendedorId, clienteId, dataInicio, dataFim));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Buscar venda por ID", description = "Retorna os detalhes completos de um pedido específico.")
-    public ResponseEntity<Venda> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(vendaService.buscarPorId(id));
+    public ResponseEntity<Venda> buscarPorId(
+            @PathVariable Long id, @AuthenticationPrincipal AuthenticatedColaborador colaborador) {
+        return ResponseEntity.ok(vendaService.buscarPorId(id, colaborador));
     }
 
     @PutMapping("/{id}/cancelar")

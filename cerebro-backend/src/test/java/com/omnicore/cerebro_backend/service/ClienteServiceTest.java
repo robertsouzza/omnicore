@@ -29,6 +29,7 @@ import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.model.Cliente;
 import com.omnicore.cerebro_backend.model.TipoDocumento;
 import com.omnicore.cerebro_backend.repository.ClienteRepository;
+import com.omnicore.cerebro_backend.support.WebMvcTestAuth;
 
 @ExtendWith(MockitoExtension.class)
 @SuppressWarnings("null")
@@ -43,6 +44,7 @@ class ClienteServiceTest {
 
     @BeforeEach
     void setUp() {
+        WebMvcTestAuth.setGerenteNoContexto();
         clienteService = new ClienteService(clienteRepository);
         dtoValido = new ClienteRequestDTO(
                 "Maria Silva",

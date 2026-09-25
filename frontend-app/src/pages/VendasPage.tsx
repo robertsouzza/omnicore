@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext'
 import { useAsyncAction, usePaginatedResource, useVendasListAutoRefresh } from '../hooks'
 import type { Colaborador } from '../types/colaborador'
 import type { CancelarVendaRequest, StatusVenda, Venda } from '../types/venda'
+import { podeFiltrarVendasPorVendedor } from '../auth/permissoes'
 import {
   dataFimPeriodoParaApi,
   dataInicioPeriodoParaApi,
@@ -53,12 +54,17 @@ export function VendasPage() {
     return map
   }, [colaboradores])
 
+  const exibeFiltroVendedor = session != null && podeFiltrarVendasPorVendedor(session.perfil)
+
   useEffect(() => {
-    if (!session) return
+    if (!session || !exibeFiltroVendedor) {
+      setColaboradores([])
+      return
+    }
     void listarColaboradores(session.token, { size: 200 })
       .then((page) => setColaboradores(page.content))
       .catch(() => setColaboradores([]))
-  }, [session])
+  }, [session, exibeFiltroVendedor])
 
   const temFiltrosExtras =
     statusFiltro !== '' ||
@@ -172,24 +178,26 @@ export function VendasPage() {
             ))}
           </select>
         </label>
-        <label className={styles.filterLabel}>
-          Vendedor
-          <select
-            className={styles.filterSelect}
-            value={vendedorFiltro}
-            onChange={(e) => {
-              setVendedorFiltro(e.target.value)
-              setPageNumber(0)
-            }}
-          >
-            <option value="">Todos</option>
-            {colaboradores.map((c) => (
-              <option key={c.id} value={String(c.id)}>
-                {c.nome}
-              </option>
-            ))}
-          </select>
-        </label>
+        {exibeFiltroVendedor && (
+          <label className={styles.filterLabel}>
+            Vendedor
+            <select
+              className={styles.filterSelect}
+              value={vendedorFiltro}
+              onChange={(e) => {
+                setVendedorFiltro(e.target.value)
+                setPageNumber(0)
+              }}
+            >
+              <option value="">Todos</option>
+              {colaboradores.map((c) => (
+                <option key={c.id} value={String(c.id)}>
+                  {c.nome}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label className={styles.filterLabel}>
           De
           <input

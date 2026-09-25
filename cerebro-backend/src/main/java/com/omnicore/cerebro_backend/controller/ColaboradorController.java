@@ -53,7 +53,7 @@ public class ColaboradorController {
     @GetMapping("/{id}")
     @Operation(summary = "Buscar colaborador por ID")
     public ResponseEntity<Colaborador> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(colaboradorService.buscarPorId(id));
+        return ResponseEntity.ok(colaboradorService.buscarPorIdComAutorizacaoGerente(id));
     }
 
     @PutMapping("/{id}")

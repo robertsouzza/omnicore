@@ -8,6 +8,7 @@ import {
 } from '../api/estoque'
 import { buscarProduto } from '../api/produtos'
 import { useAuth } from '../auth/AuthContext'
+import { podeMovimentarEstoque } from '../auth/permissoes'
 import { useUnauthorizedHandler } from '../hooks'
 import type { MovimentacaoEstoque, Page } from '../types/estoque'
 import type { Produto } from '../types/produto'
@@ -51,6 +52,8 @@ export function EstoqueProdutoPage() {
   const id = Number(produtoId)
   const { session } = useAuth()
   const handleUnauthorized = useUnauthorizedHandler()
+  const podeMovimentar =
+    session != null && podeMovimentarEstoque(session.perfil)
 
   const [produto, setProduto] = useState<Produto | null>(null)
   const [saldo, setSaldo] = useState<number | null>(null)
@@ -223,6 +226,13 @@ export function EstoqueProdutoPage() {
           <div className={styles.grid}>
             <section className={styles.panel}>
               <h2 className={styles.panelTitle}>Movimentação manual</h2>
+              {!podeMovimentar && (
+                <p className={styles.status}>
+                  Seu perfil pode consultar saldo e histórico, mas não registrar entradas ou saídas.
+                </p>
+              )}
+              {podeMovimentar && (
+                <>
               <div className={styles.tabs}>
                 <button
                   type="button"
@@ -296,6 +306,8 @@ export function EstoqueProdutoPage() {
                       : 'Registrar saída'}
                 </button>
               </form>
+                </>
+              )}
             </section>
 
             <section className={styles.panel}>

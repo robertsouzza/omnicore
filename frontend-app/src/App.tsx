@@ -1,7 +1,9 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './auth/AuthContext'
 import { Layout } from './components/Layout'
+import { HomeRedirect } from './components/HomeRedirect'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { RequirePermissao } from './components/RequirePermissao'
 import { SalaoLayout } from './components/SalaoLayout'
 import { QueryProvider } from './providers/QueryProvider'
 import { CaixaPage } from './pages/CaixaPage'
@@ -28,12 +30,13 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route element={<ProtectedRoute />}>
+            <Route element={<RequirePermissao />}>
             <Route element={<SalaoLayout />}>
               <Route path="/salao" element={<SalaoVendaPage />} />
               <Route path="/salao/vendas" element={<SalaoVendasPage />} />
             </Route>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="/produtos" replace />} />
+              <Route index element={<HomeRedirect />} />
               <Route path="/produtos" element={<ProdutosPage />} />
               <Route path="/produtos/novo" element={<ProdutoFormPage />} />
               <Route path="/produtos/:id/kit" element={<ProdutoKitPage />} />
@@ -49,8 +52,9 @@ export default function App() {
               <Route path="/pdv" element={<PdvPage />} />
               <Route path="/caixa" element={<CaixaPage />} />
             </Route>
+            </Route>
           </Route>
-          <Route path="*" element={<Navigate to="/produtos" replace />} />
+          <Route path="*" element={<HomeRedirect />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

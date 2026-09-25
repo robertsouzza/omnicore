@@ -19,7 +19,10 @@ import com.omnicore.cerebro_backend.dto.VendaRequestDTO;
 import com.omnicore.cerebro_backend.enums.StatusVenda;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
+import com.omnicore.cerebro_backend.enums.PerfilColaborador;
+import com.omnicore.cerebro_backend.exception.AccessDeniedException;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.model.Colaborador;
 import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.ItemVenda;
@@ -69,7 +72,18 @@ public class VendaService {
     }
 
     @Transactional
-    public Venda criarVenda(VendaRequestDTO dto) {
+    public Venda criarVenda(VendaRequestDTO dto, AuthenticatedColaborador colaborador) {
+        AuthenticatedColaborador autenticado = ColaboradorAutorizacao.resolver(colaborador);
+        ColaboradorAutorizacao.exigirRegistrarVenda(autenticado);
+        if (autenticado.perfil() == PerfilColaborador.VENDEDOR
+                && !Objects.equals(autenticado.id(), dto.vendedorId())) {
+            throw new AccessDeniedException("Vendedor só registra venda em seu nome.");
+        }
+        return criarVendaInterno(dto);
+    }
+
+    @Transactional
+    Venda criarVendaInterno(VendaRequestDTO dto) {
         colaboradorService.validarColaboradorAtivoParaVenda(dto.vendedorId());
         clienteService.validarClienteAtivoParaVenda(dto.clienteId());
 
@@ -130,15 +144,24 @@ public class VendaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Venda> listar(Pageable pageable, StatusVenda status, Long vendedorId, Long clienteId,
-                              LocalDateTime dataInicio, LocalDateTime dataFim) {
+    public Page<Venda> listar(
+            AuthenticatedColaborador colaborador,
+            Pageable pageable,
+            StatusVenda status,
+            Long vendedorId,
+            Long clienteId,
+            LocalDateTime dataInicio,
+            LocalDateTime dataFim) {
         if (pageable == null) {
             throw new BusinessException("Os parámetros de paginação não podem ser nulos.");
         }
         if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
             throw new BusinessException("A data inicial não pode ser posterior à data final.");
         }
-        return vendaRepository.findAll(montarFiltros(status, vendedorId, clienteId, dataInicio, dataFim), pageable);
+        Long vendedorEfetivo = ColaboradorAutorizacao.resolverVendedorIdFiltro(colaborador, vendedorId);
+        StatusVenda statusEfetivo = ColaboradorAutorizacao.resolverStatusFiltroListagem(colaborador, status);
+        return vendaRepository.findAll(
+                montarFiltros(statusEfetivo, vendedorEfetivo, clienteId, dataInicio, dataFim), pageable);
     }
 
     private Specification<Venda> montarFiltros(StatusVenda status, Long vendedorId, Long clienteId,
@@ -167,7 +190,14 @@ public class VendaService {
     }
 
     @Transactional(readOnly = true)
-    public Venda buscarPorId(Long id) {
+    public Venda buscarPorId(Long id, AuthenticatedColaborador colaborador) {
+        Venda venda = obterVendaPorId(id);
+        ColaboradorAutorizacao.exigirLeituraVenda(colaborador, venda);
+        return venda;
+    }
+
+    @Transactional(readOnly = true)
+    public Venda obterVendaPorId(Long id) {
         if (id == null) {
             throw new BusinessException("O ID fornecido não pode ser nulo.");
         }
@@ -181,7 +211,8 @@ public class VendaService {
             throw new BusinessException("Colaborador autenticado não identificado.");
         }
 
-        Venda venda = buscarPorId(id);
+        Venda venda = obterVendaPorId(id);
+        ColaboradorAutorizacao.exigirLeituraVenda(solicitante, venda);
 
         if (venda.getStatus() == StatusVenda.CANCELADA) {
             throw new BusinessException("A venda #" + id + " já se encontra cancelada.");
@@ -207,7 +238,10 @@ public class VendaService {
             throw new BusinessException("Colaborador autenticado não identificado.");
         }
 
-        Venda venda = buscarPorId(id);
+        ColaboradorAutorizacao.exigirPagarVenda(colaborador);
+
+        Venda venda = obterVendaPorId(id);
+        ColaboradorAutorizacao.exigirLeituraVenda(colaborador, venda);
 
         if (venda.getStatus() != StatusVenda.PENDENTE) {
             throw new BusinessException(
@@ -234,7 +268,7 @@ public class VendaService {
 
     @Transactional
     public void tentarLiquidarAposPagamento(Long vendaId) {
-        Venda venda = buscarPorId(vendaId);
+        Venda venda = obterVendaPorId(vendaId);
         if (venda.getStatus() != StatusVenda.PENDENTE) {
             return;
         }

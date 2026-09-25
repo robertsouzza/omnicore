@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.omnicore.cerebro_backend.dto.ComposicaoPacoteRequestDTO;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
 import com.omnicore.cerebro_backend.exception.BusinessException;
+import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
 import com.omnicore.cerebro_backend.model.ComposicaoPacote;
 import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
@@ -35,6 +36,7 @@ public class ComposicaoPacoteService {
 
     @Transactional
     public ComposicaoPacote adicionarComponente(Long pacoteId, ComposicaoPacoteRequestDTO dto) {
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         Produto pacote = buscarPacote(pacoteId);
 
         Produto produtoFilho = produtoRepository.findById(dto.produtoFilhoId())
@@ -66,6 +68,7 @@ public class ComposicaoPacoteService {
 
     @Transactional
     public void removerComponente(Long pacoteId, Long composicaoId) {
+        ColaboradorAutorizacao.exigirEditarCatalogo(null);
         buscarPacote(pacoteId);
 
         ComposicaoPacote composicao = composicaoPacoteRepository.findById(composicaoId)
