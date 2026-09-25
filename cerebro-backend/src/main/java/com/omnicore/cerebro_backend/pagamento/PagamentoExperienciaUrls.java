@@ -12,7 +12,9 @@ public final class PagamentoExperienciaUrls {
         if (pagamento.getExperienciaPagamentoId() == null) {
             return null;
         }
-        return buildUrl(baseUrl, pagamento.getForma(), pagamento.getExperienciaPagamentoId(), 1);
+        int parcelas =
+                pagamento.getParcelas() != null && pagamento.getParcelas() > 0 ? pagamento.getParcelas() : 1;
+        return buildUrl(baseUrl, pagamento.getForma(), pagamento.getExperienciaPagamentoId(), parcelas);
     }
 
     public static String buildUrl(

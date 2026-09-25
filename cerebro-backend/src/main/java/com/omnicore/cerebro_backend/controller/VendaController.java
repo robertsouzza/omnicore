@@ -54,18 +54,19 @@ public class VendaController {
     @GetMapping
     @Operation(
         summary = "Listar vendas de forma paginada",
-        description = "Retorna o histórico de pedidos com filtros opcionais por status, clienteId e período de datas."
+        description = "Retorna o histórico de pedidos com filtros opcionais por status, vendedor, cliente e período."
     )
     public ResponseEntity<Page<Venda>> listar(
             @ParameterObject
             @PageableDefault(page = 0, size = 20, sort = "dataHora", direction = Sort.Direction.DESC) Pageable pageable,
             @RequestParam(value = "status", required = false) StatusVenda status,
+            @RequestParam(value = "vendedorId", required = false) Long vendedorId,
             @RequestParam(value = "clienteId", required = false) Long clienteId,
             @RequestParam(value = "dataInicio", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataInicio,
             @RequestParam(value = "dataFim", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dataFim) {
-        return ResponseEntity.ok(vendaService.listar(pageable, status, clienteId, dataInicio, dataFim));
+        return ResponseEntity.ok(vendaService.listar(pageable, status, vendedorId, clienteId, dataInicio, dataFim));
     }
 
     @GetMapping("/{id}")

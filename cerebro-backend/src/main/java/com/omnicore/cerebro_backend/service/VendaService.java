@@ -130,24 +130,27 @@ public class VendaService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Venda> listar(Pageable pageable, StatusVenda status, Long clienteId,
+    public Page<Venda> listar(Pageable pageable, StatusVenda status, Long vendedorId, Long clienteId,
                               LocalDateTime dataInicio, LocalDateTime dataFim) {
         if (pageable == null) {
-            throw new BusinessException("Os parâmetros de paginação não podem ser nulos.");
+            throw new BusinessException("Os parámetros de paginação não podem ser nulos.");
         }
         if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
             throw new BusinessException("A data inicial não pode ser posterior à data final.");
         }
-        return vendaRepository.findAll(montarFiltros(status, clienteId, dataInicio, dataFim), pageable);
+        return vendaRepository.findAll(montarFiltros(status, vendedorId, clienteId, dataInicio, dataFim), pageable);
     }
 
-    private Specification<Venda> montarFiltros(StatusVenda status, Long clienteId,
+    private Specification<Venda> montarFiltros(StatusVenda status, Long vendedorId, Long clienteId,
                                                LocalDateTime dataInicio, LocalDateTime dataFim) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
             if (status != null) {
                 predicates.add(criteriaBuilder.equal(root.get("status"), status));
+            }
+            if (vendedorId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("vendedorId"), vendedorId));
             }
             if (clienteId != null) {
                 predicates.add(criteriaBuilder.equal(root.get("clienteId"), clienteId));

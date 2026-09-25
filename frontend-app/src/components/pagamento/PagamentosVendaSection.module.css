@@ -1,0 +1,117 @@
+.panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+.panelTitle {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #0f2744;
+}
+
+.status,
+.empty {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9375rem;
+}
+
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .cardList {
+    display: none;
+  }
+}
+
+.tableWrap {
+  display: none;
+  overflow-x: auto;
+}
+
+@media (min-width: 768px) {
+  .tableWrap {
+    display: block;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th,
+.table td {
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.cardMeta {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.cardValor {
+  margin: 0.35rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: #0f2744;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+}
+
+.badgeOk,
+.badgePendente,
+.badgeErro {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badgeOk {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.badgePendente {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.badgeErro {
+  background: #fef2f2;
+  color: #b91c1c;
+}

@@ -23,7 +23,8 @@ public record PagamentoVendaResponseDTO(
         String urlExperiencia,
         String pixCopiaECola,
         String qrCodeBase64,
-        LocalDateTime dataHora
+        LocalDateTime dataHora,
+        Integer parcelas
 ) {
 
     public static PagamentoVendaResponseDTO from(PagamentoVenda pagamento, String urlExperiencia) {
@@ -42,7 +43,8 @@ public record PagamentoVendaResponseDTO(
                 urlExperiencia,
                 pagamento.getPixCopiaECola(),
                 pagamento.getQrCodeBase64(),
-                pagamento.getDataHora());
+                pagamento.getDataHora(),
+                pagamento.getParcelas());
     }
 
     public static PagamentoVendaResponseDTO from(PagamentoVenda pagamento) {

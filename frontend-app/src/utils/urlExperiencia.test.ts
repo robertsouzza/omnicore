@@ -23,6 +23,7 @@ function pagamento(partial: Partial<PagamentoVenda> & Pick<PagamentoVenda, 'id'>
     pixCopiaECola: partial.pixCopiaECola ?? null,
     qrCodeBase64: partial.qrCodeBase64 ?? null,
     dataHora: partial.dataHora ?? '2026-08-31T12:00:00',
+    parcelas: partial.parcelas ?? null,
   }
 }
 

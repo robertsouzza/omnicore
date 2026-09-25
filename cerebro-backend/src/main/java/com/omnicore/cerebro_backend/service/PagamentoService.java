@@ -159,6 +159,7 @@ public class PagamentoService {
                 .pixCopiaECola(experiencia.pixCopiaECola())
                 .qrCodeBase64(experiencia.qrCodeBase64())
                 .dataHora(LocalDateTime.now())
+                .parcelas(dto.forma() == FormaPagamento.CREDITO ? parcelas : null)
                 .build();
 
         pagamento = pagamentoVendaRepository.save(pagamento);

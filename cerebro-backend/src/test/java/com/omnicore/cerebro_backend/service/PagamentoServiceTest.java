@@ -121,4 +121,33 @@ class PagamentoServiceTest {
 
         assertThrows(BusinessException.class, () -> pagamentoService.processar(venda, dto));
     }
+
+    @Test
+    @DisplayName("Deve persistir parcelas no pagamento crédito")
+    void devePersistirParcelasCredito() {
+        when(pagamentoVendaRepository.existsByVendaIdAndStatus(10L, StatusPagamento.APROVADO)).thenReturn(false);
+        when(paymentExperiencePort.iniciar(any())).thenReturn(
+                new ExperienciaPagamentoResultado(
+                        "exp-cred",
+                        StatusPagamento.PENDENTE,
+                        "http://localhost:9090/credito/exp-cred?parcelas=3",
+                        null,
+                        null,
+                        null,
+                        null));
+        when(pagamentoVendaRepository.save(any(PagamentoVenda.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PagarVendaRequestDTO dto = new PagarVendaRequestDTO(
+                FormaPagamento.CREDITO,
+                new BigDecimal("25.00"),
+                null,
+                3);
+
+        PagamentoService.PagamentoProcessamentoResult result = pagamentoService.processar(venda, dto);
+
+        assertEquals(Integer.valueOf(3), result.pagamento().getParcelas());
+        assertEquals(
+                "http://localhost:9090/credito/exp-cred?parcelas=3",
+                result.urlExperiencia());
+    }
 }

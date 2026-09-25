@@ -36,6 +36,23 @@ export interface PagamentoVenda {
   pixCopiaECola: string | null
   qrCodeBase64: string | null
   dataHora: string
+  parcelas: number | null
+}
+
+const STATUS_PAGAMENTO: { value: StatusPagamento; label: string }[] = [
+  { value: 'PENDENTE', label: 'Pendente' },
+  { value: 'APROVADO', label: 'Aprovado' },
+  { value: 'RECUSADO', label: 'Recusado' },
+  { value: 'ESTORNADO', label: 'Estornado' },
+]
+
+export function labelStatusPagamento(status: StatusPagamento): string {
+  return STATUS_PAGAMENTO.find((s) => s.value === status)?.label ?? status
+}
+
+export function resumoParcelasPagamento(parcelas: number): string {
+  if (parcelas <= 1) return 'À vista (1x)'
+  return `${parcelas}x`
 }
 
 export const FORMAS_PAGAMENTO: { value: FormaPagamento; label: string; hint: string }[] = [

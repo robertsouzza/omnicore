@@ -124,7 +124,7 @@ public class VendaControllerTest {
     @DisplayName("GET /api/vendas deve retornar 200 OK com listagem paginada")
     void deveRetornar200AoListarVendas() throws Exception {
         Venda venda = Venda.builder().id(1L).status(StatusVenda.PAGA).build();
-        when(vendaService.listar(any(Pageable.class), eq(StatusVenda.PAGA), eq(20L), isNull(), isNull()))
+        when(vendaService.listar(any(Pageable.class), eq(StatusVenda.PAGA), isNull(), eq(20L), isNull(), isNull()))
                 .thenReturn(new PageImpl<>(java.util.List.of(venda)));
 
         mockMvc.perform(get("/api/vendas")

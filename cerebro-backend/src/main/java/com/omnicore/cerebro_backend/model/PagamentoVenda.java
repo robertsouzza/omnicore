@@ -76,4 +76,8 @@ public class PagamentoVenda {
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
 
+    /** Parcelas no crédito (1 = à vista); demais formas permanecem nulo. */
+    @Column(name = "parcelas")
+    private Integer parcelas;
+
 }

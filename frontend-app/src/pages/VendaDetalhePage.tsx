@@ -2,11 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { CancelarVendaModal } from '../components/CancelarVendaModal'
 import { PagamentoModal } from '../components/pagamento/PagamentoModal'
+import { PagamentosVendaSection } from '../components/pagamento/PagamentosVendaSection'
 import { buscarCliente } from '../api/clientes'
+import { listarPagamentosVenda } from '../api/pagamentos'
 import { buscarVenda, cancelarVenda, pagarVenda } from '../api/vendas'
 import { useAuth } from '../auth/AuthContext'
 import { usePollVendaStatus, useUnauthorizedHandler } from '../hooks'
-import type { PagarVendaRequest } from '../types/pagamento'
+import type { PagamentoVenda, PagarVendaRequest } from '../types/pagamento'
 import type { CancelarVendaRequest, Venda } from '../types/venda'
 import {
   formatDataHoraVenda,
@@ -52,15 +54,37 @@ export function VendaDetalhePage() {
     null,
   )
   const [modalCancelarAberto, setModalCancelarAberto] = useState(false)
+  const [pagamentos, setPagamentos] = useState<PagamentoVenda[]>([])
+  const [pagamentosLoading, setPagamentosLoading] = useState(false)
 
-  const handleVendaAtualizadaPoll = useCallback((atualizada: Venda) => {
-    setVenda(atualizada)
-    if (atualizada.status !== 'PENDENTE') {
-      setAguardandoExterno(null)
-      setModalPagamentoAberto(false)
-      setModalPagamentoError(null)
-    }
-  }, [])
+  const recarregarPagamentos = useCallback(
+    async (vendaId: number) => {
+      if (!session) return
+      setPagamentosLoading(true)
+      try {
+        const lista = await listarPagamentosVenda(session.token, vendaId)
+        setPagamentos(lista)
+      } catch {
+        setPagamentos([])
+      } finally {
+        setPagamentosLoading(false)
+      }
+    },
+    [session],
+  )
+
+  const handleVendaAtualizadaPoll = useCallback(
+    (atualizada: Venda) => {
+      setVenda(atualizada)
+      void recarregarPagamentos(atualizada.id)
+      if (atualizada.status !== 'PENDENTE') {
+        setAguardandoExterno(null)
+        setModalPagamentoAberto(false)
+        setModalPagamentoError(null)
+      }
+    },
+    [recarregarPagamentos],
+  )
 
   const { atualizar: atualizarStatusVenda, atualizando: atualizandoStatusVenda } =
     usePollVendaStatus(
@@ -92,6 +116,7 @@ export function VendaDetalhePage() {
     try {
       const data = await buscarVenda(session.token, id)
       setVenda(data)
+      await recarregarPagamentos(data.id)
 
       if (data.clienteId != null) {
         try {
@@ -109,7 +134,7 @@ export function VendaDetalhePage() {
     } finally {
       setLoading(false)
     }
-  }, [session, id, handleUnauthorized])
+  }, [session, id, handleUnauthorized, recarregarPagamentos])
 
   useEffect(() => {
     void load()
@@ -153,6 +178,7 @@ export function VendaDetalhePage() {
     try {
       const atualizada = await pagarVenda(session.token, venda.id, pagamento)
       setVenda(atualizada)
+      await recarregarPagamentos(atualizada.id)
       if (atualizada.status === 'PENDENTE') {
         const ok = await entrarModoAguardando(atualizada.id)
         if (!ok) {
@@ -294,6 +320,8 @@ export function VendaDetalhePage() {
               </table>
             </div>
           </section>
+
+          <PagamentosVendaSection pagamentos={pagamentos} loading={pagamentosLoading} />
 
           {vendaPodePagar(venda) && (
             <div className={styles.actionRow}>

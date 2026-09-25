@@ -156,7 +156,7 @@ class VendaServiceTest {
 
         when(vendaRepository.findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable))).thenReturn(paginaMock);
 
-        Page<Venda> resultado = vendaService.listar(pageable, StatusVenda.PAGA, 20L, inicio, fim);
+        Page<Venda> resultado = vendaService.listar(pageable, StatusVenda.PAGA, null, 20L, inicio, fim);
 
         assertEquals(1, resultado.getTotalElements());
         verify(vendaRepository).findAll(ArgumentMatchers.<Specification<Venda>>any(), eq(pageable));
@@ -169,7 +169,7 @@ class VendaServiceTest {
         LocalDateTime inicio = LocalDateTime.of(2026, 7, 10, 0, 0);
         LocalDateTime fim = LocalDateTime.of(2026, 7, 1, 0, 0);
 
-        assertThrows(BusinessException.class, () -> vendaService.listar(pageable, null, null, inicio, fim));
+        assertThrows(BusinessException.class, () -> vendaService.listar(pageable, null, null, null, inicio, fim));
     }
 
     @Test

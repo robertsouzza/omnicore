@@ -6,6 +6,7 @@ export interface ListarVendasParams {
   page?: number
   size?: number
   status?: StatusVenda
+  vendedorId?: number
   clienteId?: number
   dataInicio?: string
   dataFim?: string
@@ -20,6 +21,9 @@ export function listarVendas(
   search.set('size', String(params.size ?? 20))
   if (params.status) {
     search.set('status', params.status)
+  }
+  if (params.vendedorId != null) {
+    search.set('vendedorId', String(params.vendedorId))
   }
   if (params.clienteId != null) {
     search.set('clienteId', String(params.clienteId))
