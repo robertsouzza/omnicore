@@ -672,10 +672,109 @@ Documentação: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md). Código:
 
 ## Próximo passo acordado
 
-1. **Validação manual RBAC** — restante dos perfis (caixa, conferente) + fluxos de venda/PDV.
+1. **Validação manual RBAC** (prioridade amanhã) — checklist abaixo.
 2. **14-B/C** — adapters **Stone + Getnet** (Pix QR tela + maquininha) — credencial sandbox Roberto.
-2. **14-D** — fiscal/conciliação conforme prioridade loja.
-3. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
+3. **14-D** — fiscal/conciliação conforme prioridade loja.
+4. **Fase 15** — E-commerce B2C (`@.cursor/ECOMMERCE-B2C-PLANEJAMENTO.md`) — **último módulo**.
+
+---
+
+## Continuação — sessão 26/set/2026 (Roberto + Logan)
+
+### O que já está feito e no Git (`main`)
+
+| Commit | Entrega |
+|--------|---------|
+| `c111ae6` | Caixa ops: parcelas crédito, pagamentos no detalhe, filtros vendedor/período em vendas |
+| `40cdef0` | RBAC API + FE (menu/rotas/403) |
+| `7848e8a` | **Equipe gerente:** `/equipe` CRUD colaboradores + `/equipe/permissoes` matriz |
+| `dab2e4b` | Docs: hash Equipe no contexto |
+
+**Último push:** `origin/main` em **25/set/2026** (noite).
+
+### Validado hoje no browser (25/set)
+
+| Perfil | Login | Status |
+|--------|-------|--------|
+| **GERENTE** | `ana.gerente@omnicore.local` | ✅ menu completo + **Equipe** (lista, permissões) |
+| **VENDEDOR** | `carlos.vendedor@omnicore.local` | ✅ menu restrito (sem Caixa) |
+| **VENDEDOR** | `rcsouzza@gmail.com` (Roberto Castro — criado pela Ana) | ✅ produtos somente consulta, menu vendedor |
+| **CONFERENTE** | `conferente@omnicore.local` | ✅ produtos + estoque (Paulo) — login OK após seed |
+| **CAIXA** | `caixa@omnicore.local` | ✅ Marina — login OK após seed; **fluxos caixa/PDV não passaram checklist completo** |
+
+Senha dev comum: **`senha123`**.
+
+### Subir ambiente (amanhã)
+
+```bash
+# 1) Postgres (se ainda não estiver up)
+cd ~/omnicore && docker compose up -d
+
+# 2) API
+cd ~/omnicore/cerebro-backend && ./mvnw spring-boot:run
+
+# 3) Frontend
+cd ~/omnicore/frontend-app && npm run dev
+# → http://localhost:5173
+```
+
+**Se caixa/conferente der “e-mail ou senha inválidos”:** usuários não existem no banco — rodar seed (não precisa reiniciar Docker):
+
+```bash
+TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"ana.gerente@omnicore.local","senha":"senha123"}' \
+  | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+TOKEN="$TOKEN" ~/omnicore/cerebro-backend/scripts/seed-perfis-dev.sh
+```
+
+### Checklist RBAC — amanhã (≈ 45–60 min)
+
+Referência: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md).
+
+**Marina — CAIXA** (`caixa@omnicore.local`)
+
+- [ ] Menu: **Caixa**, PDV, Clientes, Produtos/Estoque leitura — **sem** Salão, **sem** Vendas (rota `/vendas` bloqueada no FE).
+- [ ] `/caixa`: fila só vendas **PENDENTE**; pagar (dinheiro/Pix/cartão) + QR se aplicável.
+- [ ] `/pdv`: checkout bip; atalhos teclado se quiser smoke test.
+- [ ] Tentar URL direta `/vendas` ou `/salao` → redirecionamento ou tela sem acesso.
+
+**Paulo — CONFERENTE** (`conferente@omnicore.local`)
+
+- [ ] Menu: só **Produtos** + **Estoque**.
+- [ ] Produtos: **+ Novo**, editar, kit; upload imagem se quiser.
+- [ ] Estoque: entrada/saída manual em produto unitário.
+- [ ] Tentar `/clientes`, `/vendas`, `/caixa` → bloqueado no FE; opcional: Swagger/API com token conferente → **403**.
+
+**Carlos ou Roberto — VENDEDOR**
+
+- [ ] Salão + vendas **próprias** (listagem sem filtro vendedor; Ana vê filtro vendedor).
+- [ ] Nova venda / PDV; **sem** menu Caixa.
+- [ ] Produtos: **somente consulta** (coluna ações).
+
+**Ana — GERENTE**
+
+- [ ] **Equipe:** editar perfil de alguém, inativar (não a si mesma), **+ Novo colaborador**.
+- [ ] **Modelos de permissão:** aplicar modelo + salvar perfil (colaborador reloga).
+- [ ] Vendas: filtro por vendedor + período.
+
+Anotar qualquer divergência (menu vs API) para corrigir antes de **14-B/C**.
+
+### Depois do checklist — roadmap
+
+1. **14-B/C** Stone/Getnet sandbox (`@.cursor/MULTI-PSP-ADAPTERS.md` se existir; simulador `:9090` já integrado).
+2. Débito opcional (não bloqueia): permissões **módulo a módulo** editáveis no banco (hoje = troca de **perfil** na Equipe).
+
+### Mensagem para colar no chat (amanhã)
+
+```
+@.cursor/CONTEXTO-OMNICORE.md
+
+Olá Logan, continuamos o OmniCore.
+Leia a seção "Continuação — sessão 26/set/2026" no CONTEXTO.
+Hoje: checklist RBAC caixa + conferente (Marina/Paulo); depois 14-B/C se checklist OK.
+Git main @ dab2e4b. Não commitar docker-compose.yml.
+```
 
 ---
 
@@ -694,12 +793,8 @@ Formato JSONL (uma linha JSON por evento). Não é amigável para ler manualment
 
 ## Mensagem modelo para chat novo
 
-```
-Olá Logan, leia @.cursor/CONTEXTO-OMNICORE.md e vamos continuar o OmniCore.
-Próximo: simulador em ~/omnicore-pagamento-simulador/ (skill pronta, porta 9090).
-Workspace: ~/omnicore/. Não commitar docker-compose.yml.
-```
+Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 
 ---
 
-*Última atualização: 25/set/2026 — Equipe gerente (CRUD + permissões FE); RBAC `40cdef0`; próximo: caixa/conferente → 14-B/C.*
+*Última atualização: 25/set/2026 (noite) — sessão encerrada; continuação documentada para 26/set. Git `dab2e4b`.*
