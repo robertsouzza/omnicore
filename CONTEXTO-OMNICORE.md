@@ -14,7 +14,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 Olá Logan, continuamos o OmniCore.
 Leia a seção "Continuação — sessão 26/set/2026" no CONTEXTO.
 Hoje: checklist RBAC caixa + conferente (Marina/Paulo); depois 14-B/C se checklist OK.
-Git main @ dab2e4b. Não commitar docker-compose.yml.
+Git main @ 3657c7c. Não commitar docker-compose.yml.
 ```
 
 A regra persistente do Agent fica em `.cursor/rules/omnicore-projeto.mdc`.

@@ -690,7 +690,7 @@ Documentação: [`.cursor/PERMISSOES-PERFIL.md`](PERMISSOES-PERFIL.md). Código:
 | `7848e8a` | **Equipe gerente:** `/equipe` CRUD colaboradores + `/equipe/permissoes` matriz |
 | `dab2e4b` | Docs: hash Equipe no contexto |
 
-**Último push:** `origin/main` em **25/set/2026** (noite).
+**Último push:** `origin/main` @ **`3657c7c`** (25/set/2026, noite).
 
 ### Validado hoje no browser (25/set)
 
@@ -773,7 +773,7 @@ Anotar qualquer divergência (menu vs API) para corrigir antes de **14-B/C**.
 Olá Logan, continuamos o OmniCore.
 Leia a seção "Continuação — sessão 26/set/2026" no CONTEXTO.
 Hoje: checklist RBAC caixa + conferente (Marina/Paulo); depois 14-B/C se checklist OK.
-Git main @ dab2e4b. Não commitar docker-compose.yml.
+Git main @ 3657c7c. Não commitar docker-compose.yml.
 ```
 
 ---
@@ -797,4 +797,4 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 
 ---
 
-*Última atualização: 25/set/2026 (noite) — sessão encerrada; continuação documentada para 26/set. Git `dab2e4b`.*
+*Última atualização: 25/set/2026 (noite) — sessão encerrada; continuação documentada para 26/set. Git `3657c7c`.*
