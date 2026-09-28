@@ -803,4 +803,4 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 - **Fix edição produto (gerente/conferente):** não apagar QR/barcode no PUT quando campos omitidos; form não zera QR ao mudar preço/nome; `urlImagem` max 255; Tomcat post 10MB.
 - **Próximo:** checklist RBAC Marina/Paulo (seção 26/set); depois 14-B/C.
 
-*Última atualização: 28/set/2026 — Git `e5e2f58`.*
+*Última atualização: 28/set/2026 — Git `ab642e7`.*
