@@ -36,6 +36,14 @@ public class ProdutoService {
         ColaboradorAutorizacao.exigirEditarCatalogo(null);
         Produto produtoExistente = buscarPorId(id);
 
+        produtoRepository.findByCodigoBarras(dadosAtualizados.getCodigoBarras()).ifPresent(outro -> {
+            if (!outro.getId().equals(id)) {
+                throw new BusinessException(
+                        "Já existe um produto cadastrado com o código de barras: "
+                                + dadosAtualizados.getCodigoBarras());
+            }
+        });
+
         // Atualiza os campos permitidos (mantendo o ID original e a data de criação)
         produtoExistente.setCodigoBarras(dadosAtualizados.getCodigoBarras());
         produtoExistente.setNome(dadosAtualizados.getNome());
@@ -43,8 +51,8 @@ public class ProdutoService {
         produtoExistente.setPrecoVenda(dadosAtualizados.getPrecoVenda());
         produtoExistente.setCategoria(dadosAtualizados.getCategoria());
         produtoExistente.setUrlImagem(dadosAtualizados.getUrlImagem());
-        produtoExistente.setImagemCodigoBarras(dadosAtualizados.getImagemCodigoBarras());
-        produtoExistente.setImagemQrCode(dadosAtualizados.getImagemQrCode());
+        aplicarImagemSeInformada(dadosAtualizados.getImagemCodigoBarras(), produtoExistente::setImagemCodigoBarras);
+        aplicarImagemSeInformada(dadosAtualizados.getImagemQrCode(), produtoExistente::setImagemQrCode);
         produtoExistente.setTipoProduto(dadosAtualizados.getTipoProduto());
         produtoExistente.setIndicadorTamanho(dadosAtualizados.getIndicadorTamanho());
 
@@ -129,6 +137,13 @@ public class ProdutoService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    /** Evita apagar PNG persistido quando o front envia null (ex.: QR gerado mas limpo no form). */
+    private void aplicarImagemSeInformada(String dataUrl, java.util.function.Consumer<String> setter) {
+        if (dataUrl != null && !dataUrl.isBlank()) {
+            setter.accept(dataUrl);
+        }
     }
 
     @Transactional(readOnly = true)

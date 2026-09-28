@@ -7,6 +7,7 @@ import { useDebouncedSearch, useProdutoSaldos, useQueryUnauthorized } from '../h
 import {
   getInativarProdutoErrorMessage,
   getProdutosQueryErrorMessage,
+  PRODUTOS_LIST_REFETCH_MS,
   useInativarProdutoMutation,
   useProdutosListQuery,
 } from '../queries/produtos'
@@ -255,7 +256,7 @@ export function ProdutosPage() {
   )
   const { saldoFor } = useProdutoSaldos(unitarioIds, {
     comIndicador: true,
-    refetchIntervalMs: 4000,
+    refetchIntervalMs: PRODUTOS_LIST_REFETCH_MS,
   })
 
   function estoqueCell(produto: Produto) {
@@ -278,8 +279,8 @@ export function ProdutosPage() {
         <div className={styles.headerActions}>
           {page && (
             <span className={styles.count}>
-              {page.totalElements} {page.totalElements === 1 ? 'item' : 'itens'} · atualiza a
-              cada 4s
+              {page.totalElements} {page.totalElements === 1 ? 'item' : 'itens'} · catálogo e
+              estoque a cada {PRODUTOS_LIST_REFETCH_MS / 1000}s
             </span>
           )}
           {podeEditar && (

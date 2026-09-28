@@ -12,7 +12,7 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, continuamos o OmniCore.
-Leia a seção "Continuação — sessão 26/set/2026" no CONTEXTO.
+Leia "Continuação — sessão 26/set/2026" e "Sessão 28/set/2026" no CONTEXTO.
 Hoje: checklist RBAC caixa + conferente (Marina/Paulo); depois 14-B/C se checklist OK.
 Git main @ 3657c7c. Não commitar docker-compose.yml.
 ```

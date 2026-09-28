@@ -26,4 +26,18 @@ public interface ReservaEstoqueRepository extends JpaRepository<ReservaEstoque, 
         return somarQuantidadeReservadaAtiva(produtoId, StatusReservaEstoque.ATIVA);
     }
 
+    @Query("""
+            SELECT r.produto.id AS produtoId, COALESCE(SUM(r.quantidade), 0) AS total
+            FROM ReservaEstoque r
+            WHERE r.produto.id IN :produtoIds
+              AND r.status = :status
+            GROUP BY r.produto.id
+            """)
+    List<ProdutoSaldoAggProjection> somarReservasAtivasPorProdutoIds(@Param("produtoIds") List<Long> produtoIds,
+                                                                      @Param("status") StatusReservaEstoque status);
+
+    default List<ProdutoSaldoAggProjection> somarReservasAtivasPorProdutoIds(List<Long> produtoIds) {
+        return somarReservasAtivasPorProdutoIds(produtoIds, StatusReservaEstoque.ATIVA);
+    }
+
 }

@@ -31,6 +31,7 @@ public record ProdutoRequestDTO(
     @Size(max = 50, message = "A categoria deve ter no máximo 50 caracteres.")
     String categoria,
 
+    @Size(max = 255, message = "A URL da imagem deve ter no máximo 255 caracteres.")
     String urlImagem,
 
     @Size(max = 524_288, message = "A imagem do código de barras excede o tamanho máximo permitido.")

@@ -12,10 +12,14 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueRequestDTO;
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorItemDTO;
 import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.service.EstoqueService;
 
@@ -51,6 +55,15 @@ public class EstoqueController {
     public ResponseEntity<Integer> obterSaldo(@PathVariable Long produtoId) {
         Integer saldo = estoqueService.consultarSaldo(produtoId);
         return ResponseEntity.ok(saldo);
+    }
+
+    @GetMapping("/saldos/indicador")
+    @Operation(
+            summary = "Consultar saldos com referência em lote",
+            description = "Uma requisição para vários produtos (máx. 100 ids). Mesma regra do indicador individual."
+    )
+    public ResponseEntity<List<SaldoIndicadorItemDTO>> obterSaldosIndicador(@RequestParam("ids") List<Long> ids) {
+        return ResponseEntity.ok(estoqueService.consultarSaldoIndicadorLote(ids));
     }
 
     @GetMapping("/saldo/{produtoId}/indicador")

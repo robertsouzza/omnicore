@@ -4,6 +4,7 @@ import type {
   MovimentacaoEstoqueRequest,
   Page,
   SaldoIndicador,
+  SaldoIndicadorLoteItem,
 } from '../types/estoque'
 
 export interface ListarHistoricoParams {
@@ -39,6 +40,20 @@ export function obterSaldo(token: string, produtoId: number): Promise<number> {
 
 export function obterSaldoIndicador(token: string, produtoId: number): Promise<SaldoIndicador> {
   return apiFetch<SaldoIndicador>(`/api/estoque/saldo/${produtoId}/indicador`, {}, token)
+}
+
+export function obterSaldosIndicadorLote(
+  token: string,
+  produtoIds: number[],
+): Promise<SaldoIndicadorLoteItem[]> {
+  if (produtoIds.length === 0) {
+    return Promise.resolve([])
+  }
+  const search = new URLSearchParams()
+  for (const id of produtoIds) {
+    search.append('ids', String(id))
+  }
+  return apiFetch<SaldoIndicadorLoteItem[]>(`/api/estoque/saldos/indicador?${search}`, {}, token)
 }
 
 export function listarHistorico(

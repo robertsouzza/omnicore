@@ -3,6 +3,8 @@ server:
   tomcat:
     threads:
       max: 200 # Limite do Tomcat, mas que rodará leve com Virtual Threads
+    max-http-form-post-size: 10MB
+    max-swallow-size: 10MB
 
 spring:
   application:

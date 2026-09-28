@@ -24,3 +24,7 @@ export interface SaldoIndicador {
   saldo: number
   referencia: number
 }
+
+export interface SaldoIndicadorLoteItem extends SaldoIndicador {
+  produtoId: number
+}

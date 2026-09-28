@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { obterSaldo, obterSaldoIndicador } from '../api/estoque'
+import { obterSaldo, obterSaldoIndicador, obterSaldosIndicadorLote } from '../api/estoque'
 import { useAuth } from '../auth/AuthContext'
 import { useUnauthorizedHandler } from './useUnauthorizedHandler'
 
@@ -38,31 +38,81 @@ export function useProdutoSaldos(produtoIds: number[], options: UseProdutoSaldos
         })
       }
 
-      await Promise.all(
-        produtoIds.map(async (id) => {
-          try {
-            if (comIndicador) {
-              const indicador = await obterSaldoIndicador(session.token, id)
-              setSaldos((prev) => ({
-                ...prev,
-                [id]: {
-                  state: 'loaded',
-                  saldo: indicador.saldo,
-                  referencia: indicador.referencia,
-                },
-              }))
-            } else {
-              const saldo = await obterSaldo(session.token, id)
-              setSaldos((prev) => ({ ...prev, [id]: { state: 'loaded', saldo } }))
-            }
-          } catch (err) {
-            if (handleUnauthorized(err)) return
-            if (!silent) {
-              setSaldos((prev) => ({ ...prev, [id]: { state: 'error' } }))
+      const aplicarIndicadores = (itens: { produtoId: number; saldo: number; referencia: number }[]) => {
+        const porId = new Map(itens.map((item) => [item.produtoId, item]))
+        setSaldos((prev) => {
+          const next = { ...prev }
+          for (const id of produtoIds) {
+            const item = porId.get(id)
+            if (item) {
+              next[id] = {
+                state: 'loaded',
+                saldo: item.saldo,
+                referencia: item.referencia,
+              }
+            } else if (!silent) {
+              next[id] = { state: 'error' }
             }
           }
-        }),
-      )
+          return next
+        })
+      }
+
+      try {
+        if (comIndicador) {
+          try {
+            const itens = await obterSaldosIndicadorLote(session.token, produtoIds)
+            aplicarIndicadores(itens)
+          } catch (batchErr) {
+            if (handleUnauthorized(batchErr)) return
+            await Promise.all(
+              produtoIds.map(async (id) => {
+                try {
+                  const indicador = await obterSaldoIndicador(session.token, id)
+                  setSaldos((prev) => ({
+                    ...prev,
+                    [id]: {
+                      state: 'loaded',
+                      saldo: indicador.saldo,
+                      referencia: indicador.referencia,
+                    },
+                  }))
+                } catch (err) {
+                  if (handleUnauthorized(err)) return
+                  if (!silent) {
+                    setSaldos((prev) => ({ ...prev, [id]: { state: 'error' } }))
+                  }
+                }
+              }),
+            )
+          }
+        } else {
+          await Promise.all(
+            produtoIds.map(async (id) => {
+              try {
+                const saldo = await obterSaldo(session.token, id)
+                setSaldos((prev) => ({ ...prev, [id]: { state: 'loaded', saldo } }))
+              } catch (err) {
+                if (handleUnauthorized(err)) return
+                if (!silent) {
+                  setSaldos((prev) => ({ ...prev, [id]: { state: 'error' } }))
+                }
+              }
+            }),
+          )
+        }
+      } catch (err) {
+        if (handleUnauthorized(err)) return
+        if (!silent) {
+          setSaldos((prev) => {
+            const next = { ...prev }
+            for (const id of produtoIds) {
+              next[id] = { state: 'error' }
+            }
+            return next
+          })
+        }
+      }
     },
     [session, produtoIds, comIndicador, handleUnauthorized],
   )

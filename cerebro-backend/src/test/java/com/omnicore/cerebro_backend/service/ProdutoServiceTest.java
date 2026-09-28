@@ -166,6 +166,45 @@ public class ProdutoServiceTest {
     }
 
     @Test
+    @DisplayName("Atualizar produto preserva QR/código de barras quando payload envia null")
+    void devePreservarImagensCodigosQuandoNaoInformadasNoUpdate() {
+        Long id = 14L;
+        Produto existente = Produto.builder()
+                .id(id)
+                .codigoBarras("7899876543213")
+                .nome("Amaciante")
+                .precoVenda(new java.math.BigDecimal("10.50"))
+                .categoria("Limpeza")
+                .tipoProduto(com.omnicore.cerebro_backend.enums.TipoProduto.UNITARIO)
+                .indicadorTamanho(com.omnicore.cerebro_backend.enums.IndicadorTamanho.PEQUENO)
+                .ativo(true)
+                .imagemCodigoBarras("data:image/png;base64,barcode")
+                .imagemQrCode("data:image/png;base64,qr")
+                .build();
+
+        Produto dados = Produto.builder()
+                .codigoBarras("7899876543213")
+                .nome("Amaciante Atualizado")
+                .precoVenda(new java.math.BigDecimal("11.00"))
+                .categoria("Limpeza")
+                .tipoProduto(com.omnicore.cerebro_backend.enums.TipoProduto.UNITARIO)
+                .indicadorTamanho(com.omnicore.cerebro_backend.enums.IndicadorTamanho.PEQUENO)
+                .imagemCodigoBarras(null)
+                .imagemQrCode(null)
+                .build();
+
+        when(produtoRepository.findById(id)).thenReturn(Optional.of(existente));
+        when(produtoRepository.findByCodigoBarras("7899876543213")).thenReturn(Optional.of(existente));
+        when(produtoRepository.save(any(Produto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        Produto salvo = produtoService.atualizar(id, dados);
+
+        assertEquals("Amaciante Atualizado", salvo.getNome());
+        assertEquals("data:image/png;base64,barcode", salvo.getImagemCodigoBarras());
+        assertEquals("data:image/png;base64,qr", salvo.getImagemQrCode());
+    }
+
+    @Test
     @DisplayName("Deve lançar exceção ao tentar inativar um produto que já está inativo")
     void deveLancarExcecaoQuandoProdutoJaEstiverInativo() {
         // Arrange

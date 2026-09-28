@@ -1,6 +1,8 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { type FormEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { atualizarProduto, buscarProduto, buscarProdutoCodigos, criarProduto } from '../api/produtos'
+import { queryKeys } from '../lib/queryKeys'
 import { ComposicaoPacoteSection } from '../components/ComposicaoPacoteSection'
 import { ProdutoCodigosSection } from '../components/ProdutoCodigosSection'
 import { ProdutoImagemSection } from '../components/ProdutoImagemSection'
@@ -43,12 +45,22 @@ const INITIAL_FORM: FormState = {
   indicadorTamanho: 'MEDIO',
 }
 
-function toRequest(form: FormState): ProdutoRequest {
+function parsePrecoVenda(value: string): number | null {
+  const normalized = value.trim().replace(',', '.')
+  if (!normalized) return null
+  const n = Number(normalized)
+  return Number.isFinite(n) ? n : null
+}
+
+function toRequest(form: FormState): ProdutoRequest | null {
+  const precoVenda = parsePrecoVenda(form.precoVenda)
+  if (precoVenda == null) return null
+
   return {
     codigoBarras: onlyDigits(form.codigoBarras),
     nome: form.nome.trim(),
     descricao: form.descricao.trim() || null,
-    precoVenda: Number(form.precoVenda),
+    precoVenda,
     categoria: form.categoria.trim(),
     urlImagem: form.urlImagem.trim() || null,
     imagemCodigoBarras: form.imagemCodigoBarras.trim() || null,
@@ -89,6 +101,7 @@ export function ProdutoFormPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { session } = useAuth()
+  const queryClient = useQueryClient()
   const isEditing = Boolean(id)
   const handleUnauthorized = useUnauthorizedHandler()
 
@@ -122,15 +135,6 @@ export function ProdutoFormPage() {
       if (key === 'codigoBarras' && value !== current.codigoBarras) {
         next.imagemCodigoBarras = ''
         next.imagemQrCode = ''
-      } else if (
-        key !== 'codigoBarras' &&
-        key !== 'imagemCodigoBarras' &&
-        key !== 'imagemQrCode' &&
-        key !== 'urlImagem' &&
-        key !== 'indicadorTamanho' &&
-        value !== current[key]
-      ) {
-        next.imagemQrCode = ''
       }
       return next
     })
@@ -151,13 +155,20 @@ export function ProdutoFormPage() {
     setSubmitting(true)
 
     const payload = toRequest(form)
+    if (!payload) {
+      setFieldErrors({ precoVenda: 'Informe um preço de venda válido.' })
+      setSubmitting(false)
+      return
+    }
 
     try {
       if (isEditing && id) {
         await atualizarProduto(session.token, Number(id), payload)
+        await queryClient.invalidateQueries({ queryKey: queryKeys.produtos.all })
         navigate('/produtos')
       } else {
         const criado = await criarProduto(session.token, payload)
+        await queryClient.invalidateQueries({ queryKey: queryKeys.produtos.all })
         if (payload.tipoProduto === 'PACOTE') {
           const montarAgora = window.confirm(
             'Você escolheu um produto tipo Pacote.\n\nDeseja montar a composição do kit agora?',

@@ -3,6 +3,9 @@ import { inativarProduto, listarProdutos } from '../api/produtos'
 import { queryKeys, type ProdutosListFilters } from '../lib/queryKeys'
 import { getErrorMessage } from '../utils/validation'
 
+/** Mesmo intervalo de `useProdutoSaldos` — edição/inativação em um terminal reflete nos demais. */
+export const PRODUTOS_LIST_REFETCH_MS = 4000
+
 export function useProdutosListQuery(token: string | undefined, filters: ProdutosListFilters) {
   return useQuery({
     queryKey: queryKeys.produtos.list(filters),
@@ -16,6 +19,8 @@ export function useProdutosListQuery(token: string | undefined, filters: Produto
       })
     },
     enabled: Boolean(token),
+    refetchInterval: PRODUTOS_LIST_REFETCH_MS,
+    refetchIntervalInBackground: false,
   })
 }
 

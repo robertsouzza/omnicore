@@ -52,6 +52,39 @@ public interface MovimentacaoEstoqueRepository extends JpaRepository<Movimentaca
             """, nativeQuery = true)
     Integer getPicoSaldoHistoricoPorProdutoId(@Param("produtoId") Long produtoId);
 
+    @Query("""
+            SELECT m.produto.id AS produtoId,
+                   COALESCE(SUM(CASE WHEN m.tipo = 'ENTRADA' THEN m.quantidade ELSE -m.quantidade END), 0) AS total
+            FROM MovimentacaoEstoque m
+            WHERE m.produto.id IN :produtoIds
+            GROUP BY m.produto.id
+            """)
+    List<ProdutoSaldoAggProjection> getSaldoEstoquePorProdutoIds(@Param("produtoIds") List<Long> produtoIds);
+
+    @Query(value = """
+            WITH mov AS (
+                SELECT produto_id,
+                       CASE WHEN tipo = 'ENTRADA' THEN quantidade ELSE -quantidade END AS delta,
+                       data_hora,
+                       id
+                FROM tb_movimentacao_estoque
+                WHERE produto_id IN (:produtoIds)
+            ),
+            running AS (
+                SELECT produto_id,
+                       SUM(delta) OVER (
+                           PARTITION BY produto_id
+                           ORDER BY data_hora ASC, id ASC
+                           ROWS UNBOUNDED PRECEDING
+                       ) AS saldo
+                FROM mov
+            )
+            SELECT produto_id, COALESCE(MAX(saldo), 0) AS pico
+            FROM running
+            GROUP BY produto_id
+            """, nativeQuery = true)
+    List<Object[]> getPicoSaldoHistoricoPorProdutoIds(@Param("produtoIds") List<Long> produtoIds);
+
     List<MovimentacaoEstoque> findByVendaIdAndTipo(Long vendaId, TipoMovimentacaoEstoque tipo);
 
 }

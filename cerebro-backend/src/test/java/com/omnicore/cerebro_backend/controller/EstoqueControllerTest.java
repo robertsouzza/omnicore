@@ -18,6 +18,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorItemDTO;
 import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.exception.BusinessException;
@@ -135,6 +136,24 @@ public class EstoqueControllerTest {
         mockMvc.perform(get("/api/estoque/saldo/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("45"));
+    }
+
+    @Test
+    @DisplayName("GET /api/estoque/saldos/indicador - Deve retornar lista por ids")
+    void deveRetornarSaldosIndicadorLote() throws Exception {
+        when(estoqueService.consultarSaldoIndicadorLote(List.of(1L, 2L)))
+                .thenReturn(List.of(
+                        new SaldoIndicadorItemDTO(1L, 14, 100),
+                        new SaldoIndicadorItemDTO(2L, 5, 50)));
+
+        mockMvc.perform(get("/api/estoque/saldos/indicador").param("ids", "1", "2"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        [
+                          {"produtoId":1,"saldo":14,"referencia":100},
+                          {"produtoId":2,"saldo":5,"referencia":50}
+                        ]
+                        """));
     }
 
     @Test

@@ -1,6 +1,10 @@
 package com.omnicore.cerebro_backend.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.data.domain.Page;
@@ -10,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueRequestDTO;
 import com.omnicore.cerebro_backend.dto.MovimentacaoEstoqueResponseDTO;
+import com.omnicore.cerebro_backend.dto.SaldoIndicadorItemDTO;
 import com.omnicore.cerebro_backend.dto.SaldoIndicadorResponseDTO;
+import com.omnicore.cerebro_backend.repository.ProdutoSaldoAggProjection;
 import com.omnicore.cerebro_backend.enums.TipoMovimentacaoEstoque;
 import com.omnicore.cerebro_backend.exception.BusinessException;
 import com.omnicore.cerebro_backend.security.ColaboradorAutorizacao;
@@ -22,6 +28,8 @@ import com.omnicore.cerebro_backend.repository.ProdutoRepository;
 @SuppressWarnings("null")
 @Service
 public class EstoqueService {
+
+    private static final int MAX_INDICADOR_LOTE = 100;
 
     private final MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
     private final ProdutoRepository produtoRepository;
@@ -82,6 +90,52 @@ public class EstoqueService {
         int picoHistorico = obterPicoHistorico(produtoId);
         int referencia = Math.max(picoHistorico, saldo);
         return new SaldoIndicadorResponseDTO(saldo, referencia);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SaldoIndicadorItemDTO> consultarSaldoIndicadorLote(List<Long> produtoIds) {
+        if (produtoIds == null || produtoIds.isEmpty()) {
+            return List.of();
+        }
+        List<Long> ids = produtoIds.stream().filter(Objects::nonNull).distinct().toList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        if (ids.size() > MAX_INDICADOR_LOTE) {
+            throw new BusinessException(
+                    "Consulta em lote limitada a " + MAX_INDICADOR_LOTE + " produtos por requisição.");
+        }
+
+        List<Long> existentes = produtoRepository.findAllById(ids).stream().map(Produto::getId).toList();
+        if (existentes.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Integer> saldoFisico = new HashMap<>();
+        for (ProdutoSaldoAggProjection row : movimentacaoEstoqueRepository.getSaldoEstoquePorProdutoIds(existentes)) {
+            long total = row.getTotal() != null ? row.getTotal() : 0L;
+            saldoFisico.put(row.getProdutoId(), (int) total);
+        }
+
+        Map<Long, Integer> reservas = reservaEstoqueService.mapReservasAtivasPorProdutoIds(existentes);
+
+        Map<Long, Integer> picos = new HashMap<>();
+        for (Object[] row : movimentacaoEstoqueRepository.getPicoSaldoHistoricoPorProdutoIds(existentes)) {
+            Long pid = ((Number) row[0]).longValue();
+            int pico = row[1] != null ? ((Number) row[1]).intValue() : 0;
+            picos.put(pid, pico);
+        }
+
+        List<SaldoIndicadorItemDTO> resultado = new ArrayList<>(existentes.size());
+        for (Long produtoId : existentes) {
+            int fisico = saldoFisico.getOrDefault(produtoId, 0);
+            int reservado = reservas.getOrDefault(produtoId, 0);
+            int saldo = fisico - reservado;
+            int picoHistorico = picos.getOrDefault(produtoId, 0);
+            int referencia = Math.max(picoHistorico, saldo);
+            resultado.add(new SaldoIndicadorItemDTO(produtoId, saldo, referencia));
+        }
+        return resultado;
     }
 
     @Transactional(readOnly = true)

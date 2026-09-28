@@ -2,7 +2,9 @@ package com.omnicore.cerebro_backend.service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +18,7 @@ import com.omnicore.cerebro_backend.model.Produto;
 import com.omnicore.cerebro_backend.model.ReservaEstoque;
 import com.omnicore.cerebro_backend.model.Venda;
 import com.omnicore.cerebro_backend.repository.ComposicaoPacoteRepository;
+import com.omnicore.cerebro_backend.repository.ProdutoSaldoAggProjection;
 import com.omnicore.cerebro_backend.repository.ReservaEstoqueRepository;
 
 @Service
@@ -35,6 +38,19 @@ public class ReservaEstoqueService {
     public int obterQuantidadeReservadaAtiva(Long produtoId) {
         Integer reservado = reservaEstoqueRepository.somarQuantidadeReservadaAtiva(produtoId);
         return reservado != null ? reservado : 0;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<Long, Integer> mapReservasAtivasPorProdutoIds(List<Long> produtoIds) {
+        if (produtoIds == null || produtoIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, Integer> map = new HashMap<>();
+        for (ProdutoSaldoAggProjection row : reservaEstoqueRepository.somarReservasAtivasPorProdutoIds(produtoIds)) {
+            long total = row.getTotal() != null ? row.getTotal() : 0L;
+            map.put(row.getProdutoId(), (int) total);
+        }
+        return map;
     }
 
     public int calcularSaldoDisponivel(int saldoFisico, Long produtoId) {

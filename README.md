@@ -159,7 +159,7 @@ Colaboradores — **somente GERENTE** na API; no frontend use **Equipe** (`/equi
 | Autenticação | `/api/auth` | Login JWT |
 | Produtos | `/api/produtos` | CRUD paginado, inativação lógica, busca; `GET /{id}/codigos` (barcode/QR PNG) |
 | Composição (kits) | `/api/produtos/{id}/composicao` | Itens de pacote/combo |
-| Estoque | `/api/estoque` | Entrada, saída, **saldo disponível** (físico − reservas), saldo/indicador (pico histórico), histórico |
+| Estoque | `/api/estoque` | Entrada, saída, **saldo disponível** (físico − reservas), saldo/indicador (pico histórico), **`GET /saldos/indicador?ids=`** (lote, máx. 100), histórico |
 | Clientes | `/api/clientes` | CRUD, busca por documento, busca por `nome`, CEP ViaCEP |
 | Colaboradores | `/api/colaboradores` | CRUD (**GERENTE**), perfis VENDEDOR/CAIXA/CONFERENTE/GERENTE |
 | Vendas | `/api/vendas` | Criar, listar, **pagar** (body opcional com forma), cancelar |
