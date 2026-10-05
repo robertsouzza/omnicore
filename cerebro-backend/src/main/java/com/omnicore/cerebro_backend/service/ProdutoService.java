@@ -14,9 +14,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
-    
-    public ProdutoService(ProdutoRepository produtoRepository) {
+    private final PrecificacaoService precificacaoService;
+
+    public ProdutoService(ProdutoRepository produtoRepository, PrecificacaoService precificacaoService) {
         this.produtoRepository = produtoRepository;
+        this.precificacaoService = precificacaoService;
     }
 
     @Transactional
@@ -28,7 +30,8 @@ public class ProdutoService {
                     throw new BusinessException("Já existe um produto cadastrado com o código de barras: " + produto.getCodigoBarras());
                 });
 
-        return produtoRepository.save(produto);
+        Produto salvo = produtoRepository.save(produto);
+        return enriquecer(salvo);
     }
 
     @Transactional
@@ -49,6 +52,8 @@ public class ProdutoService {
         produtoExistente.setNome(dadosAtualizados.getNome());
         produtoExistente.setDescricao(dadosAtualizados.getDescricao());
         produtoExistente.setPrecoVenda(dadosAtualizados.getPrecoVenda());
+        produtoExistente.setPrecoCusto(dadosAtualizados.getPrecoCusto());
+        produtoExistente.setMargemMinimaPercent(dadosAtualizados.getMargemMinimaPercent());
         produtoExistente.setCategoria(dadosAtualizados.getCategoria());
         produtoExistente.setUrlImagem(dadosAtualizados.getUrlImagem());
         aplicarImagemSeInformada(dadosAtualizados.getImagemCodigoBarras(), produtoExistente::setImagemCodigoBarras);
@@ -57,8 +62,8 @@ public class ProdutoService {
         produtoExistente.setIndicadorTamanho(dadosAtualizados.getIndicadorTamanho());
 
         // O Hibernate fará o update automaticamente ao fechar a transação devido ao estado Managed do objeto
-        return produtoRepository.save(produtoExistente);
-
+        Produto salvo = produtoRepository.save(produtoExistente);
+        return enriquecer(salvo);
     }
 
     @Transactional
@@ -83,11 +88,24 @@ public class ProdutoService {
         String termoCodigo = normalizarCodigoBarrasBusca(codigoBarras);
         boolean apenasAtivos = !incluirInativos;
 
+        Page<Produto> pagina;
         if (termoNome == null && termoCodigo == null) {
             if (apenasAtivos) {
-                return produtoRepository.findByAtivo(true, pageable);
+                pagina = produtoRepository.findByAtivo(true, pageable);
+            } else {
+                pagina = produtoRepository.findAll(pageable);
             }
-            return produtoRepository.findAll(pageable);
+        } else {
+            pagina = listarComFiltros(pageable, termoNome, termoCodigo, apenasAtivos);
+        }
+        pagina.getContent().forEach(precificacaoService::enriquecerIndicadoresPrecificacao);
+        return pagina;
+    }
+
+    private Page<Produto> listarComFiltros(
+            Pageable pageable, String termoNome, String termoCodigo, boolean apenasAtivos) {
+        if (termoNome == null && termoCodigo == null) {
+            return apenasAtivos ? produtoRepository.findByAtivo(true, pageable) : produtoRepository.findAll(pageable);
         }
 
         if (termoNome != null && termoCodigo != null) {
@@ -110,6 +128,11 @@ public class ProdutoService {
             return produtoRepository.findByAtivoAndNomeContainingIgnoreCase(true, termoNome, pageable);
         }
         return produtoRepository.findByNomeContainingIgnoreCase(termoNome, pageable);
+    }
+
+    private Produto enriquecer(Produto produto) {
+        precificacaoService.enriquecerIndicadoresPrecificacao(produto);
+        return produto;
     }
 
     private String normalizarTermoBusca(String value) {
@@ -151,8 +174,9 @@ public class ProdutoService {
         if (id == null) {
             throw new BusinessException("O ID fornecido não pode ser nulo.");
         }
-        return produtoRepository.findById(id)
+        Produto produto = produtoRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("Produto com ID " + id + " não encontrado."));
+        return enriquecer(produto);
     }
 
 }

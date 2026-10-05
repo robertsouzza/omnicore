@@ -202,7 +202,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 | Pagamento / caixa | ✅ `/caixa` modal + `PUT /pagar` com forma; PDV/Nova Venda “Paga” via reserva + pagar | Simulador externo (dev) · **14-B/C/D** |
 | Meios de pagamento | ✅ UI 14-A (DINHEIRO, PIX, CREDITO, DEBITO_BANCARIO) | **14-C** pinpad débito (TEF) |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |
-| Catálogo / precificação / compras | Cadastro enxuto; `precoVenda` livre; estoque via movimentação (entrada manual) | Precificação básica **pós-Sessão 11**; fornecedor + NF-e **Fase 6 / Sessão 13+** |
+| Catálogo / precificação / compras | Cadastro + **custo**, margem (produto/categoria), **preço sugerido** e alerta na listagem/cadastro | Fornecedor + NF-e entrada **Fase 6 / Sessão 13+** |
 | Código barras / QR produto | Gerar PNG + salvar no banco + baixar | **Impressão etiqueta** + QR só EAN = **pós-12.5** (precisa impressora para teste) |
 | Evolução frontend (arquitetura) | hooks ✅ · UI kit ✅ · Query+Vitest ✅ · **PDV ✅** · **14-A pagamento UI** | Simulador + commit |
 | E-commerce B2C (loja web cliente) | ⬜ não implementado | **Fase 15** — ver `ECOMMERCE-B2C-PLANEJAMENTO.md` |

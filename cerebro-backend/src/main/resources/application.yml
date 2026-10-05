@@ -68,3 +68,9 @@ omnicore:
       base-url: ${PAGAMENTO_EXPERIENCE_BASE_URL:http://localhost:9090}
       connect-timeout-ms: 5000
       read-timeout-ms: 30000
+  precificacao:
+    margem-padrao-percent: 30
+    margens-por-categoria:
+      Bebidas: 25
+      Mercearia: 28
+      Limpeza: 35

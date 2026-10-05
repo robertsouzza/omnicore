@@ -538,7 +538,7 @@ PagamentoService → PaymentExperiencePort
 | **Fornecedores** | Produto pode ser comprado de **N fornecedores** (tabela Produto↔Fornecedor: código no fornecedor, preço compra, prazo, preferencial) — **não implementado** |
 | **NF-e de entrada** | Compra gera NF-e → entrada automática no estoque + atualização de custo — módulo **Compras + Fiscal** (Fase 6+) — **não implementado**; hoje simula-se com entrada manual + justificativa |
 | **Multissetorial (PDF)** | Grade Pai/Filho (moda), unidade KG/L + peso decimal (supermercado), marca/garantia (eletro), validade/perecível — evoluções futuras sobre o mesmo catálogo |
-| **Momento sugerido — precificação básica** | **Após Sessão 11** (vendas UI ok): `precoCusto` + margem + sugestão, ainda sem NF-e |
+| **Momento sugerido — precificação básica** | **Após Sessão 11** — ✅ **Etapa 1 (05/out/2026):** `precoCusto`, `margemMinimaPercent` (opc.), margem por categoria em `application.yml`, `precoSugerido` + `alertaMargem` na API/form; ainda sem NF-e |
 | **Momento sugerido — fornecedor + NF-e** | **Fase 6 / Sessão 13+** (Compras + integração fiscal), amarrando estoque e custo na entrada da nota |
 
 **Decisão vigente (Roberto + PDF):** cadastro simples **não bloqueia** Sessão 10; visão multissetorial exige evoluir catálogo + compras + formação de preço **depois** do core operacional (estoque + vendas no frontend).
@@ -808,5 +808,6 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 - **RBAC loja física validado:** gerente, conferente, dois vendedores, caixa — cada perfil só acessa o permitido (menu + API).
 - **Equipe/permissões:** matriz atual é **visual + troca de perfil**; extras editáveis = **planejado** — ver `.cursor/PERMISSOES-PERFIL.md` (seção *perfil + permissões extras*). Implementar **após 14-B/C** ou sessão dedicada.
 - **Próximo foco:** **14-B/C** Stone/Getnet sandbox; simulador `:9090`.
+- **Precificação Etapa 1:** `precoCusto`, margem produto/categoria, `precoSugerido`, `alertaMargem` — entregue 05/out.
 
-*Última atualização: 05/out/2026 — Git `9395237`.*
+*Última atualização: 05/out/2026 — Git `PLACEHOLDER`.*

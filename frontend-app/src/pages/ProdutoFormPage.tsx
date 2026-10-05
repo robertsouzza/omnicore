@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { type FormEvent, useEffect, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { atualizarProduto, buscarProduto, buscarProdutoCodigos, criarProduto } from '../api/produtos'
 import { queryKeys } from '../lib/queryKeys'
@@ -16,14 +16,25 @@ import {
   type TipoProduto,
 } from '../types/produto'
 import { getErrorMessage, getFieldErrors } from '../utils/validation'
+import { calcularPrecoSugerido, precoAbaixoMargem } from '../utils/precificacao'
 import { onlyDigits } from '../utils/strings'
 import styles from './ProdutoFormPage.module.css'
+
+/** Espelha `application.yml` — margem efetiva vem da API ao editar. */
+const MARGEM_PADRAO_PERCENT = 30
+const MARGEM_POR_CATEGORIA: Record<string, number> = {
+  Bebidas: 25,
+  Mercearia: 28,
+  Limpeza: 35,
+}
 
 interface FormState {
   codigoBarras: string
   nome: string
   descricao: string
   precoVenda: string
+  precoCusto: string
+  margemMinimaPercent: string
   categoria: string
   urlImagem: string
   imagemCodigoBarras: string
@@ -37,6 +48,8 @@ const INITIAL_FORM: FormState = {
   nome: '',
   descricao: '',
   precoVenda: '',
+  precoCusto: '',
+  margemMinimaPercent: '',
   categoria: '',
   urlImagem: '',
   imagemCodigoBarras: '',
@@ -52,15 +65,36 @@ function parsePrecoVenda(value: string): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+function parseMargemPercent(value: string): number | null {
+  const trimmed = value.trim()
+  if (!trimmed) return null
+  const n = Number.parseInt(trimmed, 10)
+  if (!Number.isFinite(n) || n < 0 || n > 99) return null
+  return n
+}
+
+function margemEfetivaPreview(categoria: string, margemProduto: string): number {
+  const custom = parseMargemPercent(margemProduto)
+  if (custom != null) return custom
+  const cat = categoria.trim()
+  if (cat && MARGEM_POR_CATEGORIA[cat] != null) return MARGEM_POR_CATEGORIA[cat]
+  return MARGEM_PADRAO_PERCENT
+}
+
 function toRequest(form: FormState): ProdutoRequest | null {
   const precoVenda = parsePrecoVenda(form.precoVenda)
   if (precoVenda == null) return null
+
+  const precoCustoRaw = parsePrecoVenda(form.precoCusto)
+  const margemRaw = parseMargemPercent(form.margemMinimaPercent)
 
   return {
     codigoBarras: onlyDigits(form.codigoBarras),
     nome: form.nome.trim(),
     descricao: form.descricao.trim() || null,
     precoVenda,
+    precoCusto: precoCustoRaw,
+    margemMinimaPercent: margemRaw,
     categoria: form.categoria.trim(),
     urlImagem: form.urlImagem.trim() || null,
     imagemCodigoBarras: form.imagemCodigoBarras.trim() || null,
@@ -76,6 +110,8 @@ function fromProduto(
     nome: string
     descricao: string | null
     precoVenda: number
+    precoCusto?: number | null
+    margemMinimaPercent?: number | null
     categoria: string
     urlImagem: string | null
     tipoProduto: TipoProduto
@@ -88,6 +124,9 @@ function fromProduto(
     nome: produto.nome,
     descricao: produto.descricao ?? '',
     precoVenda: String(produto.precoVenda),
+    precoCusto: produto.precoCusto != null ? String(produto.precoCusto) : '',
+    margemMinimaPercent:
+      produto.margemMinimaPercent != null ? String(produto.margemMinimaPercent) : '',
     categoria: produto.categoria,
     urlImagem: produto.urlImagem ?? '',
     imagemCodigoBarras: codigos?.imagemCodigoBarras ?? '',
@@ -110,6 +149,23 @@ export function ProdutoFormPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(isEditing)
   const [submitting, setSubmitting] = useState(false)
+
+  const margemPreview = useMemo(
+    () => margemEfetivaPreview(form.categoria, form.margemMinimaPercent),
+    [form.categoria, form.margemMinimaPercent],
+  )
+
+  const precoSugeridoPreview = useMemo(() => {
+    const custo = parsePrecoVenda(form.precoCusto)
+    if (custo == null) return null
+    return calcularPrecoSugerido(custo, margemPreview)
+  }, [form.precoCusto, margemPreview])
+
+  const alertaMargemPreview = useMemo(() => {
+    const venda = parsePrecoVenda(form.precoVenda)
+    if (venda == null) return false
+    return precoAbaixoMargem(venda, precoSugeridoPreview)
+  }, [form.precoVenda, precoSugeridoPreview])
 
   useEffect(() => {
     if (!isEditing || !session || !id) return
@@ -153,6 +209,12 @@ export function ProdutoFormPage() {
     setError(null)
     setFieldErrors({})
     setSubmitting(true)
+
+    if (form.margemMinimaPercent.trim() && parseMargemPercent(form.margemMinimaPercent) == null) {
+      setFieldErrors({ margemMinimaPercent: 'Informe uma margem entre 0 e 99.' })
+      setSubmitting(false)
+      return
+    }
 
     const payload = toRequest(form)
     if (!payload) {
@@ -271,6 +333,72 @@ export function ProdutoFormPage() {
               <span className={styles.fieldError}>{fieldErrors.precoVenda}</span>
             )}
           </label>
+
+          <div className={styles.precificacaoPanel}>
+            <h2 className={styles.precificacaoTitle}>Formação de preço (custo + margem)</h2>
+            <p className={styles.margemHint}>
+              Custo manual por enquanto (compras/NF-e depois). Margem vazia usa a categoria (
+              {MARGEM_PADRAO_PERCENT}% padrão; Bebidas 25%, Mercearia 28%, Limpeza 35%).
+            </p>
+            <div className={styles.precificacaoGrid}>
+              <label className={styles.label}>
+                Preço de custo (R$)
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className={fieldErrors.precoCusto ? styles.inputError : styles.input}
+                  value={form.precoCusto}
+                  onChange={(e) => updateField('precoCusto', e.target.value)}
+                  disabled={submitting}
+                  placeholder="Opcional"
+                />
+              </label>
+              <label className={styles.label}>
+                Margem mínima (%)
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  max="99"
+                  className={fieldErrors.margemMinimaPercent ? styles.inputError : styles.input}
+                  value={form.margemMinimaPercent}
+                  onChange={(e) => updateField('margemMinimaPercent', e.target.value)}
+                  disabled={submitting}
+                  placeholder={`Padrão ${margemPreview}%`}
+                />
+                {fieldErrors.margemMinimaPercent && (
+                  <span className={styles.fieldError}>{fieldErrors.margemMinimaPercent}</span>
+                )}
+              </label>
+              <label className={styles.label}>
+                Preço sugerido (R$)
+                <input
+                  className={styles.input}
+                  value={
+                    precoSugeridoPreview != null
+                      ? precoSugeridoPreview.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })
+                      : '—'
+                  }
+                  readOnly
+                  disabled
+                  aria-readonly
+                />
+              </label>
+            </div>
+            {alertaMargemPreview && precoSugeridoPreview != null && (
+              <p className={styles.alertaMargem} role="status">
+                O preço de venda está abaixo do sugerido ({precoSugeridoPreview.toLocaleString('pt-BR', {
+                  style: 'currency',
+                  currency: 'BRL',
+                })}
+                ). Você pode salvar mesmo assim — o gerente/conferente decide.
+              </p>
+            )}
+          </div>
 
           <label className={styles.label}>
             Categoria *

@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import com.omnicore.cerebro_backend.enums.IndicadorTamanho;
 import com.omnicore.cerebro_backend.enums.TipoProduto;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -26,6 +28,13 @@ public record ProdutoRequestDTO(
     @NotNull(message = "O preço de venda é obrigatório.")
     @PositiveOrZero(message = "O preço de venda não pode ser negativo.")
     BigDecimal precoVenda,
+
+    @PositiveOrZero(message = "O preço de custo não pode ser negativo.")
+    BigDecimal precoCusto,
+
+    @Min(value = 0, message = "A margem mínima deve ser entre 0 e 99%.")
+    @Max(value = 99, message = "A margem mínima deve ser entre 0 e 99%.")
+    Integer margemMinimaPercent,
 
     @NotBlank(message = "A categoria é obrigatória.")
     @Size(max = 50, message = "A categoria deve ter no máximo 50 caracteres.")

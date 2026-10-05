@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -50,6 +51,14 @@ public class Produto {
     @Column(name = "preco_venda", nullable = false, precision = 10, scale = 2)
     private BigDecimal precoVenda;
 
+    /** Custo manual (NF-e / compras alimentam no futuro). */
+    @Column(name = "preco_custo", precision = 10, scale = 2)
+    private BigDecimal precoCusto;
+
+    /** Margem mínima (%) só deste produto; null = regra da categoria / padrão. */
+    @Column(name = "margem_minima_percent")
+    private Integer margemMinimaPercent;
+
     @Column(name = "categoria", nullable = false, length = 50)
     private String categoria;
 
@@ -82,6 +91,15 @@ public class Produto {
     @Builder.Default
     @Column(nullable = false)
     private Boolean ativo = true;
+
+    @Transient
+    private BigDecimal precoSugerido;
+
+    @Transient
+    private Integer margemMinimaEfetivaPercent;
+
+    @Transient
+    private Boolean alertaMargem;
 
     @PrePersist
     protected void onCreate() {

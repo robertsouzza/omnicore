@@ -25,12 +25,19 @@ public class ProdutoServiceTest {
     @Mock
     private ProdutoRepository produtoRepository;
 
+    @Mock
+    private PrecificacaoService precificacaoService;
+
     @InjectMocks
     private ProdutoService produtoService;
 
     @BeforeEach
     void autenticarGerente() {
         WebMvcTestAuth.setGerenteNoContexto();
+        org.mockito.Mockito.lenient()
+                .doNothing()
+                .when(precificacaoService)
+                .enriquecerIndicadoresPrecificacao(org.mockito.ArgumentMatchers.any());
     }
 
     @Test

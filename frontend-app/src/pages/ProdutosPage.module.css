@@ -409,6 +409,11 @@
   color: #475569;
 }
 
+.precoAlerta {
+  color: #c2410c;
+  font-weight: 600;
+}
+
 .preco {
   font-weight: 600;
   color: #0f2744;

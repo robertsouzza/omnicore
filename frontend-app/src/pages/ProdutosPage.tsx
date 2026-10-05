@@ -22,6 +22,15 @@ function formatPreco(value: number): string {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
 }
 
+function tituloPreco(produto: Produto, mostrarMargem: boolean): string | undefined {
+  if (!mostrarMargem || !produto.alertaMargem) return undefined
+  const sugerido =
+    produto.precoSugerido != null
+      ? formatPreco(produto.precoSugerido)
+      : 'consulte o cadastro'
+  return `Preço abaixo do sugerido (${sugerido})`
+}
+
 import { resolveImagemUrl } from '../utils/produtoImagem'
 
 interface ProdutoThumbnailProps {
@@ -371,7 +380,16 @@ export function ProdutosPage() {
                       </div>
                       <div>
                         <dt>Preço</dt>
-                        <dd className={styles.cardPreco}>{formatPreco(produto.precoVenda)}</dd>
+                        <dd
+                          className={
+                            produto.alertaMargem && podeEditar
+                              ? `${styles.cardPreco} ${styles.precoAlerta}`
+                              : styles.cardPreco
+                          }
+                          title={tituloPreco(produto, podeEditar)}
+                        >
+                          {formatPreco(produto.precoVenda)}
+                        </dd>
                       </div>
                       <div>
                         <dt>Estoque</dt>
@@ -425,7 +443,16 @@ export function ProdutosPage() {
                         <td>{produto.nome}</td>
                         <td>{produto.categoria}</td>
                         <td>{produto.tipoProduto}</td>
-                        <td className={styles.preco}>{formatPreco(produto.precoVenda)}</td>
+                        <td
+                          className={
+                            produto.alertaMargem && podeEditar
+                              ? `${styles.preco} ${styles.precoAlerta}`
+                              : styles.preco
+                          }
+                          title={tituloPreco(produto, podeEditar)}
+                        >
+                          {formatPreco(produto.precoVenda)}
+                        </td>
                         <td className={styles.saldoCol}>{estoqueCell(produto)}</td>
                         {incluirInativos && (
                           <td>

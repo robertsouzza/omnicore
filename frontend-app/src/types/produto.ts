@@ -7,6 +7,11 @@ export interface Produto {
   nome: string
   descricao: string | null
   precoVenda: number
+  precoCusto?: number | null
+  margemMinimaPercent?: number | null
+  precoSugerido?: number | null
+  margemMinimaEfetivaPercent?: number | null
+  alertaMargem?: boolean
   categoria: string
   urlImagem: string | null
   tipoProduto: TipoProduto
@@ -26,6 +31,8 @@ export interface ProdutoRequest {
   nome: string
   descricao?: string | null
   precoVenda: number
+  precoCusto?: number | null
+  margemMinimaPercent?: number | null
   categoria: string
   urlImagem?: string | null
   imagemCodigoBarras?: string | null
