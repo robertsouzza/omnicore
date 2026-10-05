@@ -803,4 +803,10 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 - **Fix edição produto (gerente/conferente):** não apagar QR/barcode no PUT quando campos omitidos; form não zera QR ao mudar preço/nome; `urlImagem` max 255; Tomcat post 10MB.
 - **Próximo:** checklist RBAC Marina/Paulo (seção 26/set); depois 14-B/C.
 
-*Última atualização: 28/set/2026 — Git `ab642e7`.*
+## Sessão 05/out/2026 (Roberto + Logan)
+
+- **RBAC loja física validado:** gerente, conferente, dois vendedores, caixa — cada perfil só acessa o permitido (menu + API).
+- **Equipe/permissões:** matriz atual é **visual + troca de perfil**; extras editáveis = **planejado** — ver `.cursor/PERMISSOES-PERFIL.md` (seção *perfil + permissões extras*). Implementar **após 14-B/C** ou sessão dedicada.
+- **Próximo foco:** **14-B/C** Stone/Getnet sandbox; simulador `:9090`.
+
+*Última atualização: 05/out/2026 — Git `d0a010e`.*

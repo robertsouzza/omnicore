@@ -13,7 +13,8 @@ Antes de implementar, leia se necessário: `.cursor/CONTEXTO-OMNICORE.md` (ou `@
 - Backend core concluído: Produto, Estoque, Vendas, ComposicaoPacote, Cliente, Colaborador, Auth JWT, CI
 - RBAC loja física ✅ — matriz `.cursor/PERMISSOES-PERFIL.md`; seeds `seed-perfis-dev.sh`
 - Equipe gerente ✅ — `/equipe` CRUD colaboradores + `/equipe/permissoes` (matriz)
-- **Próximo:** checklist RBAC Marina (CAIXA) + Paulo (CONFERENTE) — seção *Continuação — sessão 26/set/2026* no CONTEXTO
+- **RBAC loja física** validado (05/out) — checklist Marina/Paulo ✅
+- **Próximo:** **14-B/C** pagamento sandbox; depois sessão **perfil + extras** (ver `PERMISSOES-PERFIL.md`)
 - Depois: **14-B/C** Stone/Getnet (sandbox) → **14-D** fiscal → **Fase 15** e-commerce B2C
 - Simulador pagamento: repo irmão **`~/omnicore-pagamento-simulador/`** — skill `@.cursor/skills/omnicore-pagamento-simulador/SKILL.md` (fora do monorepo git)
 - Sessão 9.1: clientes estrangeiros (tipo documento) — Fase B entrega internacional = débito técnico no CONTEXTO
@@ -44,4 +45,4 @@ Nunca encerrar sessão entregue sem sincronizar o contexto **e** o README.
 
 ## Git (main)
 
-Último commit relevante: `ab642e7` — estoque lote + catálogo 4s + fix QR produto (28/set); Equipe `7848e8a`; RBAC `40cdef0`
+Último commit relevante: `d0a010e` — docs RBAC + extras planejados (05/out); feat `ab642e7` estoque lote (28/set)

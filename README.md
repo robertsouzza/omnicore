@@ -198,6 +198,7 @@ Regras de negócio incluem: baixa de estoque na venda, estorno no cancelamento, 
 |------|-----------|-------------------|
 | Clientes Fase B | Entrega só no Brasil | Entrega internacional (futuro) |
 | Imagem do produto | URL opcional **ou upload** JPG/PNG/WebP (MinIO dev) | Produção: S3/Cloudinary — trocar `omnicore.storage.*` |
+| RBAC loja (perfis + Equipe) | ✅ Matriz por perfil testada (gerente, caixa, conferente, vendedores); extras por pessoa = planejado pós 14-B/C | `PERMISSOES-PERFIL.md` |
 | Pagamento / caixa | ✅ `/caixa` modal + `PUT /pagar` com forma; PDV/Nova Venda “Paga” via reserva + pagar | Simulador externo (dev) · **14-B/C/D** |
 | Meios de pagamento | ✅ UI 14-A (DINHEIRO, PIX, CREDITO, DEBITO_BANCARIO) | **14-C** pinpad débito (TEF) |
 | Cancelamento venda paga | ✅ Motivo + autorização **GERENTE** (Sessão 11.1) | Estorno financeiro/fiscal/NFC-e = **futuro** |

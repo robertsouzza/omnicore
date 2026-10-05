@@ -47,6 +47,42 @@ Menu **Equipe** (só GERENTE):
 - **`/equipe/novo`**, **`/equipe/:id/editar`** — formulário (nome, CPF, e-mail, senha, perfil, limite desconto).
 - **`/equipe/permissoes`** — matriz visual e troca rápida de perfil + modelos Vendedor/Caixa/Conferente.
 
-## Evolução
+## Evolução — perfil + permissões extras (planejado, pós 14-B/C)
 
-Permissões **módulo a módulo** editáveis sem trocar perfil (exceções por pessoa ou matriz gravada no banco) = próxima fase; hoje **1 perfil = 1 conjunto fixo** (API + `permissoes.ts`).
+**Decisão (Roberto + Logan — out/2026):** manter o default **como hoje** (1 perfil = pacote fixo). Gerente poderá conceder **permissões extras** por colaborador, sem trocar o perfil. **Não** implementado ainda — sessão dedicada.
+
+### Comportamento desejado
+
+| Camada | Regra |
+|--------|--------|
+| **Base** | Matriz do perfil (`VENDEDOR`, `CAIXA`, `CONFERENTE`, `GERENTE`) — inalterada. |
+| **Extras** | Gerente liga módulos que o perfil **não** inclui (ex.: vendedor + movimentar estoque). |
+| **Efetivo** | API e menu: `perfil OR extra`. |
+| **Gerente** | Pacote total fixo; esta tela **não** altera outro gerente. |
+| **Fase 2** | **Revogar** linha que o perfil já dá (ex.: caixa sem PDV) = lista de negações — depois dos extras positivos. |
+
+### UI (`/equipe/permissoes`)
+
+- Itens **já do perfil:** checkbox marcado e **somente leitura** (“vem do perfil”).
+- Itens **extras:** checkbox **editável** + **Salvar permissões extras**.
+- Modelos Vendedor/Caixa/Conferente continuam trocando o **perfil** inteiro.
+
+### Lista branca (extras permitidos)
+
+Só códigos do catálogo (`permissoesCatalogo.ts`) que **não** são exclusivos de gerente. **Proibido** como extra:
+
+- `colaboradores` (Equipe)
+- `vendas_filtro_vendedor`
+
+Demais módulos (produtos editar, estoque movimentar, caixa, vendas, etc.) — definir na implementação com validação no backend.
+
+### Backend (escopo técnico)
+
+- Persistência: coluna JSON `permissoes_extras` em `tb_colaborador` ou tabela `colaborador_permissao_extra`.
+- Refatorar `ColaboradorAutorizacao`: checagem por **código** (`temPermissao`) = matriz do perfil **ou** extra gravado.
+- Login/JWT ou filter: incluir extras para o front espelhar (`permissoes.ts`); após salvar extras, **rel login** ou refresh de sessão.
+- Endpoint: `PUT /api/colaboradores/{id}/permissoes-extras` (só GERENTE) ou campo no DTO de update com validação.
+
+### Estado atual (MVP)
+
+Permissões **módulo a módulo** editáveis na UI **não** existem; checkboxes em `/equipe/permissoes` são **readOnly** e refletem só o perfil. Trocar acesso = alterar **perfil** + Salvar.

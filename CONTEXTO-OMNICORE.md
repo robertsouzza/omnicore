@@ -6,15 +6,15 @@ O contexto completo do projeto está em **[`.cursor/CONTEXTO-OMNICORE.md`](.curs
 **Multi-PSP / adapters:** `@.cursor/MULTI-PSP-ADAPTERS.md`  
 **RBAC / Equipe:** `@.cursor/PERMISSOES-PERFIL.md`
 
-## Restaurar conversa no Agent (26/set/2026)
+## Restaurar conversa no Agent
 
 ```
 @.cursor/CONTEXTO-OMNICORE.md
 
 Olá Logan, continuamos o OmniCore.
-Leia "Continuação — sessão 26/set/2026" e "Sessão 28/set/2026" no CONTEXTO.
-Hoje: checklist RBAC caixa + conferente (Marina/Paulo); depois 14-B/C se checklist OK.
-Git main @ 3657c7c. Não commitar docker-compose.yml.
+RBAC loja validado (05/out). Próximo: 14-B/C pagamento sandbox.
+Extras de permissão por gerente: planejado em PERMISSOES-PERFIL.md (não implementado).
+Git main @ git log -1. Não commitar docker-compose.yml.
 ```
 
 A regra persistente do Agent fica em `.cursor/rules/omnicore-projeto.mdc`.
