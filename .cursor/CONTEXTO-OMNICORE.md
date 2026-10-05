@@ -809,4 +809,4 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 - **Equipe/permissões:** matriz atual é **visual + troca de perfil**; extras editáveis = **planejado** — ver `.cursor/PERMISSOES-PERFIL.md` (seção *perfil + permissões extras*). Implementar **após 14-B/C** ou sessão dedicada.
 - **Próximo foco:** **14-B/C** Stone/Getnet sandbox; simulador `:9090`.
 
-*Última atualização: 05/out/2026 — Git `d0a010e`.*
+*Última atualização: 05/out/2026 — Git `9395237`.*
