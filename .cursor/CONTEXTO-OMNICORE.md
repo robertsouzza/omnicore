@@ -810,4 +810,4 @@ Ver bloco em **Continuação — sessão 26/set/2026** (acima).
 - **Próximo foco:** **14-B/C** Stone/Getnet sandbox; simulador `:9090`.
 - **Precificação Etapa 1:** `precoCusto`, margem produto/categoria, `precoSugerido`, `alertaMargem` — entregue 05/out.
 
-*Última atualização: 05/out/2026 — Git `PLACEHOLDER`.*
+*Última atualização: 05/out/2026 — Git `86f060c`.*
